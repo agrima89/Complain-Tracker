@@ -1,0 +1,266 @@
+/* ==========================================================================
+   CAMPUSCARE - STUDENT GRIEVANCE PORTAL - FORMS & AUTH LAYOUTS
+   ========================================================================== */
+
+/* ---------------- FORM CONTROLS ---------------- */
+.form-group {
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 0.4rem;
+  transition: color 0.25s ease;
+}
+
+.form-label .required-star {
+  color: var(--color-danger);
+  margin-left: 0.2rem;
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35rem;
+  transition: color 0.25s ease;
+}
+
+.form-control,
+.form-select,
+.form-textarea {
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--input-text);
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  line-height: 1.5;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), var(--transition-theme);
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: var(--input-focus-shadow);
+  outline: none;
+}
+
+.form-control::placeholder,
+.form-textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Password Input with Toggle */
+.input-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-wrapper .form-control {
+  padding-right: 2.75rem;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: color var(--transition-fast);
+}
+
+.password-toggle-btn:hover {
+  color: var(--color-text-primary);
+}
+
+/* Character Counter */
+.char-counter-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+.char-counter {
+  font-size: 0.775rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.25s ease;
+}
+
+/* Priority Option Selector Radios */
+.priority-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.priority-option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background-color: var(--color-surface-card);
+  transition: var(--transition-fast), var(--transition-theme);
+}
+
+.priority-option-card:hover {
+  border-color: var(--color-primary-600);
+  background-color: var(--color-surface-hover);
+}
+
+.priority-option-card input[type="radio"] {
+  margin-top: 0.2rem;
+  accent-color: var(--color-primary-600);
+}
+
+.priority-option-card .priority-label-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.priority-option-card .priority-label-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+/* Validation Feedback */
+.form-error-feedback {
+  display: none;
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  margin-top: 0.35rem;
+}
+
+.has-error .form-control,
+.has-error .form-select,
+.has-error .form-textarea {
+  border-color: var(--color-danger);
+  background-color: var(--input-bg);
+}
+
+.has-error .form-error-feedback {
+  display: block;
+}
+
+/* ---------------- AUTHENTICATION SPLIT LAYOUT ---------------- */
+.auth-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--navbar-height) - 100px);
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  background-color: var(--color-surface-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  transition: var(--transition-theme);
+}
+
+.auth-banner-side {
+  flex: 1;
+  background: linear-gradient(145deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.auth-banner-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.auth-banner-brand .brand-icon {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.auth-banner-content h2 {
+  font-size: 1.85rem;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+}
+
+.auth-banner-content p {
+  color: #bfdbfe;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.auth-banner-features {
+  list-style: none;
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.auth-banner-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: #e0f2fe;
+}
+
+.auth-form-side {
+  flex: 1.2;
+  padding: 3rem 2.5rem;
+  background-color: var(--color-surface-card);
+  transition: var(--transition-theme);
+}
+
+.auth-form-header {
+  margin-bottom: 2rem;
+}
+
+.auth-form-header h1 {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+  transition: color 0.25s ease;
+}
+
+.auth-form-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+

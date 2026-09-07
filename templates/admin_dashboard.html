@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Management Dashboard - CampusCare{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1280px;">
+
+  <!-- Live Time & Greeting -->
+  <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+    <span class="time-headline-text">
+      <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+      <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+    </span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-title">
+      <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+        <span class="tag-cyan-dot"></span>
+        <span>ADMINISTRATIVE COMMAND CENTER</span>
+      </div>
+      <h1>Admin Management Dashboard</h1>
+      <p class="page-header-subtitle">Monitor, filter, and resolve campus complaint tickets across all university departments.</p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{{ url_for('profile_view') }}" class="btn btn-secondary btn-sm">
+        🛡️ Admin Profile
+      </a>
+    </div>
+  </div>
+
+  <!-- Live Statistics Cards Grid -->
+  <div class="stats-grid">
+    
+    <!-- Total Complaints -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-label">Total Grievances</span>
+        <div class="stat-icon">📊</div>
+      </div>
+      <div id="stat-total" class="stat-value">{{ stats.total }}</div>
+    </div>
+
+    <!-- Pending -->
+    <div class="stat-card stat-pending">
+      <div class="stat-header">
+        <span class="stat-label">Pending Action</span>
+        <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
+      </div>
+      <div id="stat-pending" class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="stat-card stat-progress">
+      <div class="stat-header">
+        <span class="stat-label">In Progress</span>
+        <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
+      </div>
+      <div id="stat-progress" class="stat-value" style="color: #38bdf8;">{{ stats.in_progress }}</div>
+    </div>
+
+    <!-- Resolved -->
+    <div class="stat-card stat-resolved">
+      <div class="stat-header">
+        <span class="stat-label">Resolved</span>
+        <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3);">✓</div>
+      </div>
+      <div id="stat-resolved" class="stat-value" style="color: #4ade80;">{{ stats.resolved }}</div>
+    </div>
+
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <form action="{{ url_for('admin_dashboard') }}" method="GET" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(6, 11, 24, 0.65); border: 1px solid rgba(56, 189, 248, 0.16); border-radius: 16px; padding: 1rem 1.25rem; backdrop-filter: blur(12px);">
+    
+    <div style="display: flex; gap: 1rem; align-items: center; flex: 1; min-width: 280px; flex-wrap: wrap;">
+      
+      <!-- Multi-parameter Search Input -->
+      <div style="position: relative; flex: 1; min-width: 220px;">
+        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;">🔍</span>
+        <input
+          type="text"
+          name="q"
+          class="form-input"
+          style="padding-left: 2.75rem;"
+          placeholder="Search student, category, description, location, or ticket #..."
+          value="{{ search_text or '' }}"
+        >
+      </div>
+
+      <!-- Status Filter -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <label for="admin-status-filter" style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; white-space: nowrap;">
+          Status:
+        </label>
+        <select id="admin-status-filter" name="status" class="form-select" style="width: auto; min-width: 130px;">
+          <option value="All" {% if status_filter == 'All' or not status_filter %}selected{% endif %}>All Statuses</option>
+          <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+        </select>
+      </div>
+
+      <!-- Priority Filter -->
+      <div style="display: flex; align-items: center; gap: 0.4rem;">
+        <label for="admin-priority-filter" style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; white-space: nowrap;">
+          Priority:
+        </label>
+        <select id="admin-priority-filter" name="priority" class="form-select" style="width: auto; min-width: 120px;">
+          <option value="All" {% if priority_filter == 'All' or not priority_filter %}selected{% endif %}>All Priorities</option>
+          <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+          <option value="Medium" {% if priority_filter == 'Medium' %}selected{% endif %}>Medium</option>
+          <option value="Low" {% if priority_filter == 'Low' %}selected{% endif %}>Low</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Filter Action Buttons -->
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary btn-sm">
+        Apply Filters
+      </button>
+      {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm" title="Clear all filters">
+          Reset
+        </a>
+      {% endif %}
+    </div>
+
+  </form>
+
+  <!-- Complaints Management Table -->
+  <div class="cinematic-card">
+    <div class="card-header">
+      <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem;">
+        {% if complaints %}
+          Showing {{ complaints|length }} Campus Grievance Ticket{% if complaints|length > 1 %}s{% endif %}
+        {% else %}
+          Campus Complaints List
+        {% endif %}
+      </div>
+      <div>
+        {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+          <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Filtered Results</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+      {% if complaints %}
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Student Details</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Priority</th>
+                <th>Date</th>
+                <th>Current Status</th>
+                <th>Quick Status Update</th>
+                <th style="text-align: right;">Review</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in complaints %}
+                <tr>
+                  <!-- Ticket ID -->
+                  <td style="font-weight: 700; font-family: monospace;">
+                    <a href="{{ url_for('admin_complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
+                      #{{ "%03d"|format(item.complaint_id) }}
+                    </a>
+                  </td>
+
+                  <!-- Student Details -->
+                  <td>
+                    <div style="font-weight: 600; color: #ffffff; font-size: 0.9rem;">
+                      {{ item.student_name }}
+                    </div>
+                    <div style="font-size: 0.775rem; color: #94a3b8;">
+                      {{ item.student_email }}
+                    </div>
+                  </td>
+
+                  <!-- Category -->
+                  <td>
+                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">{{ item.category }}</span>
+                  </td>
+
+                  <!-- Location -->
+                  <td style="color: #cbd5e1;">{{ item.location }}</td>
+
+                  <!-- Priority Badge -->
+                  <td>
+                    {% if item.priority == 'High' %}
+                      <span class="badge badge-priority-high">● High</span>
+                    {% elif item.priority == 'Medium' %}
+                      <span class="badge badge-priority-medium">● Medium</span>
+                    {% else %}
+                      <span class="badge badge-priority-low">● Low</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Date -->
+                  <td style="color: #94a3b8; font-size: 0.825rem;">{{ item.date }}</td>
+
+                  <!-- Status Badge -->
+                  <td>
+                    <span id="statusBadge-{{ item.complaint_id }}" class="badge {% if item.status == 'Pending' %}badge-pending{% elif item.status == 'In Progress' %}badge-in-progress{% elif item.status == 'Resolved' %}badge-resolved{% else %}badge{% endif %}">
+                      {{ item.status }}
+                    </span>
+                  </td>
+
+                  <!-- Quick Status Update Form (AJAX enabled) -->
+                  <td>
+                    <form class="admin-status-form" data-complaint-id="{{ item.complaint_id }}" style="display: flex; align-items: center; gap: 0.4rem;">
+                      <select class="form-select status-select" style="padding: 0.35rem 0.5rem; font-size: 0.825rem; width: auto;">
+                        <option value="Pending" {% if item.status == 'Pending' %}selected{% endif %}>Pending</option>
+                        <option value="In Progress" {% if item.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                        <option value="Resolved" {% if item.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                      </select>
+                      <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                        Save
+                      </button>
+                    </form>
+                  </td>
+
+                  <!-- Full Review Action -->
+                  <td style="text-align: right;">
+                    <a href="{{ url_for('admin_complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                      Inspect &rarr;
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 3.5rem 1.5rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+          <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No matching complaints found</h3>
+          <p style="color: #94a3b8; max-width: 440px; margin: 0 auto 1.5rem; font-size: 0.9rem;">
+            {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+              No complaints match your active filter criteria. Try resetting filters to view all records.
+            {% else %}
+              There are currently no complaints in the system.
+            {% endif %}
+          </p>
+          {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+              Clear All Filters
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}Student Login - CampusCare SaaS Portal{% endblock %}
+
+{% block main_class %}main-content--flush auth-page-main{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-body">
+
+  <!-- Minimal Focused Top Navigation -->
+  <header class="auth-top-navbar">
+    <a href="{{ url_for('landing') }}" class="auth-nav-brand">
+      <div class="brand-logo-icon">🏫</div>
+      <div class="brand-title-group">
+        <span class="brand-name">CampusCare</span>
+        <span class="brand-sub">Student Grievance Portal</span>
+      </div>
+    </a>
+
+    <div class="auth-nav-actions">
+      <a href="{{ url_for('landing') }}" class="auth-nav-link">Home</a>
+      <a href="{{ url_for('student_register_view') }}" class="auth-nav-pill-btn">Register</a>
+      
+      <!-- Theme Toggle Sync -->
+      <button type="button" id="authThemeToggle" class="theme-toggle-btn" aria-label="Toggle theme" title="Toggle dark/light mode">
+        <span class="theme-toggle-icon" id="authThemeToggleIcon">🌙</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Split-Screen Login Layout -->
+  <div class="auth-split-wrapper">
+
+    <!-- ======================================================================
+         LEFT PANEL: DIGITAL CAMPUS VISUALIZATION & LIVE COMPLAINT METRICS
+         ====================================================================== -->
+    <div class="auth-visual-panel">
+      <!-- Glow Spots & Blueprint Grid -->
+      <div class="auth-glow-layer">
+        <div class="auth-glow-orb auth-glow-1"></div>
+        <div class="auth-glow-orb auth-glow-2"></div>
+      </div>
+      <div class="auth-grid-pattern"></div>
+
+      <div class="auth-panel-content">
+        <!-- Hero Badge & Title -->
+        <div class="auth-badge">
+          <span class="auth-badge-dot"></span>
+          <span>STUDENT GRIEVANCE PORTAL</span>
+        </div>
+
+        <h1 class="auth-hero-title">
+          Your Campus.<br>
+          Your Voice.<br>
+          <span class="auth-hero-highlight">Your Resolution.</span>
+        </h1>
+
+        <p class="auth-hero-subtext">
+          Stay connected to every complaint, update and resolution happening across your campus.
+        </p>
+
+        <!-- Abstract Digital Campus Map with Floating Stats -->
+        <div class="auth-campus-visual-container">
+          <div class="auth-campus-map-box">
+            <div class="map-ambient-grid"></div>
+
+            <!-- SVG Circuit Lines Connecting Locations -->
+            <svg class="auth-map-svg" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M 80 60 L 200 45 L 320 80" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5" stroke-dasharray="4 4" />
+              <path d="M 200 45 L 200 185" stroke="rgba(59, 130, 246, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+              <path d="M 80 60 L 100 180 L 200 185 L 300 170" stroke="rgba(16, 185, 129, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+            </svg>
+
+            <!-- Campus Node 1: Academic Block -->
+            <div class="auth-map-node" style="top: 25%; left: 20%;" title="Academic Block">
+              <div class="node-beacon">🏫</div>
+            </div>
+
+            <!-- Campus Node 2: Library -->
+            <div class="auth-map-node" style="top: 20%; left: 50%;" title="Central Library">
+              <div class="node-beacon">📚</div>
+            </div>
+
+            <!-- Campus Node 3: Hostel -->
+            <div class="auth-map-node" style="top: 35%; left: 80%;" title="Student Hostel">
+              <div class="node-beacon">🏠</div>
+            </div>
+
+            <!-- Campus Node 4: Labs -->
+            <div class="auth-map-node" style="top: 75%; left: 25%;" title="Research & Computer Labs">
+              <div class="node-beacon">🧪</div>
+            </div>
+
+            <!-- Campus Node 5: Cafeteria -->
+            <div class="auth-map-node" style="top: 72%; left: 75%;" title="Campus Cafeteria">
+              <div class="node-beacon">🍴</div>
+            </div>
+
+            <!-- Floating Stat Card 1 (Top-Right) -->
+            <div class="auth-floating-stat stat-pos-1">
+              <div class="auth-stat-icon stat-icon-green">✓</div>
+              <div class="auth-stat-text">
+                <div class="stat-top-val">2,316</div>
+                <div class="stat-sub-lbl">Issues Resolved</div>
+              </div>
+            </div>
+
+            <!-- Floating Stat Card 2 (Bottom-Left) -->
+            <div class="auth-floating-stat stat-pos-2">
+              <div class="auth-stat-icon stat-icon-amber">⚡</div>
+              <div class="auth-stat-text">
+                <div class="stat-top-val">18 Hours</div>
+                <div class="stat-sub-lbl">Avg Response</div>
+              </div>
+            </div>
+
+            <!-- Floating Stat Card 3 (Right-Center) -->
+            <div class="auth-floating-stat stat-pos-3">
+              <div class="auth-stat-icon stat-icon-blue">🛡️</div>
+              <div class="auth-stat-text">
+                <div class="stat-top-val">93.4%</div>
+                <div class="stat-sub-lbl">Resolution Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating Live Complaint Status Mini-Widget -->
+        <div class="auth-live-ticket-widget">
+          <div>
+            <div class="ticket-mini-header">
+              <span class="ticket-live-pill">🔵 LIVE COMPLAINT</span>
+              <span style="font-family: monospace; font-weight: 700; font-size: 0.76rem; color: var(--color-primary-600);">#CC-1042</span>
+            </div>
+            <div class="ticket-mini-title">Library Wi-Fi Connectivity</div>
+          </div>
+
+          <!-- 4-Stage Mini Timeline -->
+          <div class="ticket-pipeline-mini">
+            <div class="mini-step done" title="Submitted">
+              <span class="mini-dot"></span>
+              <span>Submitted</span>
+            </div>
+            <span style="color: var(--color-border-strong); font-size: 0.7rem;">→</span>
+            <div class="mini-step done" title="Under Review">
+              <span class="mini-dot"></span>
+              <span>Review</span>
+            </div>
+            <span style="color: var(--color-border-strong); font-size: 0.7rem;">→</span>
+            <div class="mini-step active" title="Action Taken">
+              <span class="mini-dot"></span>
+              <span>Action</span>
+            </div>
+            <span style="color: var(--color-border-strong); font-size: 0.7rem;">→</span>
+            <div class="mini-step" title="Resolved">
+              <span class="mini-dot"></span>
+              <span>Resolve</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Left Bottom Subtle Note -->
+      <div style="font-size: 0.78rem; color: var(--color-text-muted); position: relative; z-index: 2;">
+        CampusCare Student Portal • Secure TLS 256-bit Encrypted
+      </div>
+    </div>
+
+
+    <!-- ======================================================================
+         RIGHT PANEL: PREMIUM GLASSMORPHIC LOGIN CARD
+         ====================================================================== -->
+    <div class="auth-card-panel">
+      <div class="auth-form-glass-card">
+        
+        <!-- Header inside Card -->
+        <div class="login-card-header">
+          <div class="login-brand-icon-box">
+            <span>🏫</span>
+          </div>
+          <span class="login-welcome-wave">Welcome back 👋</span>
+          <h2 class="login-card-title">Student Login</h2>
+          <p class="login-card-subtext">Sign in to track and manage your campus complaints.</p>
+        </div>
+
+        <!-- Inline Animated Error Message -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              {% if category == 'error' or category == 'warning' %}
+                <div class="auth-inline-alert" role="alert">
+                  <span class="alert-icon">⚠</span>
+                  <span>{{ message }}</span>
+                </div>
+              {% elif category == 'info' or category == 'success' %}
+                <div class="auth-inline-alert" style="background: var(--status-resolved-bg); border-color: rgba(16, 185, 129, 0.4); color: var(--status-resolved-text);" role="alert">
+                  <span class="alert-icon">✓</span>
+                  <span>{{ message }}</span>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Login Form -->
+        <form action="{{ url_for('student_login_view') }}" method="POST" id="studentLoginForm" autocomplete="on">
+          
+          <!-- Email Input -->
+          <div class="auth-input-group">
+            <label for="email" class="auth-input-label">
+              Email Address <span style="color: var(--color-danger);">*</span>
+            </label>
+            <div class="auth-input-with-icon">
+              <span class="auth-input-icon">✉</span>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="auth-form-input"
+                placeholder="Enter your university email"
+                value="{{ email or '' }}"
+                required
+                autofocus
+              >
+            </div>
+          </div>
+
+          <!-- Password Input -->
+          <div class="auth-input-group">
+            <label for="password" class="auth-input-label">
+              Password <span style="color: var(--color-danger);">*</span>
+            </label>
+            <div class="auth-input-with-icon input-password-wrapper">
+              <span class="auth-input-icon">🔒</span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="auth-form-input"
+                placeholder="Enter your password"
+                required
+              >
+              <button type="button" class="auth-password-toggle password-toggle-btn" aria-label="Toggle password visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <!-- Options Row: Remember Me & Forgot Password -->
+          <div class="auth-options-row">
+            <label class="remember-me-label">
+              <input type="checkbox" name="remember_me" class="remember-me-checkbox" checked>
+              <span>Remember me</span>
+            </label>
+            <a href="javascript:void(0)" class="forgot-password-link" id="forgotPasswordLink">
+              Forgot Password?
+            </a>
+          </div>
+
+          <!-- Sign In Submit Button -->
+          <button type="submit" class="btn-auth-submit" id="authSubmitBtn">
+            <span class="btn-auth-text">Sign In</span>
+            <span class="btn-auth-arrow">→</span>
+          </button>
+
+        </form>
+
+        <!-- Footer / Registration Link & Security Badge -->
+        <div class="auth-card-footer">
+          <div class="auth-register-prompt">
+            New to CampusCare?
+            <a href="{{ url_for('student_register_view') }}" class="auth-register-link">
+              Create your student account →
+            </a>
+          </div>
+
+          <div class="auth-security-badge">
+            <span>🔒</span> Secure Student Access
+          </div>
+
+          <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--color-border-subtle);">
+            <a href="{{ url_for('admin_login_view') }}" style="color: var(--color-text-muted); font-size: 0.8rem; text-decoration: none; font-weight: 500;">
+              🛡️ Administrative Staff Portal →
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Hide global base navbar/footer on dedicated auth page
+  document.body.classList.add('auth-page');
+</script>
+{% endblock %}

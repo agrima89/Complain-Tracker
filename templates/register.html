@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Student Registration - CampusCare Portal{% endblock %}
+
+{% block main_class %}main-content--flush auth-page-main{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-body">
+
+  <!-- Focused Top Navigation -->
+  <header class="auth-top-navbar">
+    <a href="{{ url_for('landing') }}" class="auth-nav-brand">
+      <div class="brand-logo-icon">🏫</div>
+      <div class="brand-title-group">
+        <span class="brand-name">CampusCare</span>
+        <span class="brand-sub">Student Grievance Portal</span>
+      </div>
+    </a>
+
+    <div class="auth-nav-actions">
+      <a href="{{ url_for('landing') }}" class="auth-nav-link">Home</a>
+      <a href="{{ url_for('student_login_view') }}" class="auth-nav-pill-btn">Sign In</a>
+    </div>
+  </header>
+
+  <!-- Split-Screen Registration Layout -->
+  <div class="auth-split-wrapper">
+
+    <!-- Left Visual Panel -->
+    <div class="auth-visual-panel">
+      <div class="auth-panel-content">
+        
+        <!-- Live Time & Signature Greeting -->
+        <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+          <span class="time-headline-text">
+            <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+            <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+          </span>
+          <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+        </div>
+
+        <div class="auth-badge">
+          <span class="auth-badge-dot"></span>
+          <span>STUDENT REGISTRATION</span>
+        </div>
+
+        <h1 class="auth-hero-title">
+          Join Your Campus<br>
+          <span class="auth-hero-highlight">Resolution Network.</span>
+        </h1>
+
+        <p class="auth-hero-subtext">
+          Create an account to report issues, track live solutions, and help build a better university environment.
+        </p>
+
+        <!-- Floating Feature Pills -->
+        <div style="display: flex; flex-direction: column; gap: 0.85rem; margin: 2rem 0;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
+            <span style="color: #38bdf8; font-weight: bold;">✓</span>
+            <span>Direct grievance submission across all campus facilities</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
+            <span style="color: #38bdf8; font-weight: bold;">✓</span>
+            <span>Real-time resolution updates and timeline milestones</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
+            <span style="color: #38bdf8; font-weight: bold;">✓</span>
+            <span>Verified solutions audited by university administration</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="font-size: 0.78rem; color: #64748b; position: relative; z-index: 2;">
+        CampusCare Student Portal • Encrypted & Protected
+      </div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="auth-card-panel">
+      <div class="auth-form-glass-card">
+        
+        <div class="login-card-header">
+          <div class="login-brand-icon-box">
+            <span>✨</span>
+          </div>
+          <span class="login-welcome-wave">Get Started 🎓</span>
+          <h2 class="login-card-title">Create Account</h2>
+          <p class="login-card-subtext">Enter your details to register as a student.</p>
+        </div>
+
+        <!-- Inline Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              {% if category == 'error' or category == 'warning' %}
+                <div class="auth-inline-alert" role="alert">
+                  <span class="alert-icon">⚠</span>
+                  <span>{{ message }}</span>
+                </div>
+              {% elif category == 'info' or category == 'success' %}
+                <div class="auth-inline-alert" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.4); color: #4ade80;" role="alert">
+                  <span class="alert-icon">✓</span>
+                  <span>{{ message }}</span>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Registration Form -->
+        <form action="{{ url_for('student_register_view') }}" method="POST" autocomplete="on">
+          
+          <!-- Full Name -->
+          <div class="auth-input-group">
+            <label for="name" class="auth-input-label">
+              Full Name <span style="color: #f43f5e;">*</span>
+            </label>
+            <div class="auth-input-with-icon">
+              <span class="auth-input-icon">👤</span>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="auth-form-input"
+                placeholder="e.g. Agrima Bajpai"
+                value="{{ name or '' }}"
+                required
+                autofocus
+              >
+            </div>
+          </div>
+
+          <!-- Email Address -->
+          <div class="auth-input-group">
+            <label for="email" class="auth-input-label">
+              University / Personal Email <span style="color: #f43f5e;">*</span>
+            </label>
+            <div class="auth-input-with-icon">
+              <span class="auth-input-icon">✉</span>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="auth-form-input"
+                placeholder="e.g. student@college.edu"
+                value="{{ email or '' }}"
+                required
+              >
+            </div>
+            <span class="form-hint" style="color: #64748b; font-size: 0.78rem; margin-top: 0.35rem; display: block;">
+              Used for your login credentials and grievance updates.
+            </span>
+          </div>
+
+          <!-- Password -->
+          <div class="auth-input-group">
+            <label for="password" class="auth-input-label">
+              Create Password <span style="color: #f43f5e;">*</span>
+            </label>
+            <div class="auth-input-with-icon input-password-wrapper">
+              <span class="auth-input-icon">🔒</span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="auth-form-input"
+                placeholder="Minimum 4 characters"
+                minlength="4"
+                required
+              >
+              <button type="button" class="auth-password-toggle password-toggle-btn" aria-label="Toggle password visibility">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn-auth-submit" style="margin-top: 1.5rem;">
+            <span class="btn-auth-text">Complete Registration</span>
+            <span class="btn-auth-arrow">→</span>
+          </button>
+
+        </form>
+
+        <!-- Footer -->
+        <div class="auth-card-footer">
+          <div class="auth-register-prompt">
+            Already have an account?
+            <a href="{{ url_for('student_login_view') }}" class="auth-register-link">
+              Sign In →
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  document.body.classList.add('auth-page');
+</script>
+{% endblock %}

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Review: Ticket #{{ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 900px;">
+
+  <!-- Live Time & Greeting -->
+  <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+    <span class="time-headline-text">
+      <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+      <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+    </span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+  </div>
+
+  <!-- Breadcrumb Navigation -->
+  <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
+    <a href="{{ url_for('admin_dashboard') }}" style="color: #38bdf8; text-decoration: none;">Admin Dashboard</a> &nbsp;/&nbsp; 
+    <span style="color: #ffffff; font-weight: 600;">Inspect Ticket #{{ "%03d"|format(complaint.complaint_id) }}</span>
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header" style="margin-bottom: 1.5rem;">
+    <div class="page-header-title">
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <h1 style="font-family: monospace; letter-spacing: -0.02em;">Ticket #{{ "%03d"|format(complaint.complaint_id) }}</h1>
+        
+        <!-- Status Badge -->
+        {% if complaint.status == 'Pending' %}
+          <span id="detailStatusBadge" class="badge badge-pending">⏳ Pending Review</span>
+        {% elif complaint.status == 'In Progress' %}
+          <span id="detailStatusBadge" class="badge badge-progress">⚡ In Progress</span>
+        {% elif complaint.status == 'Resolved' %}
+          <span id="detailStatusBadge" class="badge badge-resolved">✓ Resolved</span>
+        {% endif %}
+
+        <!-- Priority Badge -->
+        {% if complaint.priority == 'High' %}
+          <span class="badge badge-priority-high">● High Priority</span>
+        {% elif complaint.priority == 'Medium' %}
+          <span class="badge badge-priority-medium">● Medium Priority</span>
+        {% else %}
+          <span class="badge badge-priority-low">● Low Priority</span>
+        {% endif %}
+      </div>
+      <p class="page-header-subtitle">Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> on {{ complaint.date }}</p>
+    </div>
+
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm">
+        ← Back to Management Dashboard
+      </a>
+    </div>
+  </div>
+
+  <!-- Administrative Action & Status Manager Card -->
+  <div class="cinematic-card" style="margin-bottom: 2rem; border-color: rgba(56, 189, 248, 0.4) !important;">
+    <div class="card-header">
+      <h2 class="card-title" style="color: #38bdf8;">
+        🛡️ Administrative Redressal Actions
+      </h2>
+      <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Admin Control</span>
+    </div>
+
+    <div class="card-body">
+      <form action="{{ url_for('api_update_status') }}" method="POST" style="display: flex; align-items: flex-end; gap: 1.25rem; flex-wrap: wrap;">
+        <input type="hidden" name="complaint_id" value="{{ complaint.complaint_id }}">
+
+        <div style="flex: 1; min-width: 240px;">
+          <label for="statusSelect" class="form-label" style="margin-bottom: 0.35rem;">
+            Update Current Lifecycle Status:
+          </label>
+          <select id="statusSelect" name="status" class="form-select">
+            <option value="Pending" {% if complaint.status == 'Pending' %}selected{% endif %}>Pending</option>
+            <option value="In Progress" {% if complaint.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Resolved" {% if complaint.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg">
+          Save Status Update
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Floating Complaint Journey Timeline -->
+  <div class="cinematic-card" style="margin-bottom: 2rem; padding: 2rem 1.75rem;">
+    <div class="timeline-ticket-header" style="margin-bottom: 1.25rem;">
+      <span class="ticket-mono-id">#CC-{{ "%03d"|format(complaint.complaint_id) }}</span>
+      <span class="ticket-live-tag">● Lifecycle Progression</span>
+    </div>
+
+    <div class="floating-vertical-timeline">
+      
+      <!-- Step 1: Submitted -->
+      <div class="timeline-node-step is-done">
+        <div class="node-circular-marker">✓</div>
+        <span class="node-step-label">Submitted</span>
+        <span class="node-meta-badge">{{ complaint.date }}</span>
+      </div>
+
+      <!-- Step 2: Under Review -->
+      <div class="timeline-node-step {% if complaint.status in ['In Progress', 'Resolved'] %}is-done{% else %}is-active{% endif %}">
+        <div class="node-circular-marker">
+          {% if complaint.status in ['In Progress', 'Resolved'] %}✓{% else %}<div class="node-pulse-core"></div>{% endif %}
+        </div>
+        <span class="node-step-label">Under Review</span>
+        <span class="node-meta-badge {% if complaint.status == 'Pending' %}badge-active-state{% endif %}">
+          {% if complaint.status == 'Pending' %}Pending Review{% else %}Reviewed{% endif %}
+        </span>
+      </div>
+
+      <!-- Step 3: Action Taken -->
+      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done{% elif complaint.status == 'In Progress' %}is-active{% endif %}">
+        <div class="node-circular-marker">
+          {% if complaint.status == 'Resolved' %}✓{% elif complaint.status == 'In Progress' %}<div class="node-pulse-core"></div>{% else %}○{% endif %}
+        </div>
+        <span class="node-step-label">Action Taken</span>
+        <span class="node-meta-badge {% if complaint.status == 'In Progress' %}badge-active-state{% endif %}">
+          {% if complaint.status == 'In Progress' %}Staff Allocated{% elif complaint.status == 'Resolved' %}Work Completed{% else %}Queued{% endif %}
+        </span>
+      </div>
+
+      <!-- Step 4: Resolved -->
+      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done is-active{% endif %}">
+        <div class="node-circular-marker">
+          {% if complaint.status == 'Resolved' %}✓{% else %}○{% endif %}
+        </div>
+        <span class="node-step-label">Resolved</span>
+        <span class="node-meta-badge {% if complaint.status == 'Resolved' %}badge-active-state{% endif %}">
+          {% if complaint.status == 'Resolved' %}Verified & Closed{% else %}Final Step{% endif %}
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Ticket Overview & Specifications -->
+  <div class="cinematic-card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <h2 class="card-title">Full Grievance Report</h2>
+      <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">{{ complaint.category }}</span>
+    </div>
+
+    <div class="card-body">
+      
+      <!-- Metadata Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
+        
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submitting Student</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            👤 {{ complaint.student_name }}
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8;">{{ complaint.student_email }}</div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Location</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            📍 {{ complaint.location }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submission Date</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            📅 {{ complaint.date }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Priority</div>
+          <div style="margin-top: 0.2rem;">
+            {% if complaint.priority == 'High' %}
+              <span class="badge badge-priority-high">● High Priority</span>
+            {% elif complaint.priority == 'Medium' %}
+              <span class="badge badge-priority-medium">● Medium Priority</span>
+            {% else %}
+              <span class="badge badge-priority-low">● Low Priority</span>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Description Block -->
+      <div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          Reported Problem Details
+        </div>
+        <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">{{ complaint.description }}</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

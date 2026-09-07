@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}My Complaints - CampusCare{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+
+  <!-- Live Time & Greeting -->
+  <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+    <span class="time-headline-text">
+      <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+      <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+    </span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header-title">
+      <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+        <span class="tag-cyan-dot"></span>
+        <span>STUDENT GRIEVANCE TRACKER</span>
+      </div>
+      <h1>My Complaints</h1>
+      <p class="page-header-subtitle">View, search, and track all grievance tickets you have submitted.</p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);">
+        <span>📝</span> Submit New Issue
+      </a>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar (Frosted Glass Pill Strip) -->
+  <form action="{{ url_for('my_complaints_view') }}" method="GET" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(6, 11, 24, 0.65); border: 1px solid rgba(56, 189, 248, 0.16); border-radius: 16px; padding: 1rem 1.25rem; backdrop-filter: blur(12px);">
+    
+    <div style="display: flex; gap: 1rem; align-items: center; flex: 1; min-width: 280px; flex-wrap: wrap;">
+      <!-- Search Input -->
+      <div style="position: relative; flex: 1; min-width: 220px;">
+        <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;">🔍</span>
+        <input
+          type="text"
+          name="q"
+          class="form-input"
+          style="padding-left: 2.75rem;"
+          placeholder="Search by category, keyword, location..."
+          value="{{ search_query or '' }}"
+        >
+      </div>
+
+      <!-- Status Filter -->
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <label for="status" style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; white-space: nowrap;">
+          Status:
+        </label>
+        <select id="status" name="status" class="form-select" style="width: auto; min-width: 140px;">
+          <option value="All" {% if status_filter == 'All' or not status_filter %}selected{% endif %}>All Statuses</option>
+          <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+          <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
+          <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary btn-sm">
+        Filter
+      </button>
+      {% if status_filter != 'All' or search_query %}
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm" title="Clear all filters">
+          Reset
+        </a>
+      {% endif %}
+    </div>
+
+  </form>
+
+  <!-- Complaints Data Table -->
+  <div class="cinematic-card">
+    <div class="card-header">
+      <div style="font-weight: 600; color: #ffffff;">
+        {% if complaints %}
+          Showing {{ complaints|length }} complaint ticket{% if complaints|length > 1 %}s{% endif %}
+        {% else %}
+          Grievance Tickets
+        {% endif %}
+      </div>
+      <div>
+        {% if status_filter and status_filter != 'All' %}
+          <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Filter: {{ status_filter }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+      {% if complaints %}
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Category</th>
+                <th>Description Preview</th>
+                <th>Location</th>
+                <th>Priority</th>
+                <th>Date Lodged</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in complaints %}
+                <tr>
+                  <td style="font-weight: 700; font-family: monospace;">
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
+                      #{{ "%03d"|format(item.complaint_id) }}
+                    </a>
+                  </td>
+                  <td>
+                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">
+                      {{ item.category }}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1;" title="{{ item.description }}">
+                      {{ item.description }}
+                    </div>
+                  </td>
+                  <td style="color: #cbd5e1;">{{ item.location }}</td>
+                  <td>
+                    {% if item.priority == 'High' %}
+                      <span class="badge badge-priority-high">● High</span>
+                    {% elif item.priority == 'Medium' %}
+                      <span class="badge badge-priority-medium">● Medium</span>
+                    {% else %}
+                      <span class="badge badge-priority-low">● Low</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: #94a3b8; font-size: 0.85rem;">{{ item.date }}</td>
+                  <td>
+                    {% if item.status == 'Pending' %}
+                      <span class="badge badge-pending">⏳ Pending</span>
+                    {% elif item.status == 'In Progress' %}
+                      <span class="badge badge-progress">⚡ In Progress</span>
+                    {% elif item.status == 'Resolved' %}
+                      <span class="badge badge-resolved">✓ Resolved</span>
+                    {% else %}
+                      <span class="badge">{{ item.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                      Details &rarr;
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 3.5rem 1.5rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+          <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No complaints found</h3>
+          <p style="color: #94a3b8; max-width: 440px; margin: 0 auto 1.5rem; font-size: 0.9rem;">
+            {% if status_filter != 'All' or search_query %}
+              No complaints match your active search or status filters.
+            {% else %}
+              You have not submitted any complaints yet. Report an issue anytime you notice a problem.
+            {% endif %}
+          </p>
+          {% if status_filter != 'All' or search_query %}
+            <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary">
+              Clear Filters
+            </a>
+          {% else %}
+            <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary">
+              + Submit Your First Issue
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

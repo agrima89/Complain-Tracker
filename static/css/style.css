@@ -1,0 +1,476 @@
+/* ==========================================================================
+   CAMPUSCARE - STUDENT GRIEVANCE PORTAL - CORE DESIGN SYSTEM & THEME TOKENS
+   ========================================================================== */
+
+/* ---------------- 1. LIGHT THEME TOKENS (DEFAULT) ---------------- */
+:root {
+  /* Color Scheme declaration for native elements */
+  color-scheme: light;
+
+  /* Backgrounds & Surfaces */
+  --color-bg-app: #f8fafc;
+  --color-bg-secondary: #ffffff;
+  --color-bg-subtle: #f1f5f9;
+  --color-surface-card: #ffffff;
+  --color-surface-elevated: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  --color-surface-sunken: #f8fafc;
+  --color-surface-highlight: #eff6ff;
+
+  /* Navbar & Footer */
+  --navbar-bg: rgba(255, 255, 255, 0.92);
+  --navbar-border: rgba(226, 232, 240, 0.85);
+  --footer-bg: #ffffff;
+  --footer-border: #e2e8f0;
+
+  /* Brand Blues & Accents */
+  --color-primary-900: #0f172a;
+  --color-primary-800: #1e3a8a;
+  --color-primary-700: #1d4ed8;
+  --color-primary-600: #2563eb;
+  --color-primary-500: #3b82f6;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-100: #dbeafe;
+  --color-primary-50: #eff6ff;
+  --color-primary-glow: rgba(37, 99, 235, 0.25);
+
+  /* Typography Colors */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+  --color-text-inverse: #ffffff;
+
+  /* Borders & Dividers */
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-border-focus: #2563eb;
+
+  /* Forms */
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #2563eb;
+  --input-focus-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+  /* Status Tokens (Light Mode) */
+  --status-pending-bg: #fef3c7;
+  --status-pending-text: #92400e;
+  --status-pending-dot: #d97706;
+
+  --status-progress-bg: #dbeafe;
+  --status-progress-text: #1e40af;
+  --status-progress-dot: #2563eb;
+
+  --status-resolved-bg: #d1fae5;
+  --status-resolved-text: #065f46;
+  --status-resolved-dot: #059669;
+
+  /* Priority Tokens (Light Mode) */
+  --priority-high-bg: #fee2e2;
+  --priority-high-text: #991b1b;
+  --priority-high-dot: #dc2626;
+
+  --priority-med-bg: #fef3c7;
+  --priority-med-text: #92400e;
+  --priority-med-dot: #d97706;
+
+  --priority-low-bg: #e0f2fe;
+  --priority-low-text: #075985;
+  --priority-low-dot: #0284c7;
+
+  /* Semantic Feedback */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-dropdown: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+
+  /* Border Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease-in-out;
+  --transition-normal: 0.25s ease-in-out;
+  --transition-theme: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+
+  /* Layout */
+  --container-max-width: 1200px;
+  --navbar-height: 70px;
+}
+
+/* ---------------- 2. DARK THEME TOKENS ---------------- */
+[data-theme="dark"] {
+  /* Color Scheme declaration for native elements */
+  color-scheme: dark;
+
+  /* Backgrounds & Surfaces */
+  --color-bg-app: #0b1120;
+  --color-bg-secondary: #111827;
+  --color-bg-subtle: #172033;
+  --color-surface-card: #172033;
+  --color-surface-elevated: #1e293b;
+  --color-surface-hover: #1e293b;
+  --color-surface-sunken: #0d1527;
+  --color-surface-highlight: rgba(59, 130, 246, 0.12);
+
+  /* Navbar & Footer */
+  --navbar-bg: rgba(17, 24, 39, 0.92);
+  --navbar-border: #334155;
+  --footer-bg: #111827;
+  --footer-border: #334155;
+
+  /* Brand Blues & Accents */
+  --color-primary-900: #f8fafc;
+  --color-primary-800: #93c5fd;
+  --color-primary-700: #60a5fa;
+  --color-primary-600: #3b82f6;
+  --color-primary-500: #60a5fa;
+  --color-primary-hover: #60a5fa;
+  --color-primary-100: rgba(59, 130, 246, 0.25);
+  --color-primary-50: rgba(59, 130, 246, 0.15);
+  --color-primary-glow: rgba(59, 130, 246, 0.4);
+
+  /* Typography Colors */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+  --color-text-light: #64748b;
+  --color-text-inverse: #0b1120;
+
+  /* Borders & Dividers */
+  --color-border-subtle: #334155;
+  --color-border-strong: #475569;
+  --color-border-focus: #3b82f6;
+
+  /* Forms */
+  --input-bg: #111827;
+  --input-border: #334155;
+  --input-text: #f8fafc;
+  --input-placeholder: #94a3b8;
+  --input-focus-border: #3b82f6;
+  --input-focus-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+
+  /* Status Tokens (Dark Mode) */
+  --status-pending-bg: rgba(245, 158, 11, 0.18);
+  --status-pending-text: #fcd34d;
+  --status-pending-dot: #f59e0b;
+
+  --status-progress-bg: rgba(59, 130, 246, 0.2);
+  --status-progress-text: #93c5fd;
+  --status-progress-dot: #60a5fa;
+
+  --status-resolved-bg: rgba(16, 185, 129, 0.2);
+  --status-resolved-text: #6ee7b7;
+  --status-resolved-dot: #10b981;
+
+  /* Priority Tokens (Dark Mode) */
+  --priority-high-bg: rgba(239, 68, 68, 0.2);
+  --priority-high-text: #fca5a5;
+  --priority-high-dot: #ef4444;
+
+  --priority-med-bg: rgba(245, 158, 11, 0.18);
+  --priority-med-text: #fcd34d;
+  --priority-med-dot: #f59e0b;
+
+  --priority-low-bg: rgba(14, 165, 233, 0.2);
+  --priority-low-text: #7dd3fc;
+  --priority-low-dot: #38bdf8;
+
+  /* Semantic Feedback */
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Shadows (Enhanced for dark contrast) */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.6), 0 4px 8px -4px rgba(0, 0, 0, 0.4);
+  --shadow-dropdown: 0 20px 30px -5px rgba(0, 0, 0, 0.7), 0 8px 12px -6px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------------- 3. CSS RESET & BASE ---------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  background-color: var(--color-bg-app);
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--color-bg-app);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-theme);
+}
+
+/* Global Theme Transition */
+body, 
+.app-navbar, 
+.card, 
+.action-tile, 
+.pipeline-step-card, 
+.benefit-card-row, 
+.category-chip-card, 
+.stat-card, 
+.action-card, 
+.filter-toolbar, 
+.table-responsive, 
+.data-table th, 
+.data-table td, 
+.app-footer, 
+.form-control, 
+.form-select, 
+.form-textarea,
+.modal-dialog,
+.toast,
+.empty-state {
+  transition: var(--transition-theme);
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+/* Typography Scale */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-text-primary);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  transition: color 0.25s ease;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.0625rem; }
+h5 { font-size: 0.9375rem; }
+
+p {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  transition: color 0.25s ease;
+}
+
+a {
+  color: var(--color-primary-600);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Layout Utilities */
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.main-content {
+  flex: 1 0 auto;
+  padding: 2.25rem 0 3.5rem;
+  background-color: var(--color-bg-app);
+}
+
+/* Page Header Block */
+.page-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-header-title h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.page-header-subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+}
+
+/* Footer */
+.app-footer {
+  flex-shrink: 0;
+  background-color: var(--footer-bg);
+  border-top: 1px solid var(--footer-border);
+  padding: 2.5rem 0 1.5rem;
+  margin-top: auto;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  margin-bottom: 0.75rem;
+}
+
+.footer-brand-logo .brand-icon-sm {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.footer-brand-logo .brand-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.footer-brand-logo .brand-tag {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.footer-tagline {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  max-width: 360px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.footer-links a {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.footer-links a:hover {
+  color: var(--color-primary-600);
+}
+
+.footer-bottom {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-copy {
+  color: var(--color-text-muted);
+  font-size: 0.825rem;
+}
+
+/* Utility Classes */
+.text-muted { color: var(--color-text-muted) !important; }
+.text-danger { color: var(--priority-high-text) !important; }
+.text-success { color: var(--status-resolved-text) !important; }
+.text-primary { color: var(--color-primary-600) !important; }
+.fw-bold { font-weight: 700 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-medium { font-weight: 500 !important; }
+.d-flex { display: flex; }
+.align-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+.gap-3 { gap: 1.5rem; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+/* Micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.main-content {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .page-header-title h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

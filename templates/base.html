@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Student Complaint & Solution Tracker - Transparent, fast, and accessible campus grievance redressal platform.">
+  <title>{% block title %}Student Complaint & Solution Tracker{% endblock %}</title>
+
+  <!-- Theme Initialization Script (Prevents White Flash) -->
+  <script>
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('campuscare_theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Design System CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/campus-world.css') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+<body data-world-env="night">
+
+  <!-- ==========================================================================
+       GLOBAL LIVING UNIVERSITY CAMPUS BACKGROUND STAGE (ACTIVE ACROSS ALL PAGES)
+       ========================================================================== -->
+  <div class="global-campus-world-bg" id="cinematicCampusWorld" data-world-env="night" aria-hidden="true">
+    <div class="world-stage-viewport" id="worldStageViewport">
+      <!-- STAGE LAYER 1: Deep Sky Gradient -->
+      <div class="world-layer-sky"></div>
+
+      <!-- STAGE LAYER 2: Celestial Bodies & 3-Tier Moving Clouds -->
+      <div class="world-layer-celestial">
+        <div class="world-sun-disk" id="worldSun"></div>
+        <div class="world-moon-crescent" id="worldMoon"></div>
+        <div class="world-stars-field" id="worldStarsField"></div>
+        <div class="world-clouds-system">
+          <div class="moving-cloud-band cloud-tier-back"></div>
+          <div class="moving-cloud-band cloud-tier-mid"></div>
+          <div class="moving-cloud-band cloud-tier-front"></div>
+        </div>
+      </div>
+
+      <!-- STAGE LAYER 3: Distant University Skyline Silhouette -->
+      <div class="world-layer-distant-skyline">
+        <svg viewBox="0 0 1440 360" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <path class="distant-skyline-path" d="M 0 360 L 0 220 L 70 220 L 70 190 L 100 160 L 130 190 L 130 220 L 260 220 L 260 180 L 320 180 L 320 220 L 440 220 L 440 170 L 480 170 L 500 120 L 520 170 L 560 170 L 560 220 L 740 220 L 760 180 L 800 180 L 820 220 L 960 220 L 960 150 L 990 120 L 1020 150 L 1020 220 L 1140 220 L 1170 190 L 1210 190 L 1240 220 L 1440 220 L 1440 360 Z" />
+        </svg>
+      </div>
+
+      <!-- STAGE LAYER 4: Recognizable University Architecture (Academic Hall, Library, Dome) -->
+      <div class="world-layer-main-campus">
+        <svg class="campus-vector-svg" viewBox="0 0 1240 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect class="arch-facade" x="240" y="160" width="760" height="320" rx="4" />
+          <rect class="arch-trim" x="220" y="150" width="800" height="15" />
+          
+          <path class="arch-facade" d="M 520 150 L 520 75 Q 620 15 720 75 L 720 150 Z" />
+          <circle class="arch-trim" cx="620" cy="90" r="22" />
+          <circle cx="620" cy="90" r="16" fill="#ffffff" />
+          <line x1="620" y1="90" x2="620" y2="80" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" />
+          <line x1="620" y1="90" x2="629" y2="90" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+
+          <polygon class="arch-trim" points="480,150 620,65 760,150" />
+          <rect class="arch-facade" x="490" y="150" width="260" height="330" />
+          
+          <rect class="arch-trim" x="510" y="160" width="16" height="260" rx="2" />
+          <rect class="arch-trim" x="560" y="160" width="16" height="260" rx="2" />
+          <rect class="arch-trim" x="664" y="160" width="16" height="260" rx="2" />
+          <rect class="arch-trim" x="714" y="160" width="16" height="260" rx="2" />
+
+          <path class="arch-shadow" d="M 590 340 Q 620 310 650 340 L 650 480 L 590 480 Z" />
+
+          <!-- Left Wing Windows -->
+          <rect class="world-window" x="270" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="330" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="390" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="270" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="330" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="390" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="270" y="340" width="34" height="48" rx="3" />
+          <rect class="world-window" x="330" y="340" width="34" height="48" rx="3" />
+          <rect class="world-window" x="390" y="340" width="34" height="48" rx="3" />
+
+          <!-- Right Wing Windows -->
+          <rect class="world-window" x="810" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="870" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="930" y="190" width="34" height="48" rx="3" />
+          <rect class="world-window" x="810" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="870" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="930" y="265" width="34" height="48" rx="3" />
+          <rect class="world-window" x="810" y="340" width="34" height="48" rx="3" />
+          <rect class="world-window" x="870" y="340" width="34" height="48" rx="3" />
+          <rect class="world-window" x="930" y="340" width="34" height="48" rx="3" />
+        </svg>
+      </div>
+
+      <!-- STAGE LAYER 5: Moving Trees (Wind Sway Animation) -->
+      <div class="world-layer-trees">
+        <svg viewBox="0 0 1440 280" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <g class="moving-tree-canopy-1">
+            <circle cx="120" cy="180" r="85" />
+            <circle cx="65" cy="205" r="65" />
+          </g>
+          <g class="moving-tree-canopy-2">
+            <circle cx="185" cy="200" r="70" />
+          </g>
+          <rect x="113" y="240" width="14" height="40" fill="#030712" />
+
+          <g class="moving-tree-canopy-1">
+            <circle cx="1320" cy="180" r="90" />
+            <circle cx="1380" cy="205" r="65" />
+          </g>
+          <g class="moving-tree-canopy-2">
+            <circle cx="1245" cy="200" r="75" />
+          </g>
+          <rect x="1313" y="240" width="14" height="40" fill="#030712" />
+        </svg>
+      </div>
+
+      <!-- STAGE LAYER 6: Perspective Campus Road & Moving Light -->
+      <div class="world-layer-road">
+        <svg viewBox="0 0 1440 220" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <polygon class="road-surface" points="560,0 880,0 1180,220 260,220" />
+          <line class="road-edge" x1="560" y1="0" x2="260" y2="220" stroke-width="3" />
+          <line class="road-edge" x1="880" y1="0" x2="1180" y2="220" stroke-width="3" />
+        </svg>
+        <div class="road-pulse-light"></div>
+      </div>
+
+      <!-- STAGE LAYER 7: Lamp Posts with Warm Pulsing Halos -->
+      <div class="world-layer-lamps">
+        <svg viewBox="0 0 1440 240" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+          <g transform="translate(380, 30)">
+            <rect x="7" y="30" width="4" height="140" fill="#090e1c" />
+            <path d="M 0 30 Q 9 16 18 30 L 15 42 L 3 42 Z" fill="#040711" />
+            <circle class="lamp-warm-halo" cx="9" cy="36" r="16" />
+            <circle cx="9" cy="36" r="6" fill="#ffffff" />
+          </g>
+          <g transform="translate(1040, 30)">
+            <rect x="7" y="30" width="4" height="140" fill="#090e1c" />
+            <path d="M 0 30 Q 9 16 18 30 L 15 42 L 3 42 Z" fill="#040711" />
+            <circle class="lamp-warm-halo" cx="9" cy="36" r="16" />
+            <circle cx="9" cy="36" r="6" fill="#ffffff" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- STAGE LAYER 8: Moving Student Silhouettes -->
+      <div class="world-layer-students">
+        <svg class="student-walker walker-student-a" viewBox="0 0 24 60">
+          <circle cx="12" cy="8" r="6" />
+          <rect x="8" y="16" width="8" height="24" rx="3" />
+          <line x1="9" y1="40" x2="6" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <line x1="15" y1="40" x2="18" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        <svg class="student-walker walker-student-b" viewBox="0 0 24 60">
+          <circle cx="12" cy="8" r="5.5" />
+          <rect x="8" y="15" width="8" height="22" rx="3" />
+          <line x1="10" y1="37" x2="8" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <line x1="14" y1="37" x2="16" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+      </div>
+
+      <!-- STAGE LAYER 9: Atmospheric Depth Scrim -->
+      <div class="world-layer-atmosphere"></div>
+
+      <!-- Signature Campus Pulse Packet -->
+      <div class="pulse-node-beacon" id="campusPulsePacket" style="left: 50%; top: 50%;"></div>
+    </div>
+  </div>
+  <!-- ================= END GLOBAL LIVING CAMPUS BACKGROUND ================= -->
+
+  <!-- Navigation Bar -->
+  <header class="app-navbar">
+    <div class="container navbar-inner">
+      <a href="{{ url_for('landing') if not session.get('student_id') and not session.get('admin_id') else (url_for('student_dashboard') if session.get('student_id') else url_for('admin_dashboard')) }}" class="navbar-brand">
+        <div class="brand-icon">🏫</div>
+        <div class="brand-text">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-tag">Student Grievance Portal</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav>
+        <ul class="navbar-nav">
+          {% if session.get('student_id') %}
+            <!-- Student Navigation -->
+            <li>
+              <a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
+                <span>🏠</span> Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('submit_complaint_view') }}" class="nav-link {% if request.endpoint == 'submit_complaint_view' %}active{% endif %}">
+                <span>📝</span> Submit Complaint
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('my_complaints_view') }}" class="nav-link {% if request.endpoint in ['my_complaints_view', 'complaint_detail_view'] %}active{% endif %}">
+                <span>📋</span> My Complaints
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('profile_view') }}" class="nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
+                <span>👤</span> Profile
+              </a>
+            </li>
+          {% elif session.get('admin_id') %}
+            <!-- Admin Navigation -->
+            <li>
+              <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint in ['admin_dashboard', 'admin_complaint_detail_view'] %}active{% endif %}">
+                <span>📊</span> Management Dashboard
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('profile_view') }}" class="nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
+                <span>🛡️</span> Admin Profile
+              </a>
+            </li>
+          {% else %}
+            <!-- Public Navigation -->
+            <li>
+              <a href="{{ url_for('landing') }}" class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
+                Home
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('student_login_view') }}" class="nav-link {% if request.endpoint == 'student_login_view' %}active{% endif %}">
+                Student Login
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('student_register_view') }}" class="nav-link {% if request.endpoint == 'student_register_view' %}active{% endif %}">
+                Register
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_login_view') }}" class="nav-link {% if request.endpoint == 'admin_login_view' %}active{% endif %}">
+                Admin Portal
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+
+      <!-- User Info & Actions -->
+      <div class="navbar-actions">
+        <!-- Theme Mode Toggle -->
+        <button type="button" id="themeToggle" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Switch to Dark Mode">
+          <span class="theme-toggle-icon" id="themeToggleIcon">🌙</span>
+        </button>
+
+        {% if session.get('student_id') %}
+          <div class="user-badge">
+            <span>{{ session.get('student_name', 'Student') }}</span>
+            <span class="role-tag">Student</span>
+          </div>
+          <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign out of your account">
+            🚪 Logout
+          </a>
+        {% elif session.get('admin_id') %}
+          <div class="user-badge">
+            <span>{{ session.get('admin_username', 'Admin') }}</span>
+            <span class="role-tag">Administrator</span>
+          </div>
+          <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign out of your account">
+            🚪 Logout
+          </a>
+        {% else %}
+          <a href="{{ url_for('student_login_view') }}" class="btn btn-primary btn-sm">
+            Sign In
+          </a>
+        {% endif %}
+
+        <button type="button" class="mobile-nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          ☰
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Server Flash Messages (converted to client toasts via JS) -->
+  <div class="flash-messages-container" style="display: none;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="server-flash-msg" data-type="{{ category }}" data-title="{{ category|capitalize }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="main-content {% block main_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- App Footer -->
+  <footer class="app-footer campus-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-section">
+          <a href="{{ url_for('landing') }}" class="footer-brand-logo">
+            <span class="brand-icon-sm">🏫</span>
+            <div class="brand-text">
+              <span class="brand-name">CampusCare</span>
+              <span class="brand-tag">Student Grievance Portal</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
+        </div>
+        <div class="footer-links-section">
+          <ul class="footer-links">
+            <li><a href="{{ url_for('landing') }}">Home</a></li>
+            <li><a href="{{ url_for('student_login_view') }}">Student Login</a></li>
+            <li><a href="{{ url_for('student_register_view') }}">Register</a></li>
+            <li><a href="{{ url_for('student_login_view') }}">Track Complaint</a></li>
+            <li><a href="{{ url_for('admin_login_view') }}">Admin Portal</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">
+          &copy; 2026 CampusCare. Student Grievance Portal.
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Global JavaScript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/campus-world.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - CampusCare{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+
+  <!-- Live Time & Signature Greeting -->
+  <div class="floating-time-display" style="margin-bottom: 1.75rem;">
+    <span class="time-headline-text">
+      <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+      <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+    </span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+  </div>
+
+  <!-- Welcome Header -->
+  <div class="page-header">
+    <div class="page-header-title">
+      <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+        <span class="tag-cyan-dot"></span>
+        <span>STUDENT DASHBOARD</span>
+      </div>
+      <h1>Welcome back, {{ session.get('student_name') }} 👋</h1>
+      <p class="page-header-subtitle">Manage your campus complaints and track live resolution progress in real time.</p>
+    </div>
+    <div class="page-header-actions">
+      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);">
+        <span>📝</span> Submit New Issue
+      </a>
+    </div>
+  </div>
+
+  <!-- Live Statistics Cards (Floating Glowing Panels) -->
+  <div class="stats-grid">
+    
+    <!-- Total Complaints -->
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-label">Total Logged</span>
+        <div class="stat-icon">📊</div>
+      </div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+
+    <!-- Pending -->
+    <div class="stat-card stat-pending">
+      <div class="stat-header">
+        <span class="stat-label">Pending Review</span>
+        <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
+      </div>
+      <div class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
+    </div>
+
+    <!-- In Progress -->
+    <div class="stat-card stat-progress">
+      <div class="stat-header">
+        <span class="stat-label">In Progress</span>
+        <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
+      </div>
+      <div class="stat-value" style="color: #38bdf8;">{{ stats.in_progress }}</div>
+    </div>
+
+    <!-- Resolved -->
+    <div class="stat-card stat-resolved">
+      <div class="stat-header">
+        <span class="stat-label">Resolved</span>
+        <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3);">✓</div>
+      </div>
+      <div class="stat-value" style="color: #4ade80;">{{ stats.resolved }}</div>
+    </div>
+
+  </div>
+
+  <!-- Quick Actions Grid -->
+  <div style="margin-bottom: 2.5rem;">
+    <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem; color: #ffffff; letter-spacing: -0.01em;">
+      Quick Actions
+    </h2>
+    <div class="quick-actions-grid">
+      
+      <a href="{{ url_for('submit_complaint_view') }}" class="action-card">
+        <div class="action-card-icon">📝</div>
+        <div class="action-card-content">
+          <h3>Report an Issue</h3>
+          <p>Lodge an electrical, cleaning, classroom, or facility problem.</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('my_complaints_view') }}" class="action-card">
+        <div class="action-card-icon" style="background: rgba(34, 197, 94, 0.12); color: #4ade80; border-color: rgba(34, 197, 94, 0.25);">📋</div>
+        <div class="action-card-content">
+          <h3>Track My Complaints</h3>
+          <p>Check the live milestone progress and history of all submitted tickets.</p>
+        </div>
+      </a>
+
+      <a href="{{ url_for('profile_view') }}" class="action-card">
+        <div class="action-card-icon" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border-color: rgba(168, 85, 247, 0.25);">👤</div>
+        <div class="action-card-content">
+          <h3>Account Profile</h3>
+          <p>View registered student details and grievance activity statistics.</p>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Recent Complaints Glass Panel -->
+  <div class="cinematic-card">
+    <div class="card-header">
+      <h2 class="card-title">Recent Complaints</h2>
+      {% if recent_complaints %}
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-outline btn-sm">
+          View All &rarr;
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+      {% if recent_complaints %}
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Category</th>
+                <th>Location</th>
+                <th>Priority</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in recent_complaints %}
+                <tr>
+                  <td style="font-weight: 700; font-family: monospace;">
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
+                      #{{ "%03d"|format(item.complaint_id) }}
+                    </a>
+                  </td>
+                  <td>
+                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">
+                      {{ item.category }}
+                    </span>
+                  </td>
+                  <td style="color: #cbd5e1;">{{ item.location }}</td>
+                  <td>
+                    {% if item.priority == 'High' %}
+                      <span class="badge badge-priority-high">● High</span>
+                    {% elif item.priority == 'Medium' %}
+                      <span class="badge badge-priority-medium">● Medium</span>
+                    {% else %}
+                      <span class="badge badge-priority-low">● Low</span>
+                    {% endif %}
+                  </td>
+                  <td style="color: #94a3b8; font-size: 0.85rem;">{{ item.date }}</td>
+                  <td>
+                    {% if item.status == 'Pending' %}
+                      <span class="badge badge-pending">⏳ Pending</span>
+                    {% elif item.status == 'In Progress' %}
+                      <span class="badge badge-progress">⚡ In Progress</span>
+                    {% elif item.status == 'Resolved' %}
+                      <span class="badge badge-resolved">✓ Resolved</span>
+                    {% else %}
+                      <span class="badge">{{ item.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                      Details &rarr;
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 3.5rem 1.5rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
+          <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No grievances lodged yet</h3>
+          <p style="color: #94a3b8; max-width: 440px; margin: 0 auto 1.5rem; font-size: 0.9rem;">You haven't submitted any complaints yet. Notice any problem on campus? Report it right away.</p>
+          <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary">
+            + Submit Your First Issue
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

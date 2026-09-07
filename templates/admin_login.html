@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Portal Login - CampusCare{% endblock %}
+
+{% block main_class %}main-content--flush auth-page-main{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="auth-page-body" style="align-items: center; justify-content: center; padding: 2rem 1.5rem;">
+
+  <!-- Focused Top Navigation -->
+  <header class="auth-top-navbar" style="position: relative; width: 100%; max-width: 540px; padding: 0 0 1.5rem; justify-content: space-between;">
+    <a href="{{ url_for('landing') }}" class="auth-nav-brand">
+      <div class="brand-logo-icon" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">🛡️</div>
+      <div class="brand-title-group">
+        <span class="brand-name">CampusCare</span>
+        <span class="brand-sub">Admin Portal</span>
+      </div>
+    </a>
+
+    <div class="auth-nav-actions">
+      <a href="{{ url_for('landing') }}" class="auth-nav-link">Home</a>
+      <a href="{{ url_for('student_login_view') }}" class="auth-nav-pill-btn">Student Login</a>
+    </div>
+  </header>
+
+  <!-- Centered Admin Login Card -->
+  <div class="auth-form-glass-card" style="width: 100%; max-width: 520px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.15);">
+    
+    <div class="login-card-header" style="text-align: center;">
+      <div class="login-brand-icon-box" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); margin: 0 auto 0.75rem;">
+        <span>🛡️</span>
+      </div>
+      
+      <div class="badge badge-priority-high" style="margin-bottom: 0.5rem; font-size: 0.75rem; display: inline-flex;">
+        Authorized Staff Only
+      </div>
+      
+      <h2 class="login-card-title">Administrative Access</h2>
+      <p class="login-card-subtext">Sign in to manage complaints, update statuses, and monitor resolutions.</p>
+    </div>
+
+    <!-- Flash Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'error' or category == 'warning' %}
+            <div class="auth-inline-alert" role="alert">
+              <span class="alert-icon">⚠</span>
+              <span>{{ message }}</span>
+            </div>
+          {% elif category == 'info' or category == 'success' %}
+            <div class="auth-inline-alert" style="background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.4); color: #4ade80;" role="alert">
+              <span class="alert-icon">✓</span>
+              <span>{{ message }}</span>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- Admin Form -->
+    <form action="{{ url_for('admin_login_view') }}" method="POST" autocomplete="on">
+      
+      <!-- Username -->
+      <div class="auth-input-group">
+        <label for="username" class="auth-input-label">
+          Admin Username <span style="color: #f43f5e;">*</span>
+        </label>
+        <div class="auth-input-with-icon">
+          <span class="auth-input-icon">👤</span>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            class="auth-form-input"
+            placeholder="e.g. admin"
+            value="{{ username or '' }}"
+            required
+            autofocus
+          >
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="auth-input-group">
+        <label for="password" class="auth-input-label">
+          Admin Password <span style="color: #f43f5e;">*</span>
+        </label>
+        <div class="auth-input-with-icon input-password-wrapper">
+          <span class="auth-input-icon">🔒</span>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="auth-form-input"
+            placeholder="Enter admin password"
+            required
+          >
+          <button type="button" class="auth-password-toggle password-toggle-btn" aria-label="Toggle password visibility">
+            👁️
+          </button>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="btn-auth-submit" style="margin-top: 1.75rem;">
+        <span class="btn-auth-text">Access Admin Management</span>
+        <span class="btn-auth-arrow">→</span>
+      </button>
+
+    </form>
+
+    <!-- Footer -->
+    <div class="auth-card-footer" style="text-align: center;">
+      <a href="{{ url_for('student_login_view') }}" class="auth-register-link" style="font-size: 0.85rem;">
+        ← Back to Student Login
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  document.body.classList.add('auth-page');
+</script>
+{% endblock %}
