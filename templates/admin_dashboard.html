@@ -22,7 +22,7 @@
         <span>ADMINISTRATIVE COMMAND CENTER</span>
       </div>
       <h1>Admin Management Dashboard</h1>
-      <p class="page-header-subtitle">Monitor, filter, and resolve campus complaint tickets across all university departments.</p>
+      <p class="page-header-subtitle">Monitor, inspect coordinates, review evidence photos, and resolve student grievances across all university blocks.</p>
     </div>
     <div class="page-header-actions">
       <a href="{{ url_for('profile_view') }}" class="btn btn-secondary btn-sm">
@@ -85,7 +85,7 @@
           name="q"
           class="form-input"
           style="padding-left: 2.75rem;"
-          placeholder="Search student, category, description, location, or ticket #..."
+          placeholder="Search student, college email, block, category, description, or #ID..."
           value="{{ search_text or '' }}"
         >
       </div>
@@ -156,9 +156,10 @@
             <thead>
               <tr>
                 <th>Ticket ID</th>
-                <th>Student Details</th>
+                <th>Student</th>
                 <th>Category</th>
-                <th>Location</th>
+                <th>Block & Exact Location</th>
+                <th>Evidence Photo</th>
                 <th>Priority</th>
                 <th>Date</th>
                 <th>Current Status</th>
@@ -181,7 +182,7 @@
                     <div style="font-weight: 600; color: #ffffff; font-size: 0.9rem;">
                       {{ item.student_name }}
                     </div>
-                    <div style="font-size: 0.775rem; color: #94a3b8;">
+                    <div style="font-size: 0.775rem; color: #38bdf8;">
                       {{ item.student_email }}
                     </div>
                   </td>
@@ -192,7 +193,27 @@
                   </td>
 
                   <!-- Location -->
-                  <td style="color: #cbd5e1;">{{ item.location }}</td>
+                  <td>
+                    <div style="font-weight: 600; color: #ffffff; font-size: 0.875rem;">
+                      {{ item.block or 'Campus' }}
+                    </div>
+                    <div style="font-size: 0.775rem; color: #94a3b8;">
+                      {% if item.floor_no %}{{ item.floor_no }}{% endif %}
+                      {% if item.room_no %}, Room {{ item.room_no }}{% endif %}
+                      {% if item.corridor_side %}({{ item.corridor_side }}){% endif %}
+                    </div>
+                  </td>
+
+                  <!-- Evidence Photo -->
+                  <td>
+                    {% if item.photo_path %}
+                      <a href="/{{ item.photo_path }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                        <span>📸 View Photo</span>
+                      </a>
+                    {% else %}
+                      <span style="color: #64748b; font-size: 0.8rem;">No Photo</span>
+                    {% endif %}
+                  </td>
 
                   <!-- Priority Badge -->
                   <td>

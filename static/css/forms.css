@@ -264,3 +264,554 @@
   color: var(--color-text-muted);
 }
 
+/* ==========================================================================
+   CAMPUSCARE — PREMIUM MODERN GRIEVANCE SUBMISSION EXPERIENCE
+   ========================================================================== */
+
+.submit-page-container {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+/* ---------------- 1. PAGE HEADER & PROGRESS INDICATOR ---------------- */
+.compact-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.12);
+}
+
+.header-intro-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.compact-form-header .header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  margin-bottom: 0.45rem;
+}
+
+.compact-form-header h1 {
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem 0;
+}
+
+.compact-form-header p {
+  color: #94a3b8;
+  font-size: 0.925rem;
+  margin: 0;
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+/* Minimal Visual Progress Indicator */
+.form-progress-tracker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(6, 11, 24, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.progress-node {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.04em;
+  transition: all 0.25s ease;
+}
+
+.progress-node .node-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  transition: all 0.25s ease;
+}
+
+.progress-node.active {
+  color: #38bdf8;
+}
+
+.progress-node.active .node-num {
+  background: #38bdf8;
+  color: #020617;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+.progress-node.completed {
+  color: #4ade80;
+}
+
+.progress-node.completed .node-num {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.tracker-divider {
+  width: 16px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ---------------- 2. GUIDED SECTION CARDS (NOT ONE MONOLITH) ---------------- */
+.guided-section-card {
+  background: rgba(8, 14, 30, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+}
+
+.guided-section-card:hover {
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.45);
+}
+
+.guided-section-card.is-focused-section {
+  border-color: rgba(56, 189, 248, 0.45);
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
+}
+
+/* Section Header Bar */
+.section-header-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.section-badge-num {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(37, 99, 235, 0.35) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.15rem 0;
+}
+
+.section-desc {
+  font-size: 0.825rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.section-status-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+}
+
+.section-status-tag.tag-mandatory {
+  color: #f43f5e;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.32);
+}
+
+.section-status-tag.tag-optional {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+}
+
+/* ---------------- 3. FIELD LABELS & LOCATION ICONS ---------------- */
+.form-label-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.45rem;
+}
+
+.form-label-with-icon .field-icon {
+  font-size: 1rem;
+  color: #38bdf8;
+}
+
+.form-label-with-icon .required-star {
+  color: #f43f5e;
+  margin-left: 0.15rem;
+}
+
+/* Multi-Column Responsive Grids */
+.form-grid-3col {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.2fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.form-grid-2col {
+  display: grid;
+  grid-template-columns: 1.1fr 2fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Custom Textarea with Focus Lighting */
+.form-textarea.form-textarea-tall {
+  min-height: 140px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 0.9rem 1.1rem;
+  background: rgba(4, 9, 22, 0.65);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 12px;
+  color: #f8fafc;
+  resize: vertical;
+  transition: all 0.25s ease;
+}
+
+.form-textarea.form-textarea-tall:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25), 0 0 16px rgba(56, 189, 248, 0.2);
+  background: rgba(4, 9, 22, 0.85);
+  outline: none;
+}
+
+/* ---------------- 4. HERO PHOTO EVIDENCE SECTION ---------------- */
+.hero-photo-dropzone {
+  background: rgba(4, 9, 22, 0.65);
+  border: 2px dashed rgba(56, 189, 248, 0.32);
+  border-radius: 16px;
+  padding: 2.75rem 2rem;
+  text-align: center;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  cursor: pointer;
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.hero-photo-dropzone:hover,
+.hero-photo-dropzone.is-dragover {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.2), inset 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.dropzone-prompt-icon {
+  font-size: 3.25rem;
+  margin-bottom: 0.85rem;
+  color: #38bdf8;
+  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.4));
+  transition: transform 0.2s ease;
+}
+
+.hero-photo-dropzone:hover .dropzone-prompt-icon {
+  transform: scale(1.08);
+}
+
+.dropzone-prompt-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.35rem;
+}
+
+.dropzone-prompt-sub {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.5;
+}
+
+.file-format-pills {
+  display: inline-flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.file-format-pill {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* Proportional Photo Preview Box */
+.photo-preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.photo-preview-box {
+  max-width: 540px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.photo-preview-box img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  display: block;
+}
+
+.preview-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  color: #4ade80;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 0.45rem 1.15rem;
+  border-radius: 999px;
+}
+
+/* ---------------- 5. SELECTABLE PRIORITY CARDS ---------------- */
+.priority-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.priority-card-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.95rem;
+  padding: 1.2rem 1.35rem;
+  border-radius: 14px;
+  cursor: pointer;
+  background: rgba(4, 9, 22, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.priority-card-btn:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.08);
+  transform: translateY(-2px);
+}
+
+.priority-card-btn input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+  margin-top: 0.15rem;
+}
+
+.priority-card-icon {
+  font-size: 1.35rem;
+}
+
+.priority-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.priority-card-desc {
+  font-size: 0.775rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+/* Active Priority States */
+.priority-card-btn.card-low:has(input:checked),
+.priority-card-btn.card-low.is-selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.16);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.22);
+}
+
+.priority-card-btn.card-low .priority-card-title {
+  color: #38bdf8;
+}
+
+.priority-card-btn.card-medium:has(input:checked),
+.priority-card-btn.card-medium.is-selected {
+  border-color: #fbbf24;
+  background: rgba(245, 158, 11, 0.16);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+}
+
+.priority-card-btn.card-medium .priority-card-title {
+  color: #fbbf24;
+}
+
+.priority-card-btn.card-high:has(input:checked),
+.priority-card-btn.card-high.is-selected {
+  border-color: #f43f5e;
+  background: rgba(244, 63, 94, 0.18);
+  box-shadow: 0 0 22px rgba(244, 63, 94, 0.3);
+}
+
+.priority-card-btn.card-high .priority-card-title {
+  color: #f87171;
+}
+
+/* ---------------- 6. BOTTOM SUBMISSION ACTION BAR ---------------- */
+.submission-final-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.submission-note {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 520px;
+}
+
+.btn-submit-hero {
+  min-width: 260px;
+  padding: 0.9rem 2.25rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(56, 189, 248, 0.4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.btn-submit-hero:hover {
+  box-shadow: 0 8px 32px rgba(56, 189, 248, 0.6);
+  transform: translateY(-2px);
+}
+
+.btn-submit-hero .btn-arrow {
+  transition: transform 0.2s ease;
+}
+
+.btn-submit-hero:hover .btn-arrow {
+  transform: translateX(4px);
+}
+
+/* ---------------- 7. RESPONSIVE BREAKPOINTS ---------------- */
+@media (max-width: 1024px) {
+  .guided-section-card {
+    padding: 1.75rem 1.75rem;
+  }
+  .form-grid-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .compact-form-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .form-progress-tracker {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .guided-section-card {
+    padding: 1.5rem 1.25rem;
+  }
+  .form-grid-3col,
+  .form-grid-2col,
+  .priority-cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .submission-final-bar {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .btn-submit-hero {
+    width: 100%;
+  }
+}
+
+
+

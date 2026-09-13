@@ -213,7 +213,7 @@
           <!-- Email Input -->
           <div class="auth-input-group">
             <label for="email" class="auth-input-label">
-              Email Address <span style="color: var(--color-danger);">*</span>
+              Chandigarh University Email <span style="color: var(--color-danger);">*</span>
             </label>
             <div class="auth-input-with-icon">
               <span class="auth-input-icon">✉</span>
@@ -222,12 +222,17 @@
                 id="email"
                 name="email"
                 class="auth-form-input"
-                placeholder="Enter your university email"
+                placeholder="25LBCS3099@culkomail.in"
+                pattern="^[A-Za-z0-9]+@[cC][uU][lL][kK][oO][mM][aA][iI][lL]\.[iI][nN]$"
+                title="Please use your official Chandigarh University email (@culkomail.in)"
                 value="{{ email or '' }}"
                 required
                 autofocus
               >
             </div>
+            <span class="form-hint" style="color: #64748b; font-size: 0.78rem; margin-top: 0.35rem; display: block;">
+              Use your official Chandigarh University email (@culkomail.in)
+            </span>
           </div>
 
           <!-- Password Input -->

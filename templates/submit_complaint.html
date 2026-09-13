@@ -3,60 +3,62 @@
 {% block title %}Submit a Complaint - CampusCare{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 800px;">
+<div class="submit-page-container">
 
-  <!-- Live Time & Greeting -->
-  <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+  <!-- Live Time & Environment Bar -->
+  <div class="floating-time-display" style="margin-bottom: 1.25rem;">
     <span class="time-headline-text">
       <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
       <span id="worldLiveTimeText">NIGHT CAMPUS</span>
     </span>
-    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is active and grievance desks are monitoring."</span>
   </div>
 
   {% if submitted_id %}
-    <!-- Success Confirmation State (Dark Cinematic Glass Card) -->
-    <div class="cinematic-card" style="text-align: center; padding: 3.5rem 2rem; border-color: rgba(34, 197, 94, 0.4) !important;">
-      <div style="width: 68px; height: 68px; border-radius: 50%; background: rgba(34, 197, 94, 0.18); border: 2px solid rgba(34, 197, 94, 0.5); color: #4ade80; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);">
+    <!-- ==========================================================================
+         SUCCESS CONFIRMATION STATE
+         ========================================================================== -->
+    <div class="guided-section-card" style="text-align: center; padding: 4rem 2.5rem; border-color: rgba(34, 197, 94, 0.45) !important;">
+      <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(34, 197, 94, 0.18); border: 2px solid rgba(34, 197, 94, 0.5); color: #4ade80; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 0 35px rgba(34, 197, 94, 0.35);">
         ✓
       </div>
       
-      <div class="badge badge-resolved" style="margin-bottom: 1rem; font-size: 0.8rem;">
+      <div class="badge badge-resolved" style="margin-bottom: 1rem; font-size: 0.85rem; padding: 0.35rem 1rem;">
         Ticket Logged Successfully
       </div>
 
-      <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: #ffffff; font-weight: 700;">
-        Complaint Submitted
+      <h1 style="font-size: 2.25rem; margin-bottom: 0.75rem; color: #ffffff; font-weight: 700; letter-spacing: -0.02em;">
+        Grievance Ticket Submitted
       </h1>
       
-      <p style="color: #94a3b8; max-width: 500px; margin: 0 auto 2rem; font-size: 0.95rem;">
-        Your grievance has been officially registered into the campus database and queued for administrative review.
+      <p style="color: #94a3b8; max-width: 580px; margin: 0 auto 2.25rem; font-size: 1rem; line-height: 1.6;">
+        Your complaint and photo evidence have been officially recorded in the university grievance registry and queued for immediate administrative inspection.
       </p>
 
       <!-- Ticket Summary Box -->
-      <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 14px; padding: 1.5rem; max-width: 440px; margin: 0 auto 2.25rem; text-align: left;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-          <span style="color: #94a3b8; font-size: 0.875rem;">Ticket ID</span>
-          <span style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.1rem;">
+      <div style="background: rgba(3, 7, 18, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 1.75rem 2rem; max-width: 520px; margin: 0 auto 2.5rem; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
+          <span style="color: #94a3b8; font-size: 0.9rem; font-weight: 500;">Ticket Reference ID</span>
+          <span style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.25rem; background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">
             #{{ "%03d"|format(submitted_id) }}
           </span>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 0.85rem;">
-          <span style="color: #94a3b8; font-size: 0.875rem;">Initial Status</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <span style="color: #94a3b8; font-size: 0.9rem;">Initial Status</span>
           <span class="badge badge-pending">⏳ Pending Review</span>
         </div>
-        <div style="display: flex; justify-content: space-between;">
-          <span style="color: #94a3b8; font-size: 0.875rem;">Date Lodged</span>
-          <span style="font-weight: 500; font-size: 0.875rem; color: #e2e8f0;">{{ submitted_date }}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #94a3b8; font-size: 0.9rem;">Date Lodged</span>
+          <span style="font-weight: 600; font-size: 0.9rem; color: #e2e8f0;">{{ submitted_date }}</span>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-primary btn-lg">
+      <div style="display: flex; justify-content: center; gap: 1.25rem; flex-wrap: wrap;">
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); padding: 0.8rem 1.75rem;">
           📋 Track My Complaints
         </a>
-        <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-secondary btn-lg">
+        <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-secondary btn-lg" style="padding: 0.8rem 1.75rem;">
           + Report Another Issue
         </a>
       </div>
@@ -64,135 +66,405 @@
     </div>
 
   {% else %}
-    <!-- Form State -->
-    <div class="page-header">
-      <div class="page-header-title">
-        <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
-          <span class="tag-cyan-dot"></span>
-          <span>NEW GRIEVANCE TICKET</span>
+    <!-- ==========================================================================
+         PREMIUM GUIDED GRIEVANCE SUBMISSION FORM
+         ========================================================================== -->
+    
+    <!-- 1. Header with Visual Progress Indicator -->
+    <div class="compact-form-header">
+      <div class="header-intro-left">
+        <div class="header-badge">
+          <span>🎓</span> NEW GRIEVANCE TICKET
         </div>
-        <h1>Report an Issue</h1>
-        <p class="page-header-subtitle">Provide details about the campus issue so authorities can investigate and resolve it promptly.</p>
+        <h1>Report a Campus Issue</h1>
+        <p>Help us understand the problem clearly so the right team can resolve it quickly.</p>
       </div>
-      <div>
-        <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary btn-sm">
-          ← Back to Dashboard
-        </a>
+
+      <!-- Guided 4-Step Progress Indicator -->
+      <div class="form-progress-tracker" id="formProgressTracker">
+        <div class="progress-node active" id="pnode-1">
+          <span class="node-num">01</span>
+          <span class="node-label">ISSUE</span>
+        </div>
+        <div class="tracker-divider"></div>
+        <div class="progress-node" id="pnode-2">
+          <span class="node-num">02</span>
+          <span class="node-label">LOCATION</span>
+        </div>
+        <div class="tracker-divider"></div>
+        <div class="progress-node" id="pnode-3">
+          <span class="node-num">03</span>
+          <span class="node-label">EVIDENCE</span>
+        </div>
+        <div class="tracker-divider"></div>
+        <div class="progress-node" id="pnode-4">
+          <span class="node-num">04</span>
+          <span class="node-label">SUBMIT</span>
+        </div>
       </div>
     </div>
 
-    <div class="cinematic-card">
-      <div class="card-header">
-        <h2 class="card-title">Issue Details</h2>
-        <span style="color: #64748b; font-size: 0.8rem;">* Required fields</span>
+    <!-- 2. Main Form Formulating Guided Sections -->
+    <form id="complaintForm" action="{{ url_for('submit_complaint_view') }}" method="POST" enctype="multipart/form-data">
+      
+      <!-- ====================================================================
+           SECTION 01: WHAT IS THE ISSUE?
+           ==================================================================== -->
+      <div class="guided-section-card" id="section-issue">
+        <div class="section-header-wrap">
+          <div class="section-header-left">
+            <div class="section-badge-num">01</div>
+            <div>
+              <h2 class="section-title">WHAT IS THE ISSUE?</h2>
+              <p class="section-desc">Tell us what needs attention across university facilities.</p>
+            </div>
+          </div>
+          <span class="section-status-tag tag-mandatory">* REQUIRED</span>
+        </div>
+
+        <!-- Complaint Category -->
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="category" class="form-label-with-icon">
+            <span class="field-icon">📁</span>
+            <span>Complaint Category</span>
+            <span class="required-star">*</span>
+          </label>
+          <select id="category" name="category" class="form-select" required>
+            <option value="" disabled {% if not form_data or not form_data.get('category') %}selected{% endif %}>
+              -- Select Complaint Category --
+            </option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if form_data and form_data.get('category') == cat %}selected{% endif %}>
+                {{ cat }}
+              </option>
+            {% endfor %}
+          </select>
+          <span class="form-hint">Choose the relevant facility or department domain (e.g. Electrical, Cleaning, Hostel, etc.).</span>
+        </div>
+
+        <!-- Detailed Description -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="description" class="form-label-with-icon">
+            <span class="field-icon">📝</span>
+            <span>Detailed Description</span>
+            <span class="required-star">*</span>
+          </label>
+          <textarea
+            id="description"
+            name="description"
+            class="form-textarea form-textarea-tall"
+            rows="5"
+            maxlength="1000"
+            placeholder="Describe what happened, what is damaged or wrong, and any specific details that will help repair technicians resolve this promptly..."
+            required
+          >{{ form_data.get('description') if form_data else '' }}</textarea>
+          <div class="char-counter-wrapper">
+            <span class="form-hint">Please provide specific details regarding the problem and hazard level.</span>
+            <span class="char-counter" id="descCharCount">0 / 1000</span>
+          </div>
+        </div>
       </div>
 
-      <div class="card-body">
-        <form id="complaintForm" action="{{ url_for('submit_complaint_view') }}" method="POST">
+      <!-- ====================================================================
+           SECTION 02: WHERE IS THE ISSUE?
+           ==================================================================== -->
+      <div class="guided-section-card" id="section-location">
+        <div class="section-header-wrap">
+          <div class="section-header-left">
+            <div class="section-badge-num">02</div>
+            <div>
+              <h2 class="section-title">WHERE IS THE ISSUE?</h2>
+              <p class="section-desc">Pinpoint the exact campus coordinates and landmarks.</p>
+            </div>
+          </div>
+          <span class="section-status-tag tag-mandatory">* LOCATION REQUIRED</span>
+        </div>
 
-          <!-- Category Selection -->
-          <div class="form-group">
-            <label for="category" class="form-label">
-              Complaint Category <span class="required-star">*</span>
+        <!-- Row 1: 📍 Block, ▣ Floor, 🚪 Room -->
+        <div class="form-grid-3col">
+          
+          <!-- Location / Block -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="block" class="form-label-with-icon">
+              <span class="field-icon">📍</span>
+              <span>Location / Campus Block</span>
+              <span class="required-star">*</span>
             </label>
-            <select id="category" name="category" class="form-select" required>
-              <option value="" disabled {% if not form_data or not form_data.get('category') %}selected{% endif %}>
-                -- Select a Category --
+            <select id="block" name="block" class="form-select" data-field="location" required>
+              <option value="" disabled {% if not form_data or not form_data.get('block') %}selected{% endif %}>
+                -- Select Location / Block --
               </option>
-              {% for cat in categories %}
-                <option value="{{ cat }}" {% if form_data and form_data.get('category') == cat %}selected{% endif %}>
-                  {{ cat }}
+              <optgroup label="Campus Sensor Zones">
+                {% for b in ["Hostel", "Academic Block", "Campus", "Library", "Sports"] %}
+                  <option value="{{ b }}" {% if form_data and form_data.get('block') == b %}selected{% endif %}>
+                    {{ b }}
+                  </option>
+                {% endfor %}
+              </optgroup>
+              <optgroup label="Academic & Facility Blocks">
+                {% for b in ["Block A", "Block B", "Block C", "Block D", "Block E", "Block F", "Other"] %}
+                  <option value="{{ b }}" {% if form_data and form_data.get('block') == b %}selected{% endif %}>
+                    {{ b }}
+                  </option>
+                {% endfor %}
+              </optgroup>
+            </select>
+            <span class="form-hint">Hostel, Academic Block, Campus, Library, Sports, or Block A &ndash; F</span>
+          </div>
+
+          <!-- Floor -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="floor_no" class="form-label-with-icon">
+              <span class="field-icon">▣</span>
+              <span>Floor Level</span>
+            </label>
+            <select id="floor_no" name="floor_no" class="form-select">
+              {% for f in floors %}
+                <option value="{{ f }}" {% if form_data and form_data.get('floor_no') == f %}selected{% endif %}>
+                  {{ f }}
                 </option>
               {% endfor %}
             </select>
-            <span class="form-hint">Select the department or campus domain most relevant to your grievance.</span>
+            <span class="form-hint">Building floor</span>
           </div>
 
-          <!-- Location -->
-          <div class="form-group">
-            <label for="location" class="form-label">
-              Campus Location <span class="required-star">*</span>
+          <!-- Room / Area -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="room_no" class="form-label-with-icon">
+              <span class="field-icon">🚪</span>
+              <span>Room / Classroom / Lab</span>
             </label>
             <input
               type="text"
-              id="location"
-              name="location"
-              class="form-input"
-              placeholder="e.g. Academic Block 3, Room 402 or Central Library 2nd Floor"
-              value="{{ form_data.get('location') if form_data else '' }}"
-              required
+              id="room_no"
+              name="room_no"
+              class="form-control"
+              placeholder="e.g. F-204, Room 428, Lab 2"
+              value="{{ form_data.get('room_no') if form_data else '' }}"
             >
-            <span class="form-hint">Specify block, wing, room number, or landmark to ensure quick inspection.</span>
+            <span class="form-hint">Room or lab number</span>
           </div>
 
-          <!-- Priority Level -->
-          <div class="form-group">
-            <label class="form-label">
-              Priority Level <span class="required-star">*</span>
+        </div>
+
+        <!-- Row 2: ↔ Side, 📌 Nearby Area -->
+        <div class="form-grid-2col">
+          
+          <!-- Corridor Side -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="corridor_side" class="form-label-with-icon">
+              <span class="field-icon">↔</span>
+              <span>Corridor Side</span>
             </label>
-            
-            <div class="priority-options-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-              
-              <label class="priority-option-card" style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;">
-                <input type="radio" name="priority" value="Low" {% if not form_data or form_data.get('priority') == 'Low' %}checked{% endif %}>
-                <div>
-                  <div style="color: #cbd5e1; font-weight: 600; font-size: 0.9rem;">Low Priority</div>
-                  <div style="color: #64748b; font-size: 0.75rem;">Minor / general maintenance</div>
-                </div>
-              </label>
+            <select id="corridor_side" name="corridor_side" class="form-select">
+              <option value="RHS" {% if not form_data or form_data.get('corridor_side') == 'RHS' %}selected{% endif %}>
+                RHS (Right Hand Side)
+              </option>
+              <option value="LHS" {% if form_data and form_data.get('corridor_side') == 'LHS' %}selected{% endif %}>
+                LHS (Left Hand Side)
+              </option>
+              <option value="Central Wing" {% if form_data and form_data.get('corridor_side') == 'Central Wing' %}selected{% endif %}>
+                Central Wing / Main Corridor
+              </option>
+            </select>
+            <span class="form-hint">Corridor or wing orientation</span>
+          </div>
 
-              <label class="priority-option-card" style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;">
-                <input type="radio" name="priority" value="Medium" {% if not form_data or form_data.get('priority') == 'Medium' or not form_data.get('priority') %}checked{% endif %}>
-                <div>
-                  <div style="color: #fbbf24; font-weight: 600; font-size: 0.9rem;">Medium Priority</div>
-                  <div style="color: #64748b; font-size: 0.75rem;">Standard response required</div>
-                </div>
-              </label>
+          <!-- Nearby Landmark -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="nearby_area" class="form-label-with-icon">
+              <span class="field-icon">📌</span>
+              <span>Nearby Known Landmark</span>
+            </label>
+            <input
+              type="text"
+              id="nearby_area"
+              name="nearby_area"
+              class="form-control"
+              placeholder="e.g. Near staircase #2, opposite water cooler, next to lift"
+              value="{{ form_data.get('nearby_area') if form_data else '' }}"
+            >
+            <span class="form-hint">Physical reference point</span>
+          </div>
 
-              <label class="priority-option-card" style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;">
-                <input type="radio" name="priority" value="High" {% if form_data and form_data.get('priority') == 'High' %}checked{% endif %}>
-                <div>
-                  <div style="color: #f87171; font-weight: 600; font-size: 0.9rem;">High Priority</div>
-                  <div style="color: #64748b; font-size: 0.75rem;">Urgent / safety hazard</div>
-                </div>
-              </label>
+        </div>
 
+        <!-- Row 3: 🗺️ Additional Location Details -->
+        <div class="form-group" style="margin-bottom: 0; margin-top: 1.25rem;">
+          <label for="additional_location" class="form-label-with-icon">
+            <span class="field-icon">🗺️</span>
+            <span>Additional Location Details</span>
+          </label>
+          <input
+            type="text"
+            id="additional_location"
+            name="additional_location"
+            class="form-control"
+            placeholder="e.g. Water dripping from 2nd ceiling tile next to the classroom doorway entrance"
+            value="{{ form_data.get('additional_location') if form_data else '' }}"
+          >
+          <span class="form-hint">Specific navigation cues or instructions for repair personnel.</span>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           SECTION 03: PHOTO EVIDENCE (HERO SECTION)
+           ==================================================================== -->
+      <div class="guided-section-card" id="section-evidence" style="border-color: rgba(56, 189, 248, 0.28);">
+        <div class="section-header-wrap">
+          <div class="section-header-left">
+            <div class="section-badge-num">03</div>
+            <div>
+              <h2 class="section-title" style="color: #38bdf8;">PHOTO EVIDENCE</h2>
+              <p class="section-desc">A photo helps our team understand and verify the issue faster.</p>
             </div>
           </div>
+          <span class="section-status-tag tag-mandatory" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-color: rgba(244, 63, 94, 0.35);">
+            REQUIRED
+          </span>
+        </div>
 
-          <!-- Description -->
-          <div class="form-group">
-            <label for="description" class="form-label">
-              Detailed Description <span class="required-star">*</span>
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              class="form-textarea"
-              rows="5"
-              maxlength="500"
-              placeholder="Describe the issue clearly (e.g., Wi-Fi router is offline in reading room, students unable to access research portal)..."
-              required
-            >{{ form_data.get('description') if form_data else '' }}</textarea>
-            
-            <div style="display: flex; justify-content: space-between; margin-top: 0.35rem; font-size: 0.8rem; color: #64748b;">
-              <span>Please provide clear specifics to help staff resolve the problem quickly.</span>
-            </div>
-          </div>
+        <!-- Hero Upload Dropzone -->
+        <div id="photoUploadContainer" class="hero-photo-dropzone">
+          
+          <input
+            type="file"
+            id="photoInput"
+            name="photo"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
+            style="display: none;"
+            required
+          >
 
-          <!-- Submit Button -->
-          <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
-            <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
-              Cancel
-            </a>
-            <button type="submit" class="btn btn-primary btn-lg">
-              📝 Submit Issue Ticket
+          <!-- 1. Initial Prompt State -->
+          <div id="photoPromptState">
+            <div class="dropzone-prompt-icon">📷</div>
+            <div class="dropzone-prompt-title">Upload issue photo</div>
+            <p class="dropzone-prompt-sub">
+              Drag & drop your photo here, or click the button below to browse files from your device.
+              <br>
+              <span class="file-format-pills">
+                <span class="file-format-pill">JPG</span>
+                <span class="file-format-pill">PNG</span>
+                <span class="file-format-pill">JPEG</span>
+                <span class="file-format-pill">WEBP</span>
+              </span>
+            </p>
+            <button type="button" id="browsePhotoBtn" class="btn btn-primary" style="box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35); padding: 0.75rem 1.85rem; font-weight: 600;">
+              📁 Upload Photo from Device
             </button>
           </div>
 
-        </form>
+          <!-- 2. Selected Photo Preview State -->
+          <div id="photoPreviewState" class="photo-preview-container" style="display: none;">
+            <div class="photo-preview-box">
+              <img id="imagePreviewElement" src="" alt="Selected Evidence Photo Preview">
+            </div>
+
+            <div class="preview-meta-pill">
+              <span>✓</span>
+              <span id="photoFilenameLabel">evidence.jpg</span>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+              <button type="button" id="changePhotoBtn" class="btn btn-secondary btn-sm" style="padding: 0.5rem 1.25rem;">
+                🔄 Change Photo
+              </button>
+              <button type="button" id="removePhotoBtn" class="btn btn-sm" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.35); padding: 0.5rem 1.25rem;">
+                ✕ Remove
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Mandatory Photo Notice -->
+        <div style="margin-top: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="color: #f87171; font-size: 0.825rem; font-weight: 600;">
+            * Photo evidence is mandatory. Submissions without a photo will not be processed.
+          </span>
+          <span style="color: #64748b; font-size: 0.8rem;">
+            Images are securely stored and verified before work order dispatch.
+          </span>
+        </div>
+
+        <div id="photoErrorText" style="display: none; color: #f43f5e; font-size: 0.875rem; margin-top: 0.65rem; font-weight: 600;">
+          ⚠ Please upload a photo of the issue before submitting.
+        </div>
       </div>
-    </div>
+
+      <!-- ====================================================================
+           SECTION 04: PRIORITY & SUBMISSION
+           ==================================================================== -->
+      <div class="guided-section-card" id="section-priority">
+        <div class="section-header-wrap">
+          <div class="section-header-left">
+            <div class="section-badge-num">04</div>
+            <div>
+              <h2 class="section-title">PRIORITY & SUBMISSION</h2>
+              <p class="section-desc">Select urgency level and finalize your ticket submission.</p>
+            </div>
+          </div>
+          <span class="section-status-tag tag-optional">FINAL STEP</span>
+        </div>
+
+        <!-- Priority Selectable Cards -->
+        <div class="priority-cards-grid">
+          
+          <!-- Low -->
+          <label class="priority-card-btn card-low {% if not form_data or form_data.get('priority') == 'Low' %}is-selected{% endif %}" id="priorityCardLow">
+            <input type="radio" name="priority" value="Low" {% if not form_data or form_data.get('priority') == 'Low' %}checked{% endif %}>
+            <div class="priority-card-icon">🟢</div>
+            <div>
+              <div class="priority-card-title" style="color: #38bdf8;">LOW</div>
+              <div class="priority-card-desc">Minor inconvenience / routine maintenance</div>
+            </div>
+          </label>
+
+          <!-- Medium -->
+          <label class="priority-card-btn card-medium {% if form_data and form_data.get('priority') == 'Medium' %}is-selected{% endif %}" id="priorityCardMed">
+            <input type="radio" name="priority" value="Medium" {% if form_data and form_data.get('priority') == 'Medium' %}checked{% endif %}>
+            <div class="priority-card-icon">🟡</div>
+            <div>
+              <div class="priority-card-title" style="color: #fbbf24;">MEDIUM</div>
+              <div class="priority-card-desc">Needs attention / standard response</div>
+            </div>
+          </label>
+
+          <!-- High -->
+          <label class="priority-card-btn card-high {% if form_data and form_data.get('priority') == 'High' %}is-selected{% endif %}" id="priorityCardHigh">
+            <input type="radio" name="priority" value="High" {% if form_data and form_data.get('priority') == 'High' %}checked{% endif %}>
+            <div class="priority-card-icon">🔴</div>
+            <div>
+              <div class="priority-card-title" style="color: #f87171;">HIGH</div>
+              <div class="priority-card-desc">Urgent / safety concern or hazard</div>
+            </div>
+          </label>
+
+        </div>
+
+        <!-- Submission Final Bar -->
+        <div class="submission-final-bar">
+          <div class="submission-note">
+            <span>🛡️</span>
+            <span>Your grievance will be recorded with timestamp and assigned to the campus supervisor.</span>
+          </div>
+
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <a href="{{ url_for('student_dashboard') }}" class="btn btn-secondary">
+              Cancel
+            </a>
+            <button type="submit" id="submitComplaintBtn" class="btn-submit-hero">
+              <span>SUBMIT COMPLAINT</span>
+              <span class="btn-arrow">→</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </form>
   {% endif %}
 
 </div>

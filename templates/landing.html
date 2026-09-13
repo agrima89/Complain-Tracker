@@ -1,691 +1,799 @@
 {% extends "base.html" %}
 
-{% block title %}CampusCare - Living University Grievance & Resolution Portal{% endblock %}
+{% block title %}CampusCare - Student Grievance & Resolution Portal{% endblock %}
 
 {% block main_class %}main-content--flush{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/campus-world.css') }}">
 {% endblock %}
 
 {% block content %}
 
 <!-- ==========================================================================
-     1. DARK CINEMATIC LIVING CAMPUS HERO — DEEP NAVY WORLD & FLOATING UI
+     FULL-PAGE IMMERSIVE CAMPUS ENVIRONMENT MASTER WRAPPER
+     Single continuous background covering entire page from top to bottom
      ========================================================================== -->
-<section class="cinematic-campus-world" id="cinematicCampusWorld" data-world-env="night">
-  
-  <!-- ================= LIVING CAMPUS BACKGROUND LAYERS ================= -->
-  <div class="world-stage-viewport" id="worldStageViewport">
+<div class="landing-page-master" id="landingPageMaster">
+
+  <!-- Dual-Layer Fixed Campus Viewport Background -->
+  <div class="campus-bg-viewport" id="campusBgViewport" aria-hidden="true">
+    <div class="campus-bg-layer bg-layer-1" id="campusBgLayer1"></div>
+    <div class="campus-bg-layer bg-layer-2" id="campusBgLayer2"></div>
+    <div class="campus-bg-overlay" id="campusBgOverlay"></div>
+  </div>
+
+  <!-- ==========================================================================
+       1. HERO SECTION — FLOATING TYPOGRAPHY & GLASS DASHBOARD
+       ========================================================================== -->
+  <section class="campus-hero-stage" id="campusHeroStage">
     
-    <!-- STAGE LAYER 1: Deep Sky Gradient -->
-    <div class="world-layer-sky"></div>
+    <!-- Subtle ambient lens glow effect -->
+    <div class="hero-ambient-glow" aria-hidden="true"></div>
 
-    <!-- STAGE LAYER 2: Celestial Bodies & 3-Tier Moving Clouds -->
-    <div class="world-layer-celestial">
-      <!-- Sun Disk (Visible Sunrise/Morning/Afternoon/Sunset) -->
-      <div class="world-sun-disk" id="worldSun"></div>
+    <div class="container hero-content-grid">
       
-      <!-- Crescent Moon (Visible Sunset/Night) -->
-      <div class="world-moon-crescent" id="worldMoon"></div>
-
-      <!-- Real-Time Drifting Starfield -->
-      <div class="world-stars-field" id="worldStarsField"></div>
-
-      <!-- 3-Tier Moving Clouds (Continuous Motion at Differential Speeds) -->
-      <div class="world-clouds-system">
-        <div class="moving-cloud-band cloud-tier-back"></div>
-        <div class="moving-cloud-band cloud-tier-mid"></div>
-        <div class="moving-cloud-band cloud-tier-front"></div>
-      </div>
-    </div>
-
-    <!-- STAGE LAYER 3: Distant University Skyline Silhouette -->
-    <div class="world-layer-distant-skyline">
-      <svg viewBox="0 0 1440 360" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-        <path class="distant-skyline-path" d="M 0 360 L 0 220 L 70 220 L 70 190 L 100 160 L 130 190 L 130 220 L 260 220 L 260 180 L 320 180 L 320 220 L 440 220 L 440 170 L 480 170 L 500 120 L 520 170 L 560 170 L 560 220 L 740 220 L 760 180 L 800 180 L 820 220 L 960 220 L 960 150 L 990 120 L 1020 150 L 1020 220 L 1140 220 L 1170 190 L 1210 190 L 1240 220 L 1440 220 L 1440 360 Z" />
-      </svg>
-    </div>
-
-    <!-- STAGE LAYER 4: Recognizable University Architecture (Academic Hall, Library, Dome) -->
-    <div class="world-layer-main-campus">
-      <svg class="campus-vector-svg" viewBox="0 0 1240 480" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- Main Academic Hall Facade -->
-        <rect class="arch-facade" x="240" y="160" width="760" height="320" rx="4" />
-        <rect class="arch-trim" x="220" y="150" width="800" height="15" />
+      <!-- ================= LEFT COLUMN: HERO TYPOGRAPHY & CTAS ================= -->
+      <div class="hero-left-column">
         
-        <!-- Central Clock Tower Dome -->
-        <path class="arch-facade" d="M 520 150 L 520 75 Q 620 15 720 75 L 720 150 Z" />
-        <circle class="arch-trim" cx="620" cy="90" r="22" />
-        <circle cx="620" cy="90" r="16" fill="#ffffff" />
-        <line x1="620" y1="90" x2="620" y2="80" stroke="#0f172a" stroke-width="2.5" stroke-linecap="round" />
-        <line x1="620" y1="90" x2="629" y2="90" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
-
-        <!-- Classical Portico Pediment & Grand Columns -->
-        <polygon class="arch-trim" points="480,150 620,65 760,150" />
-        <rect class="arch-facade" x="490" y="150" width="260" height="330" />
-        
-        <rect class="arch-trim" x="510" y="160" width="16" height="260" rx="2" />
-        <rect class="arch-trim" x="560" y="160" width="16" height="260" rx="2" />
-        <rect class="arch-trim" x="664" y="160" width="16" height="260" rx="2" />
-        <rect class="arch-trim" x="714" y="160" width="16" height="260" rx="2" />
-
-        <!-- Main Arch Entrance -->
-        <path class="arch-shadow" d="M 590 340 Q 620 310 650 340 L 650 480 L 590 480 Z" />
-
-        <!-- Individual Windows with Randomized Warm Lighting -->
-        <!-- Left Wing Windows -->
-        <rect class="world-window" x="270" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="330" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="390" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="270" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="330" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="390" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="270" y="340" width="34" height="48" rx="3" />
-        <rect class="world-window" x="330" y="340" width="34" height="48" rx="3" />
-        <rect class="world-window" x="390" y="340" width="34" height="48" rx="3" />
-
-        <!-- Right Wing Windows -->
-        <rect class="world-window" x="810" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="870" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="930" y="190" width="34" height="48" rx="3" />
-        <rect class="world-window" x="810" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="870" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="930" y="265" width="34" height="48" rx="3" />
-        <rect class="world-window" x="810" y="340" width="34" height="48" rx="3" />
-        <rect class="world-window" x="870" y="340" width="34" height="48" rx="3" />
-        <rect class="world-window" x="930" y="340" width="34" height="48" rx="3" />
-      </svg>
-    </div>
-
-    <!-- STAGE LAYER 5: Moving Trees (Wind Sway Animation) -->
-    <div class="world-layer-trees">
-      <svg viewBox="0 0 1440 280" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-        <!-- Left Moving Tree Group -->
-        <g class="moving-tree-canopy-1">
-          <circle cx="120" cy="180" r="85" />
-          <circle cx="65" cy="205" r="65" />
-        </g>
-        <g class="moving-tree-canopy-2">
-          <circle cx="185" cy="200" r="70" />
-        </g>
-        <rect x="113" y="240" width="14" height="40" fill="#030712" />
-
-        <!-- Right Moving Tree Group -->
-        <g class="moving-tree-canopy-1">
-          <circle cx="1320" cy="180" r="90" />
-          <circle cx="1380" cy="205" r="65" />
-        </g>
-        <g class="moving-tree-canopy-2">
-          <circle cx="1245" cy="200" r="75" />
-        </g>
-        <rect x="1313" y="240" width="14" height="40" fill="#030712" />
-      </svg>
-    </div>
-
-    <!-- STAGE LAYER 6: Perspective Campus Road & Moving Light -->
-    <div class="world-layer-road">
-      <svg viewBox="0 0 1440 220" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-        <polygon class="road-surface" points="560,0 880,0 1180,220 260,220" />
-        <line class="road-edge" x1="560" y1="0" x2="260" y2="220" stroke-width="3" />
-        <line class="road-edge" x1="880" y1="0" x2="1180" y2="220" stroke-width="3" />
-      </svg>
-      <!-- Moving light traveling along pathway -->
-      <div class="road-pulse-light"></div>
-    </div>
-
-    <!-- STAGE LAYER 7: Lamp Posts with Warm Pulsing Halos -->
-    <div class="world-layer-lamps">
-      <svg viewBox="0 0 1440 240" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
-        <!-- Left Lamp Post -->
-        <g transform="translate(380, 30)">
-          <rect x="7" y="30" width="4" height="140" fill="#090e1c" />
-          <path d="M 0 30 Q 9 16 18 30 L 15 42 L 3 42 Z" fill="#040711" />
-          <circle class="lamp-warm-halo" cx="9" cy="36" r="16" />
-          <circle cx="9" cy="36" r="6" fill="#ffffff" />
-        </g>
-        <!-- Right Lamp Post -->
-        <g transform="translate(1040, 30)">
-          <rect x="7" y="30" width="4" height="140" fill="#090e1c" />
-          <path d="M 0 30 Q 9 16 18 30 L 15 42 L 3 42 Z" fill="#040711" />
-          <circle class="lamp-warm-halo" cx="9" cy="36" r="16" />
-          <circle cx="9" cy="36" r="6" fill="#ffffff" />
-        </g>
-      </svg>
-    </div>
-
-    <!-- STAGE LAYER 8: Moving Student Silhouettes -->
-    <div class="world-layer-students">
-      <!-- Student Walking Left to Right -->
-      <svg class="student-walker walker-student-a" viewBox="0 0 24 60">
-        <circle cx="12" cy="8" r="6" />
-        <rect x="8" y="16" width="8" height="24" rx="3" />
-        <line x1="9" y1="40" x2="6" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        <line x1="15" y1="40" x2="18" y2="58" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-      </svg>
-      <!-- Student Walking Right to Left -->
-      <svg class="student-walker walker-student-b" viewBox="0 0 24 60">
-        <circle cx="12" cy="8" r="5.5" />
-        <rect x="8" y="15" width="8" height="22" rx="3" />
-        <line x1="10" y1="37" x2="8" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        <line x1="14" y1="37" x2="16" y2="56" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-      </svg>
-    </div>
-
-    <!-- STAGE LAYER 9: Atmospheric Depth Scrim -->
-    <div class="world-layer-atmosphere"></div>
-
-    <!-- Signature Campus Pulse Packet -->
-    <div class="pulse-node-beacon" id="campusPulsePacket" style="left: 50%; top: 50%;"></div>
-
-  </div>
-  <!-- ================= END LIVING CAMPUS BACKGROUND ================= -->
-
-
-  <!-- ================= BOX-LESS FLOATING DIGITAL INTERFACE ================= -->
-  <div class="container cinematic-ui-container">
-    
-    <!-- Left Column: Floating Hero Typography, Live Clock & Actions -->
-    <div class="floating-hero-column">
-      
-      <!-- Time & Signature Greeting (Floating Text) -->
-      <div class="floating-time-display">
-        <span class="time-headline-text">
-          <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
-          <span id="worldLiveTimeText">11:42 PM • NIGHT CAMPUS</span>
-        </span>
-        <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
-      </div>
-
-      <div class="floating-cell-tag">
-        <span class="tag-cyan-dot"></span>
-        <span>CAMPUS GRIEVANCE REDRESSAL CELL</span>
-      </div>
-
-      <h1 class="floating-hero-title">
-        Your Campus.<br>
-        Your Voice.<br>
-        <span class="resolution-cyan-glow">Your Resolution.</span>
-      </h1>
-
-      <p class="floating-hero-paragraph">
-        Report campus problems, track every update in real time, and stay informed until your issue is fully resolved.
-      </p>
-
-      <!-- Main Action Buttons (Only 2 Pill Containers) -->
-      <div class="hero-cta-button-pair">
-        <a href="{{ url_for('submit_complaint_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-cinematic-primary" id="heroReportBtn">
-          <span>📝</span>
-          <span>Report an Issue</span>
-          <span class="btn-arrow-slide">→</span>
-        </a>
-
-        <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-cinematic-secondary" id="heroTrackBtn">
-          <span>🔎</span>
-          <span>Track My Complaint</span>
-        </a>
-      </div>
-
-      <!-- Category Strip (Floating Minimal Pills) -->
-      <div class="floating-category-strip">
-        <div class="category-strip-label">WHAT WOULD YOU LIKE TO REPORT?</div>
-        <div class="category-pills-flow">
-          <a href="{{ url_for('submit_complaint_view', category='Wi-Fi/Internet') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>📶</span> <span>Wi-Fi</span>
-          </a>
-          <a href="{{ url_for('submit_complaint_view', category='Electrical') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>💡</span> <span>Electricity</span>
-          </a>
-          <a href="{{ url_for('submit_complaint_view', category='Infrastructure') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>🚰</span> <span>Water</span>
-          </a>
-          <a href="{{ url_for('submit_complaint_view', category='Cleaning') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>🧹</span> <span>Cleanliness</span>
-          </a>
-          <a href="{{ url_for('submit_complaint_view', category='Classroom') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>🏫</span> <span>Classroom</span>
-          </a>
-          <a href="{{ url_for('submit_complaint_view', category='Other') if session.get('student_id') else url_for('student_login_view') }}" class="floating-category-chip">
-            <span>🚌</span> <span>Transport</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- Trust Badges -->
-      <div class="floating-trust-row">
-        <div class="trust-pure-item">
-          <span class="pure-check">✓</span>
-          <span>Transparent Tracking</span>
-        </div>
-        <div class="trust-pure-item">
-          <span class="pure-check">✓</span>
-          <span>Time-Bound Resolution</span>
-        </div>
-        <div class="trust-pure-item">
-          <span class="pure-check">✓</span>
-          <span>Student-Centric</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Floating Timeline & Statistics (No Boxes) -->
-    <div class="floating-dashboard-column" id="floatingTimelineColumn">
-      
-      <!-- Minimal Floating Statistics -->
-      <div class="floating-stat-strip">
-        <div class="stat-metric-block">
-          <span class="stat-symbol-beacon">⚡</span>
-          <div>
-            <div class="stat-numeric-value">12</div>
-            <div class="stat-label-muted">Resolved • Avg 24h</div>
-          </div>
+        <!-- Top Tag -->
+        <div class="hero-cell-tag">
+          <span class="tag-cyan-pulse"></span>
+          <span class="tag-text">CAMPUS GRIEVANCE REDRESSAL CELL</span>
         </div>
 
-        <div class="stat-divider-vertical"></div>
+        <!-- Main Headline -->
+        <h1 class="hero-main-title">
+          Your Campus.<br>
+          Your Voice.<br>
+          <span class="hero-cyan-gradient">Your Resolution.</span>
+        </h1>
 
-        <div class="stat-metric-block">
-          <span class="stat-symbol-beacon">⏱️</span>
-          <div>
-            <div class="stat-numeric-value">18h</div>
-            <div class="stat-label-muted">Average Response</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating Complaint Journey Timeline -->
-      <div class="floating-timeline-wrapper" id="journeyCard3D">
-        <div class="timeline-ticket-header">
-          <span class="ticket-mono-id">#CC-1042</span>
-          <span class="ticket-live-tag">● Live Tracking</span>
-        </div>
-
-        <h3 class="timeline-issue-heading">Library Wi-Fi Connectivity</h3>
-        <div class="timeline-issue-geo">📍 Central Library • 2nd Floor Reading Room</div>
-
-        <!-- Vertical Glowing Timeline -->
-        <div class="floating-vertical-timeline" id="journeyTimeline">
-          <!-- Step 1 -->
-          <div class="timeline-node-step is-done" data-step="1">
-            <div class="node-circular-marker">✓</div>
-            <span class="node-step-label">Submitted</span>
-            <span class="node-meta-badge">09:15 AM</span>
-          </div>
-
-          <!-- Step 2 -->
-          <div class="timeline-node-step is-done" data-step="2">
-            <div class="node-circular-marker">✓</div>
-            <span class="node-step-label">Under Review</span>
-            <span class="node-meta-badge">10:30 AM</span>
-          </div>
-
-          <!-- Step 3 -->
-          <div class="timeline-node-step is-active" data-step="3">
-            <div class="node-circular-marker"><div class="node-pulse-core"></div></div>
-            <span class="node-step-label">Action Taken</span>
-            <span class="node-meta-badge badge-active-state">In Progress</span>
-          </div>
-
-          <!-- Step 4 -->
-          <div class="timeline-node-step" data-step="4">
-            <div class="node-circular-marker">○</div>
-            <span class="node-step-label">Resolved</span>
-            <span class="node-meta-badge">Final Step</span>
-          </div>
-        </div>
-
-        <!-- Minimalist Progress Line (No Box) -->
-        <div class="minimal-progress-container">
-          <div class="minimal-progress-header">
-            <span style="color: #94a3b8;">CURRENT STATUS</span>
-            <span style="color: var(--cyan-accent);">IN PROGRESS (75%)</span>
-          </div>
-          <div class="minimal-progress-track">
-            <div class="minimal-progress-fill" id="progressFill3D"></div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-</section>
-
-
-<!-- ==========================================================================
-     2. LIVE STATISTICS COUNTERS SECTION (ANIMATED ON VIEWPORT ENTRY)
-     ========================================================================== -->
-<section class="stats-counter-section" id="statsSection">
-  <div class="container">
-    <div class="stats-counter-grid">
-      
-      <!-- Metric 1: Complaints Submitted -->
-      <div class="metric-card">
-        <div class="metric-top-bar">
-          <span class="metric-icon">📥</span>
-          <span class="metric-trend">Verified Audit</span>
-        </div>
-        <div class="metric-value-wrap">
-          <span class="metric-counter" data-target="2481" data-prefix="" data-suffix="">0</span>
-        </div>
-        <div class="metric-title">Complaints Submitted</div>
-        <div class="metric-desc">Total campus grievances recorded digitally</div>
-      </div>
-
-      <!-- Metric 2: Issues Resolved -->
-      <div class="metric-card metric-card--highlight">
-        <div class="metric-top-bar">
-          <span class="metric-icon">✅</span>
-          <span class="metric-trend trend-positive">↑ High Efficiency</span>
-        </div>
-        <div class="metric-value-wrap">
-          <span class="metric-counter" data-target="2316" data-prefix="" data-suffix="">0</span>
-        </div>
-        <div class="metric-title">Issues Resolved</div>
-        <div class="metric-desc">Fixed and verified by facility maintenance</div>
-      </div>
-
-      <!-- Metric 3: Resolution Rate -->
-      <div class="metric-card">
-        <div class="metric-top-bar">
-          <span class="metric-icon">📈</span>
-          <span class="metric-trend trend-positive">Top Tier SLA</span>
-        </div>
-        <div class="metric-value-wrap">
-          <span class="metric-counter" data-target="93.4" data-decimals="1" data-prefix="" data-suffix="%">0%</span>
-        </div>
-        <div class="metric-title">Resolution Rate</div>
-        <div class="metric-desc">Consistently above institutional benchmark</div>
-      </div>
-
-      <!-- Metric 4: Average Response -->
-      <div class="metric-card">
-        <div class="metric-top-bar">
-          <span class="metric-icon">⚡</span>
-          <span class="metric-trend">Rapid Triage</span>
-        </div>
-        <div class="metric-value-wrap">
-          <span class="metric-counter" data-target="18" data-prefix="" data-suffix="h">0h</span>
-        </div>
-        <div class="metric-title">Average Response</div>
-        <div class="metric-desc">From submission to technician dispatch</div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ==========================================================================
-     3. "HOW CAMPUSCARE WORKS" (4-STAGE CONNECTED PROCESS PIPELINE)
-     ========================================================================== -->
-<section class="how-it-works-section" id="howItWorksSection">
-  <div class="container">
-    <div class="section-head-center">
-      <span class="section-tag">STRUCTURED LIFECYCLE</span>
-      <h2>How CampusCare Works</h2>
-      <p>From the moment you notice an issue to its verified resolution, every grievance follows a structured 4-step workflow.</p>
-    </div>
-
-    <div class="process-pipeline-container">
-      <!-- Animated Illuminated Progress Line -->
-      <div class="pipeline-illuminated-track">
-        <div class="pipeline-track-fill" id="pipelineTrackFill"></div>
-      </div>
-      
-      <div class="process-steps-grid">
-        
-        <!-- Step 01: Report -->
-        <div class="process-step-card" data-step="1">
-          <div class="step-badge-pill">01</div>
-          <div class="step-icon-wrapper">
-            <span>📝</span>
-          </div>
-          <h3 class="step-title">Report</h3>
-          <p class="step-description">
-            Submit your issue in under 2 minutes with category, campus location, and issue details.
-          </p>
-          <div class="step-indicator-dot"></div>
-        </div>
-
-        <!-- Step 02: Track -->
-        <div class="process-step-card" data-step="2">
-          <div class="step-badge-pill">02</div>
-          <div class="step-icon-wrapper">
-            <span>🔎</span>
-          </div>
-          <h3 class="step-title">Track</h3>
-          <p class="step-description">
-            Follow transparent timeline milestones as administrative officers review and triage your ticket.
-          </p>
-          <div class="step-indicator-dot"></div>
-        </div>
-
-        <!-- Step 03: Action -->
-        <div class="process-step-card" data-step="3">
-          <div class="step-badge-pill">03</div>
-          <div class="step-icon-wrapper">
-            <span>🛠️</span>
-          </div>
-          <h3 class="step-title">Action</h3>
-          <p class="step-description">
-            Dedicated maintenance technicians are dispatched on-site to inspect and repair the reported problem.
-          </p>
-          <div class="step-indicator-dot"></div>
-        </div>
-
-        <!-- Step 04: Resolve -->
-        <div class="process-step-card" data-step="4">
-          <div class="step-badge-pill">04</div>
-          <div class="step-icon-wrapper">
-            <span>🏆</span>
-          </div>
-          <h3 class="step-title">Resolve</h3>
-          <p class="step-description">
-            Your complaint is officially marked resolved with timestamped completion records and outcome history.
-          </p>
-          <div class="step-indicator-dot"></div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- ==========================================================================
-     4. TRUST & BENEFITS SECTION ("Built for a more transparent campus.")
-     ========================================================================== -->
-<section class="trust-benefits-section" id="benefitsSection">
-  <div class="container">
-    <div class="section-head-center">
-      <span class="section-tag">THE CAMPUSCARE ADVANTAGE</span>
-      <h2>Built for a more transparent campus.</h2>
-      <p>Modernized redressal infrastructure eliminating paper delays and lost complaints.</p>
-    </div>
-
-    <div class="benefits-quad-grid">
-      
-      <!-- Benefit 1: Secure Reporting -->
-      <div class="benefit-glass-card">
-        <div class="benefit-card-icon-box">
-          <span>🔒</span>
-        </div>
-        <div class="benefit-card-body">
-          <h3 class="benefit-card-title">Secure Reporting</h3>
-          <p class="benefit-card-text">
-            Students can report issues through a structured, authenticated process with full data integrity.
-          </p>
-        </div>
-        <div class="benefit-card-accent"></div>
-      </div>
-
-      <!-- Benefit 2: Transparent Tracking -->
-      <div class="benefit-glass-card">
-        <div class="benefit-card-icon-box">
-          <span>👁️</span>
-        </div>
-        <div class="benefit-card-body">
-          <h3 class="benefit-card-title">Transparent Tracking</h3>
-          <p class="benefit-card-text">
-            See exactly where your complaint stands in real time with status timestamps and stage indicators.
-          </p>
-        </div>
-        <div class="benefit-card-accent"></div>
-      </div>
-
-      <!-- Benefit 3: Faster Resolution -->
-      <div class="benefit-glass-card">
-        <div class="benefit-card-icon-box">
-          <span>⚡</span>
-        </div>
-        <div class="benefit-card-body">
-          <h3 class="benefit-card-title">Faster Resolution</h3>
-          <p class="benefit-card-text">
-            Issues reach the appropriate facility authority quickly, dramatically reducing turnaround delays.
-          </p>
-        </div>
-        <div class="benefit-card-accent"></div>
-      </div>
-
-      <!-- Benefit 4: Student-Centric -->
-      <div class="benefit-glass-card">
-        <div class="benefit-card-icon-box">
-          <span>🎓</span>
-        </div>
-        <div class="benefit-card-body">
-          <h3 class="benefit-card-title">Student-Centric</h3>
-          <p class="benefit-card-text">
-            Designed around the actual campus experience to ensure student voices lead to concrete improvements.
-          </p>
-        </div>
-        <div class="benefit-card-accent"></div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ==========================================================================
-     5. TRACKING SHOWCASE (DARK CONTRASTING SECTION)
-     ========================================================================== -->
-<section class="tracking-showcase-section">
-  <div class="container">
-    <div class="showcase-grid">
-      
-      <!-- Left Column: Copy & Action -->
-      <div class="showcase-left">
-        <div class="showcase-badge">
-          <span>●</span> LIVE TRACKING SYSTEM
-        </div>
-        <h2 class="showcase-title">
-          Never Lose Sight of Your Complaint.
-        </h2>
-        <p class="showcase-text">
-          From submission to resolution, stay updated at every step. Real-time timestamps and status updates eliminate the grievance black hole.
+        <!-- Subtitle Description -->
+        <p class="hero-lead-description">
+          Report campus problems, track every update, and stay informed until your issue is resolved.
         </p>
-        <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-showcase-track">
-          <span>Track Complaint</span>
-          <span>→</span>
-        </a>
-      </div>
 
-      <!-- Right Column: Product Feature Showcase Card -->
-      <div class="showcase-ui-card">
-        <div class="showcase-ui-header">
-          <div class="showcase-ticket-meta">
-            <span class="showcase-ticket-id">TICKET #CC-1042</span>
-            <span class="showcase-dept-tag">IT Infrastructure</span>
-          </div>
-          <span style="font-size: 0.75rem; color: #94a3b8;">SLA Target: 24h</span>
+        <!-- Action Buttons Pair -->
+        <div class="hero-action-buttons">
+          <a href="{{ url_for('submit_complaint_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-hero-primary" id="heroReportBtn">
+            <span class="btn-icon">📝</span>
+            <span>Report an Issue</span>
+            <span class="btn-arrow">→</span>
+          </a>
+
+          <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-hero-secondary" id="heroTrackBtn">
+            <span class="btn-icon">🔍</span>
+            <span>Track My Complaint</span>
+          </a>
         </div>
 
-        <div class="showcase-ui-body">
-          <h3 class="showcase-issue-name">Library Wi-Fi Issue</h3>
-          <div class="showcase-issue-loc">📍 Central Library • Assigned to Campus Network Ops</div>
-
-          <div class="showcase-timeline">
-            <div class="showcase-stage-row complete">
-              <div class="showcase-stage-dot">✓</div>
-              <div class="showcase-stage-info">
-                <span class="showcase-stage-title">Submitted</span>
-                <span class="showcase-stage-time">Oct 24, 09:15 AM</span>
-              </div>
-            </div>
-
-            <div class="showcase-stage-row complete">
-              <div class="showcase-stage-dot">✓</div>
-              <div class="showcase-stage-info">
-                <span class="showcase-stage-title">Under Review</span>
-                <span class="showcase-stage-time">Oct 24, 10:30 AM</span>
-              </div>
-            </div>
-
-            <div class="showcase-stage-row inprogress">
-              <div class="showcase-stage-dot">●</div>
-              <div class="showcase-stage-info">
-                <span class="showcase-stage-title">Action Taken</span>
-                <span class="showcase-stage-time">Technician Dispatched</span>
-              </div>
-            </div>
-
-            <div class="showcase-stage-row pending">
-              <div class="showcase-stage-dot">○</div>
-              <div class="showcase-stage-info">
-                <span class="showcase-stage-title">Resolved</span>
-                <span class="showcase-stage-time">Pending Inspection</span>
-              </div>
-            </div>
+        <!-- Micro Trust Badges -->
+        <div class="hero-trust-meta">
+          <div class="trust-badge-pill">
+            <span class="trust-icon">⚡</span>
+            <span>Instant dispatch in &lt; 2 minutes</span>
           </div>
-
-          <div class="showcase-status-footer">
-            <span style="font-size: 0.85rem; color: #94a3b8;">Current Status</span>
-            <span class="showcase-status-badge">
-              <span style="width: 7px; height: 7px; background: #60a5fa; border-radius: 50%;"></span>
-              IN PROGRESS
-            </span>
+          <div class="trust-badge-pill">
+            <span class="trust-icon">🛡️</span>
+            <span>Live SLA milestone tracking</span>
           </div>
         </div>
+
+        <!-- Floating Category Section -->
+        <div class="hero-categories-block">
+          <div class="categories-label">WHAT WOULD YOU LIKE TO REPORT?</div>
+          <div class="category-pills-row">
+            <a href="{{ url_for('submit_complaint_view', category='Wi-Fi/Internet') if session.get('student_id') else url_for('student_login_view') }}" class="glass-category-chip">
+              <span class="chip-emoji">📶</span>
+              <span>Wi-Fi</span>
+            </a>
+            <a href="{{ url_for('submit_complaint_view', category='Electrical') if session.get('student_id') else url_for('student_login_view') }}" class="glass-category-chip">
+              <span class="chip-emoji">⚡</span>
+              <span>Electricity</span>
+            </a>
+            <a href="{{ url_for('submit_complaint_view', category='Infrastructure') if session.get('student_id') else url_for('student_login_view') }}" class="glass-category-chip">
+              <span class="chip-emoji">💧</span>
+              <span>Water</span>
+            </a>
+            <a href="{{ url_for('submit_complaint_view', category='Cleaning') if session.get('student_id') else url_for('student_login_view') }}" class="glass-category-chip">
+              <span class="chip-emoji">🧹</span>
+              <span>Cleanliness</span>
+            </a>
+            <a href="{{ url_for('submit_complaint_view', category='Classroom') if session.get('student_id') else url_for('student_login_view') }}" class="glass-category-chip">
+              <span class="chip-emoji">📖</span>
+              <span>Classroom</span>
+            </a>
+          </div>
+        </div>
+
       </div>
 
-    </div>
-  </div>
-</section>
 
-
-<!-- ==========================================================================
-     6. FINAL CALL TO ACTION SECTION
-     ========================================================================== -->
-<section class="final-cta-section">
-  <div class="container">
-    <div class="final-cta-banner">
-      <div class="cta-mesh-glow"></div>
-      
-      <div class="final-cta-container">
-        <span class="final-cta-badge">INSTANT CAMPUS ACTION</span>
-        <h2 class="final-cta-title">Have an issue on campus?</h2>
-        <p class="final-cta-desc">
-          Don't just report it.<br>
-          <span class="cta-accent-text">Track it. Resolve it.</span>
-        </p>
+      <!-- ================= RIGHT COLUMN: FLOATING GLASS DASHBOARD ================= -->
+      <div class="hero-right-column">
         
-        <div class="final-cta-buttons">
-          <a href="{{ url_for('submit_complaint_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn btn-primary btn-cta-primary">
-            <span>📝</span> Report an Issue →
-          </a>
-          <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn btn-cta-secondary">
-            <span>🔎</span> Track Existing Complaint
-          </a>
+        <!-- Top Stat Card -->
+        <div class="floating-stat-card">
+          <div class="stat-card-icon">⚡</div>
+          <div class="stat-card-content">
+            <div class="stat-card-number">12 Complaints Resolved</div>
+            <div class="stat-card-label">Fast Turnaround • Avg 24h</div>
+          </div>
+        </div>
+
+        <!-- Main Complaint Journey Glass Panel -->
+        <div class="glass-journey-panel" id="journeyGlassPanel">
+          
+          <!-- Panel Header -->
+          <div class="journey-panel-header">
+            <div class="window-controls-group">
+              <span class="win-dot win-dot--red"></span>
+              <span class="win-dot win-dot--yellow"></span>
+              <span class="win-dot win-dot--green"></span>
+              <span class="journey-panel-title">Complaint Journey</span>
+            </div>
+            <span class="priority-badge-pill">High Priority</span>
+          </div>
+
+          <!-- Ticket Meta Banner -->
+          <div class="journey-ticket-banner">
+            <div class="ticket-id-badge">#CC-1042</div>
+            <div class="avg-response-pill">
+              <span class="resp-icon">⏱️</span>
+              <div>
+                <div class="resp-title">Average Response</div>
+                <div class="resp-val">18 Hours</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Issue Title & Location -->
+          <div class="journey-issue-info">
+            <h3 class="journey-issue-title">Network Connectivity</h3>
+            <div class="journey-issue-location">📍 3rd Floor Reading Room</div>
+          </div>
+
+          <!-- Vertical Timeline Stages -->
+          <div class="journey-steps-timeline" id="journeyTimeline">
+            
+            <!-- Stage 1: Submitted -->
+            <div class="journey-step-item is-done">
+              <div class="step-indicator-wrapper">
+                <div class="step-circle step-circle--done">✓</div>
+                <div class="step-line-segment"></div>
+              </div>
+              <div class="step-details">
+                <div class="step-name-row">
+                  <span class="step-name">Submitted</span>
+                  <span class="step-tag-pill">Verified</span>
+                </div>
+              </div>
+              <div class="step-timestamp">09:15 AM</div>
+            </div>
+
+            <!-- Stage 2: Under Review -->
+            <div class="journey-step-item is-done">
+              <div class="step-indicator-wrapper">
+                <div class="step-circle step-circle--done">✓</div>
+                <div class="step-line-segment"></div>
+              </div>
+              <div class="step-details">
+                <div class="step-name-row">
+                  <span class="step-name">Under Review</span>
+                  <span class="step-tag-pill">Officer Assigned</span>
+                </div>
+              </div>
+              <div class="step-timestamp">10:30 AM</div>
+            </div>
+
+            <!-- Stage 3: Action Taken (Active) -->
+            <div class="journey-step-item is-active">
+              <div class="step-indicator-wrapper">
+                <div class="step-circle step-circle--active">
+                  <div class="step-active-dot"></div>
+                </div>
+                <div class="step-line-segment"></div>
+              </div>
+              <div class="step-details">
+                <div class="step-name-row">
+                  <span class="step-name step-name--active">Action Taken</span>
+                  <span class="step-tag-pill step-tag-pill--active">In Progress</span>
+                </div>
+                <div class="step-subtext">Technician Assigned</div>
+              </div>
+              <div class="step-timestamp">Just Now</div>
+            </div>
+
+            <!-- Stage 4: Resolved -->
+            <div class="journey-step-item is-pending">
+              <div class="step-indicator-wrapper">
+                <div class="step-circle step-circle--pending"></div>
+              </div>
+              <div class="step-details">
+                <div class="step-name-row">
+                  <span class="step-name step-name--pending">Resolved</span>
+                  <span class="step-tag-pill step-tag-pill--pending">Final Step</span>
+                </div>
+                <div class="step-subtext">Pending verification</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Progress Indicator & Current Status Bar -->
+          <div class="journey-progress-footer">
+            <div class="progress-status-row">
+              <span class="progress-title-label">Current Status</span>
+              <span class="status-live-pill">
+                <span class="status-pulse-dot"></span>
+                IN PROGRESS
+              </span>
+            </div>
+
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="journeyProgressFill" style="width: 75%;"></div>
+            </div>
+
+            <div class="progress-meta-row">
+              <span class="progress-step-count">Stage 3 of 4 Complete (75%)</span>
+              <span class="progress-updated-time">🕒 Last updated: Just now</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Sensor Network Glass Card -->
+        <div class="sensor-network-card">
+          <div class="sensor-card-header">
+            <div class="sensor-title">
+              <span class="sensor-bolt">⚡</span>
+              <span>CAMPUS SENSOR NETWORK</span>
+            </div>
+            <div class="sensor-status-badge">
+              <span class="sensor-green-dot"></span>
+              <span>5 Active Zones</span>
+            </div>
+          </div>
+
+          <div class="sensor-nodes-chain">
+            <!-- 1. Hostel -->
+            <a href="{{ url_for('submit_complaint_view', location='Hostel') if session.get('student_id') else url_for('student_login_view', next=url_for('submit_complaint_view', location='Hostel')) }}"
+               class="sensor-node"
+               id="sensorNodeHostel"
+               data-zone="Hostel"
+               title="Report issue at Hostel &ndash; Jump to Submit Complaint"
+               aria-label="Report issue at Hostel">
+              <div class="node-icon-pill">🛏️</div>
+              <span class="node-caption">Hostel</span>
+            </a>
+            <div class="node-connector-line"></div>
+            
+            <!-- 2. Academic Block -->
+            <a href="{{ url_for('submit_complaint_view', location='Academic Block') if session.get('student_id') else url_for('student_login_view', next=url_for('submit_complaint_view', location='Academic Block')) }}"
+               class="sensor-node"
+               id="sensorNodeAcademic"
+               data-zone="Academic Block"
+               title="Report issue at Academic Block &ndash; Jump to Submit Complaint"
+               aria-label="Report issue at Academic Block">
+              <div class="node-icon-pill">🏛️</div>
+              <span class="node-caption">Academic Block</span>
+            </a>
+            <div class="node-connector-line"></div>
+
+            <!-- 3. Campus -->
+            <a href="{{ url_for('submit_complaint_view', location='Campus') if session.get('student_id') else url_for('student_login_view', next=url_for('submit_complaint_view', location='Campus')) }}"
+               class="sensor-node sensor-node--active"
+               id="sensorNodeCampus"
+               data-zone="Campus"
+               title="Report issue at Campus &ndash; Jump to Submit Complaint"
+               aria-label="Report issue at Campus">
+              <div class="node-icon-pill node-icon-pill--active">📶</div>
+              <span class="node-caption node-caption--active">Campus</span>
+            </a>
+            <div class="node-connector-line"></div>
+
+            <!-- 4. Library -->
+            <a href="{{ url_for('submit_complaint_view', location='Library') if session.get('student_id') else url_for('student_login_view', next=url_for('submit_complaint_view', location='Library')) }}"
+               class="sensor-node"
+               id="sensorNodeLibrary"
+               data-zone="Library"
+               title="Report issue at Library &ndash; Jump to Submit Complaint"
+               aria-label="Report issue at Library">
+              <div class="node-icon-pill">📚</div>
+              <span class="node-caption">Library</span>
+            </a>
+            <div class="node-connector-line"></div>
+
+            <!-- 5. Sports -->
+            <a href="{{ url_for('submit_complaint_view', location='Sports') if session.get('student_id') else url_for('student_login_view', next=url_for('submit_complaint_view', location='Sports')) }}"
+               class="sensor-node"
+               id="sensorNodeSports"
+               data-zone="Sports"
+               title="Report issue at Sports &ndash; Jump to Submit Complaint"
+               aria-label="Report issue at Sports">
+              <div class="node-icon-pill">🏃</div>
+              <span class="node-caption">Sports</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================================================
+       2. LIVE AUDITED METRICS COUNTER SECTION
+       ========================================================================== -->
+  <section class="stats-counter-section" id="statsSection">
+    <div class="container">
+      <div class="stats-counter-grid">
+        
+        <!-- Metric 1 -->
+        <div class="metric-card">
+          <div class="metric-top-bar">
+            <span class="metric-icon">📥</span>
+            <span class="metric-trend">Verified Audit</span>
+          </div>
+          <div class="metric-value-wrap">
+            <span class="metric-counter" data-target="2481" data-prefix="" data-suffix="">0</span>
+          </div>
+          <div class="metric-title">Complaints Submitted</div>
+          <div class="metric-desc">Total campus grievances recorded digitally</div>
+        </div>
+
+        <!-- Metric 2 -->
+        <div class="metric-card metric-card--highlight">
+          <div class="metric-top-bar">
+            <span class="metric-icon">✅</span>
+            <span class="metric-trend trend-positive">↑ High Efficiency</span>
+          </div>
+          <div class="metric-value-wrap">
+            <span class="metric-counter" data-target="2316" data-prefix="" data-suffix="">0</span>
+          </div>
+          <div class="metric-title">Issues Resolved</div>
+          <div class="metric-desc">Fixed and verified by facility maintenance</div>
+        </div>
+
+        <!-- Metric 3 -->
+        <div class="metric-card">
+          <div class="metric-top-bar">
+            <span class="metric-icon">📈</span>
+            <span class="metric-trend trend-positive">Top Tier SLA</span>
+          </div>
+          <div class="metric-value-wrap">
+            <span class="metric-counter" data-target="93.4" data-decimals="1" data-prefix="" data-suffix="%">0%</span>
+          </div>
+          <div class="metric-title">Resolution Rate</div>
+          <div class="metric-desc">Consistently above institutional benchmark</div>
+        </div>
+
+        <!-- Metric 4 -->
+        <div class="metric-card">
+          <div class="metric-top-bar">
+            <span class="metric-icon">⚡</span>
+            <span class="metric-trend">Rapid Triage</span>
+          </div>
+          <div class="metric-value-wrap">
+            <span class="metric-counter" data-target="18" data-prefix="" data-suffix="h">0h</span>
+          </div>
+          <div class="metric-title">Average Response</div>
+          <div class="metric-desc">From submission to technician dispatch</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       3. "HOW CAMPUSCARE WORKS" (4-STAGE CONNECTED PROCESS PIPELINE)
+       ========================================================================== -->
+  <section class="how-it-works-section" id="howItWorksSection">
+    <div class="container">
+      <div class="section-head-center">
+        <span class="section-tag">STRUCTURED LIFECYCLE</span>
+        <h2>How CampusCare Works</h2>
+        <p>From the moment you notice an issue to its verified resolution, every grievance follows a structured 4-step workflow.</p>
+      </div>
+
+      <div class="process-pipeline-container">
+        <div class="pipeline-illuminated-track">
+          <div class="pipeline-track-fill" id="pipelineTrackFill"></div>
+        </div>
+        
+        <div class="process-steps-grid">
+          
+          <!-- Step 01 -->
+          <div class="process-step-card" data-step="1">
+            <div class="step-badge-pill">01</div>
+            <div class="step-icon-wrapper">
+              <span>📝</span>
+            </div>
+            <h3 class="step-title">Report</h3>
+            <p class="step-description">
+              Submit your issue in under 2 minutes with category, campus location, and photo evidence.
+            </p>
+            <div class="step-indicator-dot"></div>
+          </div>
+
+          <!-- Step 02 -->
+          <div class="process-step-card" data-step="2">
+            <div class="step-badge-pill">02</div>
+            <div class="step-icon-wrapper">
+              <span>🔎</span>
+            </div>
+            <h3 class="step-title">Track</h3>
+            <p class="step-description">
+              Follow transparent timeline milestones as administrative officers review and triage your ticket.
+            </p>
+            <div class="step-indicator-dot"></div>
+          </div>
+
+          <!-- Step 03 -->
+          <div class="process-step-card" data-step="3">
+            <div class="step-badge-pill">03</div>
+            <div class="step-icon-wrapper">
+              <span>🛠️</span>
+            </div>
+            <h3 class="step-title">Action</h3>
+            <p class="step-description">
+              Dedicated maintenance technicians are dispatched on-site to inspect and repair the reported problem.
+            </p>
+            <div class="step-indicator-dot"></div>
+          </div>
+
+          <!-- Step 04 -->
+          <div class="process-step-card" data-step="4">
+            <div class="step-badge-pill">04</div>
+            <div class="step-icon-wrapper">
+              <span>🏆</span>
+            </div>
+            <h3 class="step-title">Resolve</h3>
+            <p class="step-description">
+              Your complaint is officially marked resolved with timestamped completion records and outcome history.
+            </p>
+            <div class="step-indicator-dot"></div>
+          </div>
+
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+
+  <!-- ==========================================================================
+       4. TRUST & BENEFITS SECTION ("Built for a more transparent campus.")
+       ========================================================================== -->
+  <section class="trust-benefits-section" id="benefitsSection">
+    <div class="container">
+      <div class="section-head-center">
+        <span class="section-tag">THE CAMPUSCARE ADVANTAGE</span>
+        <h2>Built for a more transparent campus.</h2>
+        <p>Modernized redressal infrastructure eliminating paper delays and lost complaints.</p>
+      </div>
+
+      <div class="benefits-quad-grid">
+        
+        <!-- Benefit 1 -->
+        <div class="benefit-glass-card">
+          <div class="benefit-card-icon-box">
+            <span>🔒</span>
+          </div>
+          <div class="benefit-card-body">
+            <h3 class="benefit-card-title">Secure Reporting</h3>
+            <p class="benefit-card-text">
+              Students can report issues through a structured, authenticated process with full data integrity.
+            </p>
+          </div>
+          <div class="benefit-card-accent"></div>
+        </div>
+
+        <!-- Benefit 2 -->
+        <div class="benefit-glass-card">
+          <div class="benefit-card-icon-box">
+            <span>👁️</span>
+          </div>
+          <div class="benefit-card-body">
+            <h3 class="benefit-card-title">Transparent Tracking</h3>
+            <p class="benefit-card-text">
+              See exactly where your complaint stands in real time with status timestamps and stage indicators.
+            </p>
+          </div>
+          <div class="benefit-card-accent"></div>
+        </div>
+
+        <!-- Benefit 3 -->
+        <div class="benefit-glass-card">
+          <div class="benefit-card-icon-box">
+            <span>⚡</span>
+          </div>
+          <div class="benefit-card-body">
+            <h3 class="benefit-card-title">Faster Resolution</h3>
+            <p class="benefit-card-text">
+              Issues reach the appropriate facility authority quickly, dramatically reducing turnaround delays.
+            </p>
+          </div>
+          <div class="benefit-card-accent"></div>
+        </div>
+
+        <!-- Benefit 4 -->
+        <div class="benefit-glass-card">
+          <div class="benefit-card-icon-box">
+            <span>🎓</span>
+          </div>
+          <div class="benefit-card-body">
+            <h3 class="benefit-card-title">Student-Centric</h3>
+            <p class="benefit-card-text">
+              Designed around the actual campus experience to ensure student voices lead to concrete improvements.
+            </p>
+          </div>
+          <div class="benefit-card-accent"></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       5. TRACKING SHOWCASE (DARK CONTRASTING SECTION)
+       ========================================================================== -->
+  <section class="tracking-showcase-section" id="trackingShowcaseSection">
+    <div class="container">
+      <div class="showcase-grid">
+        
+        <!-- Left Column -->
+        <div class="showcase-left">
+          <div class="showcase-badge">
+            <span>●</span> LIVE TRACKING SYSTEM
+          </div>
+          <h2 class="showcase-title">
+            Never Lose Sight of Your Complaint.
+          </h2>
+          <p class="showcase-text">
+            From submission to resolution, stay updated at every step. Real-time timestamps and status updates eliminate the grievance black hole.
+          </p>
+          <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn-showcase-track">
+            <span>Track Complaint</span>
+            <span>→</span>
+          </a>
+        </div>
+
+        <!-- Right Column: Product Feature Showcase Card -->
+        <div class="showcase-ui-card">
+          <div class="showcase-ui-header">
+            <div class="showcase-ticket-meta">
+              <span class="showcase-ticket-id">TICKET #CC-1042</span>
+              <span class="showcase-dept-tag">IT Infrastructure</span>
+            </div>
+            <span style="font-size: 0.75rem; color: #94a3b8;">SLA Target: 24h</span>
+          </div>
+
+          <div class="showcase-ui-body">
+            <h3 class="showcase-issue-name">Library Wi-Fi Connectivity</h3>
+            <div class="showcase-issue-loc">📍 Central Library • Assigned to Campus Network Ops</div>
+
+            <div class="showcase-timeline">
+              <div class="showcase-stage-row complete">
+                <div class="showcase-stage-dot">✓</div>
+                <div class="showcase-stage-info">
+                  <span class="showcase-stage-title">Submitted</span>
+                  <span class="showcase-stage-time">09:15 AM</span>
+                </div>
+              </div>
+
+              <div class="showcase-stage-row complete">
+                <div class="showcase-stage-dot">✓</div>
+                <div class="showcase-stage-info">
+                  <span class="showcase-stage-title">Under Review</span>
+                  <span class="showcase-stage-time">10:30 AM</span>
+                </div>
+              </div>
+
+              <div class="showcase-stage-row inprogress">
+                <div class="showcase-stage-dot">●</div>
+                <div class="showcase-stage-info">
+                  <span class="showcase-stage-title">Action Taken</span>
+                  <span class="showcase-stage-time">Technician Dispatched</span>
+                </div>
+              </div>
+
+              <div class="showcase-stage-row pending">
+                <div class="showcase-stage-dot">○</div>
+                <div class="showcase-stage-info">
+                  <span class="showcase-stage-title">Resolved</span>
+                  <span class="showcase-stage-time">Pending Inspection</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="showcase-status-footer">
+              <span style="font-size: 0.85rem; color: #94a3b8;">Current Status</span>
+              <span class="showcase-status-badge">
+                <span style="width: 7px; height: 7px; background: #60a5fa; border-radius: 50%;"></span>
+                IN PROGRESS
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       6. FINAL CALL TO ACTION SECTION
+       ========================================================================== -->
+  <section class="final-cta-section" id="finalCtaSection">
+    <div class="container">
+      <div class="final-cta-banner">
+        <div class="cta-mesh-glow"></div>
+        
+        <div class="final-cta-container">
+          <span class="final-cta-badge">INSTANT CAMPUS ACTION</span>
+          <h2 class="final-cta-title">Have an issue on campus?</h2>
+          <p class="final-cta-desc">
+            Don't just report it.<br>
+            <span class="cta-accent-text">Track it. Resolve it.</span>
+          </p>
+          
+          <div class="final-cta-buttons">
+            <a href="{{ url_for('submit_complaint_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn btn-primary btn-cta-primary">
+              <span>📝</span> Report an Issue →
+            </a>
+            <a href="{{ url_for('my_complaints_view') if session.get('student_id') else url_for('student_login_view') }}" class="btn btn-cta-secondary">
+              <span>🔍</span> Track Existing Complaint
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/campus-world.js') }}"></script>
+<script>
+  /**
+   * CampusCare Dynamic Time-Based Campus Background Controller
+   * - Uses client-side browser/device local time (JavaScript Date)
+   * - Automatically crossfades between 4 time phases:
+   *     1. MORNING   (04:00 AM – 09:59 AM) -> Bright morning campus image
+   *     2. AFTERNOON (10:00 AM – 04:59 PM) -> Bright daytime campus image
+   *     3. EVENING   (05:00 PM – 06:59 PM) -> Warm sunset / golden-hour campus image
+   *     4. NIGHT     (07:00 PM – 03:59 AM) -> Dark blue nighttime campus with campus lights
+   * - Dual-layer 1.8s smooth cinematic crossfade
+   * - Checks automatically every 30 seconds and on tab visibility change
+   */
+  (function () {
+    'use strict';
+
+    // 1. Campus Background Asset URLs
+    const CAMPUS_IMAGES = {
+      morning: "{{ url_for('static', filename='images/campus-morning.jpg') }}",
+      afternoon: "{{ url_for('static', filename='images/campus-afternoon.jpg') }}",
+      evening: "{{ url_for('static', filename='images/campus-evening.jpg') }}",
+      night: "{{ url_for('static', filename='images/campus-night.jpg') }}"
+    };
+
+    // 2. Preload images into memory to eliminate flicker/lag during crossfade
+    Object.keys(CAMPUS_IMAGES).forEach(function (key) {
+      const preloadImg = new Image();
+      preloadImg.src = CAMPUS_IMAGES[key];
+    });
+
+    /**
+     * Categorize time based on user's device/browser local time
+     * @param {Date} [dateObj]
+     * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
+     */
+    function getTimeCategory(dateObj) {
+      const now = dateObj || new Date();
+      const hour = now.getHours(); // 0 - 23
+
+      if (hour >= 4 && hour < 10) {
+        // 04:00 AM – 09:59 AM
+        return 'morning';
+      } else if (hour >= 10 && hour < 17) {
+        // 10:00 AM – 04:59 PM
+        return 'afternoon';
+      } else if (hour >= 17 && hour < 19) {
+        // 05:00 PM – 06:59 PM
+        return 'evening';
+      } else {
+        // 07:00 PM – 03:59 AM (includes 19:00-23:59, 00:00-03:59)
+        return 'night';
+      }
+    }
+
+    let currentCategory = null;
+    let activeLayer = 1; // Currently visible layer (1 or 2)
+    let timeEngineInterval = null;
+
+    /**
+     * Apply background image with seamless dual-layer crossfade
+     * @param {'morning'|'afternoon'|'evening'|'night'} targetCategory
+     * @param {boolean} isInitial
+     */
+    function applyTimeBackground(targetCategory, isInitial) {
+      const layer1 = document.getElementById('campusBgLayer1');
+      const layer2 = document.getElementById('campusBgLayer2');
+      if (!layer1 || !layer2) return;
+
+      const imgUrl = CAMPUS_IMAGES[targetCategory] || CAMPUS_IMAGES.morning;
+
+      if (isInitial) {
+        // Immediate display on initial load
+        layer1.style.backgroundImage = 'url("' + imgUrl + '")';
+        layer1.classList.add('is-active');
+        layer2.classList.remove('is-active');
+        currentCategory = targetCategory;
+        activeLayer = 1;
+        return;
+      }
+
+      if (targetCategory === currentCategory) {
+        return; // Nothing changed
+      }
+
+      // Smooth cinematic crossfade between the two layers
+      const nextLayer = activeLayer === 1 ? layer2 : layer1;
+      const prevLayer = activeLayer === 1 ? layer1 : layer2;
+
+      nextLayer.style.backgroundImage = 'url("' + imgUrl + '")';
+
+      requestAnimationFrame(function () {
+        nextLayer.classList.add('is-active');
+        prevLayer.classList.remove('is-active');
+      });
+
+      currentCategory = targetCategory;
+      activeLayer = activeLayer === 1 ? 2 : 1;
+    }
+
+    function checkTimePeriod() {
+      const targetCategory = getTimeCategory(new Date());
+      applyTimeBackground(targetCategory, false);
+    }
+
+    function startEngine() {
+      // 1. Initial check using user's real browser time
+      const initialCategory = getTimeCategory(new Date());
+      applyTimeBackground(initialCategory, true);
+
+      // 2. Periodic check every 30 seconds
+      if (timeEngineInterval) clearInterval(timeEngineInterval);
+      timeEngineInterval = setInterval(checkTimePeriod, 30000);
+
+      // 3. Check immediately when window/tab is focused
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) {
+          checkTimePeriod();
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', startEngine);
+    } else {
+      startEngine();
+    }
+
+    // Developer helper for automated testing (does not modify DOM / UI)
+    window.__testCampusTime = function (hour) {
+      const mockDate = new Date();
+      mockDate.setHours(hour, 30, 0, 0);
+      const cat = getTimeCategory(mockDate);
+      applyTimeBackground(cat, false);
+      return cat;
+    };
+  })();
+</script>
 {% endblock %}

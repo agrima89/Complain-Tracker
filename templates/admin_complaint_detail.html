@@ -3,7 +3,7 @@
 {% block title %}Admin Review: Ticket #{{ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 900px;">
+<div class="container" style="max-width: 960px;">
 
   <!-- Live Time & Greeting -->
   <div class="floating-time-display" style="margin-bottom: 1.5rem;">
@@ -44,7 +44,7 @@
           <span class="badge badge-priority-low">● Low Priority</span>
         {% endif %}
       </div>
-      <p class="page-header-subtitle">Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> on {{ complaint.date }}</p>
+      <p class="page-header-subtitle">Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> ({{ complaint.student_email }}) on {{ complaint.date }}</p>
     </div>
 
     <div>
@@ -85,113 +85,90 @@
     </div>
   </div>
 
-  <!-- Floating Complaint Journey Timeline -->
-  <div class="cinematic-card" style="margin-bottom: 2rem; padding: 2rem 1.75rem;">
-    <div class="timeline-ticket-header" style="margin-bottom: 1.25rem;">
-      <span class="ticket-mono-id">#CC-{{ "%03d"|format(complaint.complaint_id) }}</span>
-      <span class="ticket-live-tag">● Lifecycle Progression</span>
-    </div>
-
-    <div class="floating-vertical-timeline">
-      
-      <!-- Step 1: Submitted -->
-      <div class="timeline-node-step is-done">
-        <div class="node-circular-marker">✓</div>
-        <span class="node-step-label">Submitted</span>
-        <span class="node-meta-badge">{{ complaint.date }}</span>
-      </div>
-
-      <!-- Step 2: Under Review -->
-      <div class="timeline-node-step {% if complaint.status in ['In Progress', 'Resolved'] %}is-done{% else %}is-active{% endif %}">
-        <div class="node-circular-marker">
-          {% if complaint.status in ['In Progress', 'Resolved'] %}✓{% else %}<div class="node-pulse-core"></div>{% endif %}
-        </div>
-        <span class="node-step-label">Under Review</span>
-        <span class="node-meta-badge {% if complaint.status == 'Pending' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'Pending' %}Pending Review{% else %}Reviewed{% endif %}
-        </span>
-      </div>
-
-      <!-- Step 3: Action Taken -->
-      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done{% elif complaint.status == 'In Progress' %}is-active{% endif %}">
-        <div class="node-circular-marker">
-          {% if complaint.status == 'Resolved' %}✓{% elif complaint.status == 'In Progress' %}<div class="node-pulse-core"></div>{% else %}○{% endif %}
-        </div>
-        <span class="node-step-label">Action Taken</span>
-        <span class="node-meta-badge {% if complaint.status == 'In Progress' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'In Progress' %}Staff Allocated{% elif complaint.status == 'Resolved' %}Work Completed{% else %}Queued{% endif %}
-        </span>
-      </div>
-
-      <!-- Step 4: Resolved -->
-      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done is-active{% endif %}">
-        <div class="node-circular-marker">
-          {% if complaint.status == 'Resolved' %}✓{% else %}○{% endif %}
-        </div>
-        <span class="node-step-label">Resolved</span>
-        <span class="node-meta-badge {% if complaint.status == 'Resolved' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'Resolved' %}Verified & Closed{% else %}Final Step{% endif %}
-        </span>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Ticket Overview & Specifications -->
+  <!-- Ticket Overview, Exact Location & Photo Evidence -->
   <div class="cinematic-card" style="margin-bottom: 2rem;">
     <div class="card-header">
-      <h2 class="card-title">Full Grievance Report</h2>
+      <h2 class="card-title">Full Grievance Report & Exact Location</h2>
       <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">{{ complaint.category }}</span>
     </div>
 
     <div class="card-body">
       
       <!-- Metadata Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
         
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submitting Student</div>
           <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
             👤 {{ complaint.student_name }}
           </div>
-          <div style="font-size: 0.8rem; color: #94a3b8;">{{ complaint.student_email }}</div>
+          <div style="font-size: 0.8rem; color: #38bdf8;">{{ complaint.student_email }}</div>
         </div>
 
         <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Location</div>
-          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
-            📍 {{ complaint.location }}
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Campus Block</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;">
+            🏢 {{ complaint.block or 'Campus' }}
           </div>
         </div>
 
         <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submission Date</div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
           <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
-            📅 {{ complaint.date }}
+            🚪 {{ complaint.floor_no or 'N/A' }} {% if complaint.room_no %}({{ complaint.room_no }}){% endif %}
           </div>
         </div>
 
         <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Priority</div>
-          <div style="margin-top: 0.2rem;">
-            {% if complaint.priority == 'High' %}
-              <span class="badge badge-priority-high">● High Priority</span>
-            {% elif complaint.priority == 'Medium' %}
-              <span class="badge badge-priority-medium">● Medium Priority</span>
-            {% else %}
-              <span class="badge badge-priority-low">● Low Priority</span>
-            {% endif %}
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Corridor Side</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            🧭 {{ complaint.corridor_side or 'N/A' }}
           </div>
         </div>
 
       </div>
 
+      {% if complaint.nearby_area or complaint.additional_location %}
+        <div style="background: rgba(3, 7, 18, 0.5); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 0.85rem 1.15rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #cbd5e1;">
+          {% if complaint.nearby_area %}
+            <div>📍 <strong>Landmark / Nearby Area:</strong> {{ complaint.nearby_area }}</div>
+          {% endif %}
+          {% if complaint.additional_location %}
+            <div style="margin-top: 0.35rem;">ℹ️ <strong>Additional Location Details:</strong> {{ complaint.additional_location }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       <!-- Description Block -->
-      <div>
+      <div style="margin-bottom: 1.75rem;">
         <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
           Reported Problem Details
         </div>
         <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">{{ complaint.description }}</div>
+      </div>
+
+      <!-- Evidence Photo Block -->
+      <div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          📸 Photo Evidence
+        </div>
+        {% if complaint.photo_path %}
+          <div style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.75rem; max-width: 480px;">
+            <a href="/{{ complaint.photo_path }}" target="_blank" title="Click to view full image in high resolution">
+              <img src="/{{ complaint.photo_path }}" alt="Complaint Evidence Photo" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 8px; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+            </a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; font-size: 0.825rem;">
+              <span style="color: #4ade80;">✓ Evidence Attached</span>
+              <a href="/{{ complaint.photo_path }}" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
+                🔍 View Evidence Photo ↗
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; background: rgba(3, 7, 18, 0.4); padding: 1rem; border-radius: 8px;">
+            No photo evidence attached (Legacy ticket record).
+          </div>
+        {% endif %}
       </div>
 
     </div>

@@ -126,50 +126,86 @@
   <!-- Complaint Detailed Information -->
   <div class="cinematic-card" style="margin-bottom: 2rem;">
     <div class="card-header">
-      <h2 class="card-title">Ticket Overview & Specifications</h2>
+      <h2 class="card-title">Ticket Overview & Campus Location</h2>
       <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">{{ complaint.category }}</span>
     </div>
 
     <div class="card-body">
       
-      <!-- Key Metadata Grid -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
+      <!-- Key Location Coordinates Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
         
         <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Location</div>
-          <div style="font-size: 1rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
-            📍 {{ complaint.location }}
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Campus Block</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">
+            🏢 {{ complaint.block or 'Campus' }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
+            🚪 {{ complaint.floor_no or 'N/A' }} {% if complaint.room_no %}({{ complaint.room_no }}){% endif %}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Corridor / Side</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
+            🧭 {{ complaint.corridor_side or 'N/A' }}
           </div>
         </div>
 
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submission Date</div>
-          <div style="font-size: 1rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
             📅 {{ complaint.date }}
-          </div>
-        </div>
-
-        <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Assigned Priority</div>
-          <div style="margin-top: 0.25rem;">
-            {% if complaint.priority == 'High' %}
-              <span class="badge badge-priority-high">● High (Urgent Attention)</span>
-            {% elif complaint.priority == 'Medium' %}
-              <span class="badge badge-priority-medium">● Medium (Standard)</span>
-            {% else %}
-              <span class="badge badge-priority-low">● Low (General)</span>
-            {% endif %}
           </div>
         </div>
 
       </div>
 
+      {% if complaint.nearby_area or complaint.additional_location %}
+        <div style="background: rgba(3, 7, 18, 0.5); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 0.85rem 1.15rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #cbd5e1;">
+          {% if complaint.nearby_area %}
+            <div>📍 <strong>Landmark / Nearby:</strong> {{ complaint.nearby_area }}</div>
+          {% endif %}
+          {% if complaint.additional_location %}
+            <div style="margin-top: 0.35rem;">ℹ️ <strong>Additional Location Details:</strong> {{ complaint.additional_location }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+
       <!-- Description Block -->
-      <div>
+      <div style="margin-bottom: 1.75rem;">
         <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
           Reported Issue Description
         </div>
         <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">{{ complaint.description }}</div>
+      </div>
+
+      <!-- Evidence Photo Block -->
+      <div>
+        <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+          📸 Attached Photo Evidence
+        </div>
+        {% if complaint.photo_path %}
+          <div style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.75rem; max-width: 440px;">
+            <a href="/{{ complaint.photo_path }}" target="_blank" title="Click to view full image in high resolution">
+              <img src="/{{ complaint.photo_path }}" alt="Complaint Evidence Photo" style="width: 100%; max-height: 280px; object-fit: cover; border-radius: 8px; display: block; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+            </a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-size: 0.8rem;">
+              <span style="color: #4ade80;">✓ Evidence Verified</span>
+              <a href="/{{ complaint.photo_path }}" target="_blank" style="color: #38bdf8; text-decoration: none; font-weight: 600;">
+                🔍 Open Full Image ↗
+              </a>
+            </div>
+          </div>
+        {% else %}
+          <div style="color: #94a3b8; font-style: italic; font-size: 0.9rem; background: rgba(3, 7, 18, 0.4); padding: 1rem; border-radius: 8px;">
+            No photo evidence attached (Legacy ticket record).
+          </div>
+        {% endif %}
       </div>
 
     </div>

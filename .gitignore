@@ -51,3 +51,8 @@ Desktop.ini
 # SQLite Database
 *.db
 *.sqlite3
+
+# Uploads
+uploads/complaints/*
+!uploads/complaints/.gitkeep
+

@@ -3,96 +3,110 @@
 {% block title %}Student Dashboard - CampusCare{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 1200px;">
+<div style="width: 100%;">
 
   <!-- Live Time & Signature Greeting -->
-  <div class="floating-time-display" style="margin-bottom: 1.75rem;">
+  <div class="floating-time-display" style="margin-bottom: 1.5rem;">
     <span class="time-headline-text">
       <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
       <span id="worldLiveTimeText">NIGHT CAMPUS</span>
     </span>
-    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is active and grievance desks are monitoring."</span>
   </div>
 
-  <!-- Welcome Header -->
-  <div class="page-header">
-    <div class="page-header-title">
-      <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
-        <span class="tag-cyan-dot"></span>
-        <span>STUDENT DASHBOARD</span>
+  <!-- Welcome Header Banner -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25); margin-bottom: 0.5rem;">
+        <span>🎓</span> STUDENT DASHBOARD
       </div>
-      <h1>Welcome back, {{ session.get('student_name') }} 👋</h1>
-      <p class="page-header-subtitle">Manage your campus complaints and track live resolution progress in real time.</p>
+      <h1 style="font-size: 1.85rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; margin-bottom: 0.35rem;">
+        Welcome back, {{ session.get('student_name') }} 👋
+      </h1>
+      <p style="color: #94a3b8; font-size: 0.95rem; margin: 0; max-width: 650px;">
+        Manage your campus complaints and track live resolution progress in real time.
+      </p>
     </div>
-    <div class="page-header-actions">
-      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);">
-        <span>📝</span> Submit New Issue
+
+    <div>
+      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35); padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+        <span>📝</span> Report an Issue
       </a>
     </div>
   </div>
 
-  <!-- Live Statistics Cards (Floating Glowing Panels) -->
+  <!-- 1. COMPACT SAAS STATISTICS GRID -->
   <div class="stats-grid">
     
-    <!-- Total Complaints -->
+    <!-- Total Logged -->
     <div class="stat-card">
       <div class="stat-header">
-        <span class="stat-label">Total Logged</span>
+        <span class="stat-label">TOTAL LOGGED</span>
         <div class="stat-icon">📊</div>
       </div>
       <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-subtext">Total Complaints</div>
     </div>
 
-    <!-- Pending -->
+    <!-- Pending Review -->
     <div class="stat-card stat-pending">
       <div class="stat-header">
-        <span class="stat-label">Pending Review</span>
-        <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
+        <span class="stat-label" style="color: #fbbf24;">PENDING REVIEW</span>
+        <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
       </div>
       <div class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
+      <div class="stat-subtext">Awaiting Review</div>
     </div>
 
     <!-- In Progress -->
     <div class="stat-card stat-progress">
       <div class="stat-header">
-        <span class="stat-label">In Progress</span>
-        <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
+        <span class="stat-label" style="color: #38bdf8;">IN PROGRESS</span>
+        <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
       </div>
       <div class="stat-value" style="color: #38bdf8;">{{ stats.in_progress }}</div>
+      <div class="stat-subtext">Under Action</div>
     </div>
 
     <!-- Resolved -->
     <div class="stat-card stat-resolved">
       <div class="stat-header">
-        <span class="stat-label">Resolved</span>
-        <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3);">✓</div>
+        <span class="stat-label" style="color: #4ade80;">RESOLVED</span>
+        <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3);">✓</div>
       </div>
       <div class="stat-value" style="color: #4ade80;">{{ stats.resolved }}</div>
+      <div class="stat-subtext">Completed & Closed</div>
     </div>
 
   </div>
 
-  <!-- Quick Actions Grid -->
+  <!-- 2. QUICK ACTIONS SECTION -->
   <div style="margin-bottom: 2.5rem;">
-    <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1rem; color: #ffffff; letter-spacing: -0.01em;">
-      Quick Actions
-    </h2>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+      <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; margin: 0;">
+        ⚡ Quick Actions
+      </h2>
+      <span style="color: #64748b; font-size: 0.8rem;">Fast Shortcuts</span>
+    </div>
+
     <div class="quick-actions-grid">
       
       <a href="{{ url_for('submit_complaint_view') }}" class="action-card">
         <div class="action-card-icon">📝</div>
         <div class="action-card-content">
           <h3>Report an Issue</h3>
-          <p>Lodge an electrical, cleaning, classroom, or facility problem.</p>
+          <p>Submit a new complaint with mandatory photo evidence.</p>
         </div>
+        <div class="action-card-arrow">→</div>
       </a>
 
       <a href="{{ url_for('my_complaints_view') }}" class="action-card">
         <div class="action-card-icon" style="background: rgba(34, 197, 94, 0.12); color: #4ade80; border-color: rgba(34, 197, 94, 0.25);">📋</div>
         <div class="action-card-content">
           <h3>Track My Complaints</h3>
-          <p>Check the live milestone progress and history of all submitted tickets.</p>
+          <p>Check live milestone progress and history of all submitted tickets.</p>
         </div>
+        <div class="action-card-arrow">→</div>
       </a>
 
       <a href="{{ url_for('profile_view') }}" class="action-card">
@@ -101,18 +115,22 @@
           <h3>Account Profile</h3>
           <p>View registered student details and grievance activity statistics.</p>
         </div>
+        <div class="action-card-arrow">→</div>
       </a>
 
     </div>
   </div>
 
-  <!-- Recent Complaints Glass Panel -->
-  <div class="cinematic-card">
-    <div class="card-header">
-      <h2 class="card-title">Recent Complaints</h2>
+  <!-- 3. RECENT COMPLAINTS TABLE -->
+  <div class="cinematic-card" style="border-radius: 14px; overflow: hidden;">
+    <div class="card-header" style="padding: 1.2rem 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 1.1rem;">📋</span>
+        <h2 class="card-title" style="font-size: 1.05rem; font-weight: 700;">Recent Complaints</h2>
+      </div>
       {% if recent_complaints %}
-        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-outline btn-sm">
-          View All &rarr;
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+          View All History &rarr;
         </a>
       {% endif %}
     </div>
@@ -141,11 +159,15 @@
                     </a>
                   </td>
                   <td>
-                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">
+                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; font-size: 0.78rem;">
                       {{ item.category }}
                     </span>
                   </td>
-                  <td style="color: #cbd5e1;">{{ item.location }}</td>
+                  <td>
+                    <span style="color: #cbd5e1; font-size: 0.875rem;">
+                      {{ item.block or item.location }}
+                    </span>
+                  </td>
                   <td>
                     {% if item.priority == 'High' %}
                       <span class="badge badge-priority-high">● High</span>
@@ -155,7 +177,7 @@
                       <span class="badge badge-priority-low">● Low</span>
                     {% endif %}
                   </td>
-                  <td style="color: #94a3b8; font-size: 0.85rem;">{{ item.date }}</td>
+                  <td style="color: #94a3b8; font-size: 0.825rem;">{{ item.date }}</td>
                   <td>
                     {% if item.status == 'Pending' %}
                       <span class="badge badge-pending">⏳ Pending</span>
@@ -168,7 +190,7 @@
                     {% endif %}
                   </td>
                   <td style="text-align: right;">
-                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.8rem;">
                       Details &rarr;
                     </a>
                   </td>
@@ -178,11 +200,11 @@
           </table>
         </div>
       {% else %}
-        <div style="text-align: center; padding: 3.5rem 1.5rem;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">📋</div>
-          <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No grievances lodged yet</h3>
-          <p style="color: #94a3b8; max-width: 440px; margin: 0 auto 1.5rem; font-size: 0.9rem;">You haven't submitted any complaints yet. Notice any problem on campus? Report it right away.</p>
-          <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary">
+        <div style="text-align: center; padding: 3rem 1.5rem;">
+          <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📋</div>
+          <h3 style="font-size: 1.1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.35rem;">No grievances lodged yet</h3>
+          <p style="color: #94a3b8; max-width: 420px; margin: 0 auto 1.25rem; font-size: 0.875rem;">You haven't submitted any complaints yet. Notice any problem on campus? Report it right away.</p>
+          <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary btn-sm">
             + Submit Your First Issue
           </a>
         </div>

@@ -23,11 +23,6 @@
      1. TIME-OF-DAY ATMOSPHERIC ENGINE
      -------------------------------------------------------------------------- */
   const WORLD_CONFIG = {
-    sunrise: {
-      name: 'SUNRISE CAMPUS',
-      symbol: '🌅',
-      greeting: 'Good morning — campus is waking up.'
-    },
     morning: {
       name: 'MORNING CAMPUS',
       symbol: '☀️',
@@ -38,7 +33,7 @@
       symbol: '🌤️',
       greeting: 'Good afternoon — campus is active.'
     },
-    sunset: {
+    evening: {
       name: 'EVENING CAMPUS',
       symbol: '🌇',
       greeting: 'Good evening — campus is winding down.'
@@ -51,16 +46,14 @@
   };
 
   function getPhaseForHour(hour) {
-    if (hour >= 5 && hour < 7) {
-      return 'sunrise';
-    } else if (hour >= 7 && hour < 12) {
-      return 'morning';
-    } else if (hour >= 12 && hour < 17) {
-      return 'afternoon';
+    if (hour >= 4 && hour < 10) {
+      return 'morning'; // 04:00 AM – 09:59 AM
+    } else if (hour >= 10 && hour < 17) {
+      return 'afternoon'; // 10:00 AM – 04:59 PM
     } else if (hour >= 17 && hour < 19) {
-      return 'sunset';
+      return 'evening'; // 05:00 PM – 06:59 PM
     } else {
-      return 'night'; // 19:00 - 05:00
+      return 'night'; // 07:00 PM – 03:59 AM
     }
   }
 

@@ -335,8 +335,9 @@
      3. SENSOR NETWORK INTERACTION & LIVE STATUS
      -------------------------------------------------------------------------- */
   function initSensorNetworkInteraction() {
-    const nodes = document.querySelectorAll('.sensor-node-item');
-    nodes.forEach((node) => {
+    // 1. Matrix node items
+    const matrixNodes = document.querySelectorAll('.sensor-node-item');
+    matrixNodes.forEach((node) => {
       node.addEventListener('mouseenter', () => {
         const beacon = node.querySelector('.node-halo-circle');
         if (beacon) {
@@ -349,6 +350,18 @@
         if (beacon) {
           beacon.style.transform = '';
         }
+      });
+    });
+
+    // 2. Interactive Campus Sensor Network Chain Nodes
+    const sensorNodes = document.querySelectorAll('.sensor-node');
+    sensorNodes.forEach((node) => {
+      node.addEventListener('click', (e) => {
+        // Apply immediate subtle click ripple / press feedback
+        node.style.transform = 'translateY(1px) scale(0.94)';
+        setTimeout(() => {
+          node.style.transform = '';
+        }, 180);
       });
     });
   }

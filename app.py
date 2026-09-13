@@ -9,16 +9,27 @@ from flask import (
     url_for,
     session,
     flash,
-    jsonify
+    jsonify,
+    send_from_directory
 )
 import database
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "campuscare_secure_secret_key_2026_cse_project")
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload
 
 # Ensure database tables exist on startup
 database.create_database()
+
+
+# ---------------- STATIC UPLOAD ROUTE ----------------
+
+@app.route("/uploads/<path:filename>")
+def uploaded_file(filename):
+    """Serves uploaded complaint evidence photos securely."""
+    uploads_root = os.path.join(database.BASE_DIR, "uploads")
+    return send_from_directory(uploads_root, filename)
 
 
 # ---------------- AUTHENTICATION DECORATORS ----------------
@@ -27,8 +38,9 @@ def student_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not session.get("student_id"):
-            flash("Please sign in as a student to access this page.", "warning")
-            return redirect(url_for("student_login_view"))
+            flash("Please sign in with your Chandigarh University email to access this page.", "warning")
+            next_target = request.full_path if request.query_string else request.path
+            return redirect(url_for("student_login_view", next=next_target))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -47,7 +59,6 @@ def admin_required(f):
 
 @app.route("/")
 def landing():
-    # If already logged in, redirect to respective dashboard
     if session.get("student_id"):
         return redirect(url_for("student_dashboard"))
     elif session.get("admin_id"):
@@ -65,19 +76,28 @@ def student_login_view():
         password = request.form.get("password", "")
 
         if not email or not password:
-            flash("Please enter both email and password.", "error")
+            flash("Please enter both your Chandigarh University email and password.", "error")
             return render_template("login.html", email=email)
 
-        student = database.authenticate_student(email, password)
+        # Enforce Chandigarh University email validation
+        is_valid, err_msg = database.is_valid_college_email(email)
+        if not is_valid:
+            flash(err_msg, "error")
+            return render_template("login.html", email=email)
+
+        student, auth_err = database.authenticate_student(email, password)
         if student:
             session.clear()
             session["student_id"] = student["student_id"]
             session["student_name"] = student["name"]
             session["student_email"] = student["email"]
             flash(f"Welcome back, {student['name']}!", "success")
+            next_url = request.args.get("next") or request.form.get("next")
+            if next_url and next_url.startswith("/") and not next_url.startswith("//"):
+                return redirect(next_url)
             return redirect(url_for("student_dashboard"))
         else:
-            flash("Invalid email or password. Please check your credentials.", "error")
+            flash(auth_err or "Invalid email or password. Please check your credentials.", "error")
             return render_template("login.html", email=email)
 
     return render_template("login.html")
@@ -101,9 +121,15 @@ def student_register_view():
             flash("Password must be at least 4 characters long.", "error")
             return render_template("register.html", name=name, email=email)
 
+        # Enforce Chandigarh University email validation
+        is_valid, err_msg = database.is_valid_college_email(email)
+        if not is_valid:
+            flash(err_msg, "error")
+            return render_template("register.html", name=name, email=email)
+
         success, result = database.register_new_student(name, email, password)
         if success:
-            flash("Registration successful! You can now log in.", "success")
+            flash("Registration successful! You can now sign in with your Chandigarh University email.", "success")
             return redirect(url_for("student_login_view"))
         else:
             flash(result, "error")
@@ -162,6 +188,8 @@ def student_dashboard():
 
 
 @app.route("/student/submit", methods=["GET", "POST"])
+@app.route("/submit-complaint", methods=["GET", "POST"])
+@app.route("/submit_complaint", methods=["GET", "POST"])
 @student_required
 def submit_complaint_view():
     student_id = session["student_id"]
@@ -169,32 +197,63 @@ def submit_complaint_view():
         "Electrical", "Cleaning", "Classroom", "Hostel",
         "Wi-Fi/Internet", "Library", "Infrastructure", "Other"
     ]
+    blocks = [
+        "Hostel", "Academic Block", "Campus", "Library", "Sports",
+        "Block A", "Block B", "Block C", "Block D", "Block E", "Block F", "Other"
+    ]
+    floors = ["Ground Floor", "1st Floor", "2nd Floor", "3rd Floor", "4th Floor", "5th Floor", "Basement", "Terrace / Rooftop", "Other"]
     priorities = ["Low", "Medium", "High"]
 
     if request.method == "POST":
         category = request.form.get("category", "").strip()
         description = request.form.get("description", "").strip()
-        location = request.form.get("location", "").strip()
+        block = request.form.get("block", "").strip() or request.form.get("location", "").strip()
+        floor_no = request.form.get("floor_no", "").strip()
+        room_no = request.form.get("room_no", "").strip()
+        corridor_side = request.form.get("corridor_side", "").strip()
+        nearby_area = request.form.get("nearby_area", "").strip()
+        additional_location = request.form.get("additional_location", "").strip()
         priority = request.form.get("priority", "Medium").strip()
 
+        # 1. Category validation
         if not category or category not in categories:
             flash("Please select a valid complaint category.", "error")
-            return render_template("submit_complaint.html", categories=categories, priorities=priorities, form_data=request.form)
+            return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
 
-        if not description:
-            flash("Please provide a detailed description of the issue.", "error")
-            return render_template("submit_complaint.html", categories=categories, priorities=priorities, form_data=request.form)
+        # 2. Description validation
+        if not description or len(description) < 5:
+            flash("Please provide a detailed description of what happened and what is damaged/wrong.", "error")
+            return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
 
-        if not location:
-            flash("Please enter the specific location on campus.", "error")
-            return render_template("submit_complaint.html", categories=categories, priorities=priorities, form_data=request.form)
+        # 3. Mandatory Photo Validation
+        photo_file = request.files.get("photo")
+        if not photo_file or not photo_file.filename:
+            flash("Photo evidence is required to submit this complaint.", "error")
+            return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
+
+        # 4. Block validation
+        if not block or block not in blocks:
+            flash("Please select the campus location/block where the issue is located.", "error")
+            return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
+
+        # Save photo securely to uploads/complaints/
+        photo_rel_path = database.save_complaint_image(photo_file)
+        if not photo_rel_path:
+            flash("Failed to save uploaded photo. Please try uploading a valid JPG or PNG image.", "error")
+            return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
 
         today_str = str(date.today())
         complaint_id = database.create_complaint(
             student_id=student_id,
             category=category,
             description=description,
-            location=location,
+            photo_path=photo_rel_path,
+            block=block,
+            floor_no=floor_no,
+            room_no=room_no,
+            corridor_side=corridor_side,
+            nearby_area=nearby_area,
+            additional_location=additional_location,
             priority=priority,
             date_str=today_str
         )
@@ -202,24 +261,51 @@ def submit_complaint_view():
         return render_template(
             "submit_complaint.html",
             categories=categories,
+            blocks=blocks,
+            floors=floors,
             priorities=priorities,
             submitted_id=complaint_id,
             submitted_date=today_str
         )
 
-    # Handle pre-selected category from URL param (e.g. /student/submit?category=Wi-Fi/Internet)
+    # Handle pre-selected category and location from URL param (e.g. /student/submit?location=Hostel or ?category=Wi-Fi/Internet)
     preselected_category = request.args.get("category", "").strip()
+    preselected_location = request.args.get("location", "").strip() or request.args.get("block", "").strip()
     form_data = {}
+
     if preselected_category in categories:
         form_data["category"] = preselected_category
     elif preselected_category:
-        # Check for fuzzy match
         for cat in categories:
             if preselected_category.lower() in cat.lower():
                 form_data["category"] = cat
                 break
 
-    return render_template("submit_complaint.html", categories=categories, priorities=priorities, form_data=form_data if form_data else None)
+    if preselected_location:
+        norm_loc = preselected_location.replace("-", " ").replace("_", " ").strip().lower()
+        matched_block = None
+        for b in blocks:
+            if norm_loc == b.lower():
+                matched_block = b
+                break
+        if not matched_block:
+            for b in blocks:
+                if norm_loc in b.lower() or b.lower() in norm_loc:
+                    matched_block = b
+                    break
+        if matched_block:
+            form_data["block"] = matched_block
+        else:
+            form_data["block"] = preselected_location
+
+    return render_template(
+        "submit_complaint.html",
+        categories=categories,
+        blocks=blocks,
+        floors=floors,
+        priorities=priorities,
+        form_data=form_data if form_data else None
+    )
 
 
 @app.route("/student/complaints")

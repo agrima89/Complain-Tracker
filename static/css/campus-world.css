@@ -95,68 +95,68 @@
    TIME ENVIRONMENT 2: MORNING (07:00 – 12:00)
    -------------------------------------------------------------------------- */
 [data-world-env="morning"] {
-  --world-sky-1: #0284c7;
-  --world-sky-2: #38bdf8;
-  --world-sky-3: #bae6fd;
-  --world-sun-opacity: 1;
+  --world-sky-1: #030714;
+  --world-sky-2: #09132b;
+  --world-sky-3: #112040;
+  --world-sun-opacity: 0.6;
   --world-sun-top: 18%;
   --world-sun-left: 28%;
   --world-sun-color: #fef08a;
-  --world-sun-glow: rgba(253, 224, 71, 0.5);
+  --world-sun-glow: rgba(56, 189, 248, 0.3);
   --world-moon-opacity: 0;
-  --world-star-opacity: 0;
-  --world-cloud-opacity: 0.85;
-  --world-cloud-color: rgba(255, 255, 255, 0.9);
-  --world-distant-building: #64748b;
-  --world-main-building: #94a3b8;
-  --world-building-accent: #64748b;
-  --world-building-shadow: rgba(15, 23, 42, 0.2);
-  --world-window-lit: #bae6fd;
-  --world-window-glow: rgba(186, 230, 253, 0.3);
-  --world-window-opacity: 0.15;
-  --world-tree-1: #15803d;
-  --world-tree-2: #16a34a;
-  --world-road-fill: #cbd5e1;
-  --world-road-border: #94a3b8;
-  --world-lamp-glow: rgba(251, 191, 36, 0);
-  --world-lamp-opacity: 0;
-  --world-student-color: #1e293b;
-  --world-student-opacity: 0.85;
-  --world-atmosphere-scrim: rgba(255, 255, 255, 0.2);
+  --world-star-opacity: 0.4;
+  --world-cloud-opacity: 0.4;
+  --world-cloud-color: rgba(15, 23, 42, 0.7);
+  --world-distant-building: #060b18;
+  --world-main-building: #0a1124;
+  --world-building-accent: #111d38;
+  --world-building-shadow: rgba(0, 0, 0, 0.7);
+  --world-window-lit: #38bdf8;
+  --world-window-glow: rgba(56, 189, 248, 0.4);
+  --world-window-opacity: 0.5;
+  --world-tree-1: #040914;
+  --world-tree-2: #081224;
+  --world-road-fill: #060b18;
+  --world-road-border: #111c34;
+  --world-lamp-glow: rgba(56, 189, 248, 0.3);
+  --world-lamp-opacity: 0.4;
+  --world-student-color: #040812;
+  --world-student-opacity: 0.4;
+  --world-atmosphere-scrim: rgba(3, 7, 18, 0.6);
 }
 
 /* --------------------------------------------------------------------------
    TIME ENVIRONMENT 3: AFTERNOON (12:00 – 17:00)
    -------------------------------------------------------------------------- */
 [data-world-env="afternoon"] {
-  --world-sky-1: #0369a1;
-  --world-sky-2: #0ea5e9;
-  --world-sky-3: #e0f2fe;
-  --world-sun-opacity: 1;
-  --world-sun-top: 12%;
-  --world-sun-left: 50%;
-  --world-sun-color: #ffffff;
-  --world-sun-glow: rgba(254, 240, 138, 0.65);
+  --world-sky-1: #02050f;
+  --world-sky-2: #081126;
+  --world-sky-3: #0f1e3c;
+  --world-sun-opacity: 0.65;
+  --world-sun-top: 14%;
+  --world-sun-left: 48%;
+  --world-sun-color: #f8fafc;
+  --world-sun-glow: rgba(56, 189, 248, 0.35);
   --world-moon-opacity: 0;
-  --world-star-opacity: 0;
-  --world-cloud-opacity: 0.8;
-  --world-cloud-color: rgba(255, 255, 255, 0.95);
-  --world-distant-building: #475569;
-  --world-main-building: #cbd5e1;
-  --world-building-accent: #94a3b8;
-  --world-building-shadow: rgba(15, 23, 42, 0.25);
-  --world-window-lit: #e0f2fe;
-  --world-window-glow: rgba(224, 242, 254, 0.3);
-  --world-window-opacity: 0.15;
-  --world-tree-1: #166534;
-  --world-tree-2: #15803d;
-  --world-road-fill: #e2e8f0;
-  --world-road-border: #cbd5e1;
-  --world-lamp-glow: rgba(251, 191, 36, 0);
-  --world-lamp-opacity: 0;
-  --world-student-color: #0f172a;
-  --world-student-opacity: 1;
-  --world-atmosphere-scrim: rgba(255, 255, 255, 0.15);
+  --world-star-opacity: 0.3;
+  --world-cloud-opacity: 0.35;
+  --world-cloud-color: rgba(15, 23, 42, 0.65);
+  --world-distant-building: #050a16;
+  --world-main-building: #091022;
+  --world-building-accent: #101c36;
+  --world-building-shadow: rgba(0, 0, 0, 0.75);
+  --world-window-lit: #38bdf8;
+  --world-window-glow: rgba(56, 189, 248, 0.45);
+  --world-window-opacity: 0.5;
+  --world-tree-1: #040812;
+  --world-tree-2: #070f20;
+  --world-road-fill: #050914;
+  --world-road-border: #0e172a;
+  --world-lamp-glow: rgba(56, 189, 248, 0.3);
+  --world-lamp-opacity: 0.3;
+  --world-student-color: #03060d;
+  --world-student-opacity: 0.35;
+  --world-atmosphere-scrim: rgba(2, 5, 15, 0.6);
 }
 
 /* --------------------------------------------------------------------------

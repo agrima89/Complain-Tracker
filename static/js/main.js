@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initCountUpStats();
   initPipelineIllumination();
 
+  // Student Dashboard SaaS Enhancements
+  initStudentSidebar();
+  initNotificationDropdown();
+
   // Auth Page SaaS Enhancements
   initAuthInteractions();
 });
@@ -27,7 +31,7 @@ function initThemeToggle() {
   const toggleIcons = document.querySelectorAll('#themeToggleIcon, #authThemeToggleIcon');
 
   function getActiveTheme() {
-    return document.documentElement.getAttribute('data-theme') || 'light';
+    return document.documentElement.getAttribute('data-theme') || localStorage.getItem('campuscare_theme') || 'dark';
   }
 
   function updateToggleUI(theme) {
@@ -45,6 +49,9 @@ function initThemeToggle() {
 
   function setTheme(theme, savePreference = true) {
     document.documentElement.setAttribute('data-theme', theme);
+    if (document.body) {
+      document.body.setAttribute('data-theme', theme);
+    }
     if (savePreference) {
       try {
         localStorage.setItem('campuscare_theme', theme);
@@ -53,16 +60,17 @@ function initThemeToggle() {
       }
     }
     updateToggleUI(theme);
-    // Dispatch custom event for theme-aware dynamic components (e.g. particle canvas)
+    // Dispatch custom event for theme-aware dynamic components
     window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
   }
 
   // Initial UI sync
   const currentTheme = getActiveTheme();
-  updateToggleUI(currentTheme);
+  setTheme(currentTheme, false);
 
   toggleBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
       const activeTheme = getActiveTheme();
       const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
       setTheme(newTheme, true);
@@ -82,21 +90,71 @@ function initThemeToggle() {
 }
 
 /* ---------------- AUTH FORM SUBMIT & FORGOT PASSWORD ---------------- */
+const CU_EMAIL_REGEX = /^[A-Za-z0-9]+@culkomail\.in$/i;
+const CU_EMAIL_ERROR = "Please use your official Chandigarh University email (@culkomail.in)";
+
+function validateCUEmailInput(emailInput, isSubmittingOrBlur = false) {
+  if (!emailInput) return true;
+  const val = emailInput.value.trim();
+  if (!val) {
+    emailInput.setCustomValidity('');
+    return true;
+  }
+  const isValid = CU_EMAIL_REGEX.test(val);
+  if (isValid) {
+    emailInput.setCustomValidity('');
+    return true;
+  } else if (isSubmittingOrBlur) {
+    emailInput.setCustomValidity(CU_EMAIL_ERROR);
+    return false;
+  } else {
+    emailInput.setCustomValidity('');
+    return false;
+  }
+}
+
 function initAuthInteractions() {
   const loginForm = document.getElementById('studentLoginForm');
+  const registerForm = document.querySelector('form[action*="register"]');
   const submitBtn = document.getElementById('authSubmitBtn');
   const forgotLink = document.getElementById('forgotPasswordLink');
 
-  if (loginForm && submitBtn) {
-    loginForm.addEventListener('submit', () => {
-      const emailInput = loginForm.querySelector('#email');
-      const passInput = loginForm.querySelector('#password');
-      if (emailInput && passInput && emailInput.value && passInput.value) {
-        submitBtn.classList.add('is-submitting');
-        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Signing in...</span>';
+  [loginForm, registerForm].forEach((form) => {
+    if (!form) return;
+    const emailInput = form.querySelector('#email, input[name="email"]');
+    if (emailInput) {
+      emailInput.addEventListener('input', () => {
+        validateCUEmailInput(emailInput, false);
+      });
+      emailInput.addEventListener('blur', () => {
+        if (emailInput.value.trim() && !validateCUEmailInput(emailInput, true)) {
+          showToast('error', 'Invalid Email', CU_EMAIL_ERROR);
+        }
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      if (emailInput && !validateCUEmailInput(emailInput, true)) {
+        e.preventDefault();
+        emailInput.reportValidity();
+        showToast('error', 'Invalid Email Address', CU_EMAIL_ERROR);
+        emailInput.focus();
+        if (submitBtn) {
+          submitBtn.classList.remove('is-submitting');
+          submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
+        }
+        return;
+      }
+
+      if (form === loginForm && submitBtn) {
+        const passInput = loginForm.querySelector('#password');
+        if (emailInput && passInput && emailInput.value && passInput.value) {
+          submitBtn.classList.add('is-submitting');
+          submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Signing in...</span>';
+        }
       }
     });
-  }
+  });
 
   if (forgotLink) {
     forgotLink.addEventListener('click', (e) => {
@@ -503,3 +561,88 @@ function initPipelineIllumination() {
 
   observer.observe(section);
 }
+
+/* --------------------------------------------------------------------------
+   11. STUDENT DASHBOARD SIDEBAR (RESPONSIVE DRAWER & BACKDROP)
+   -------------------------------------------------------------------------- */
+function initStudentSidebar() {
+  const toggleBtn = document.getElementById('sidebarMobileToggle');
+  const sidebar = document.getElementById('studentSidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (!sidebar) return;
+
+  function openSidebar() {
+    sidebar.classList.add('is-open');
+    if (overlay) overlay.classList.add('is-active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('is-open');
+    if (overlay) overlay.classList.remove('is-active');
+    document.body.style.overflow = '';
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (sidebar.classList.contains('is-open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+  }
+
+  if (overlay) {
+    overlay.addEventListener('click', closeSidebar);
+  }
+
+  // Close when clicking nav links on mobile
+  const navLinks = sidebar.querySelectorAll('.sidebar-nav-link, .sidebar-logout-btn');
+  navLinks.forEach((link) => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 1024) {
+        closeSidebar();
+      }
+    });
+  });
+
+  // Handle window resize
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 1024 && sidebar.classList.contains('is-open')) {
+      closeSidebar();
+    }
+  });
+}
+
+/* --------------------------------------------------------------------------
+   12. NOTIFICATION BELL DROPDOWNS (STUDENT & PUBLIC)
+   -------------------------------------------------------------------------- */
+function initNotificationDropdown() {
+  const triggers = [
+    { btn: document.getElementById('notificationBellBtn'), menu: document.getElementById('notificationDropdown') },
+    { btn: document.getElementById('publicNotificationBtn'), menu: document.getElementById('publicNotificationDropdown') }
+  ];
+
+  triggers.forEach(({ btn, menu }) => {
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = menu.style.display === 'block';
+      // Close all first
+      triggers.forEach(t => { if (t.menu) t.menu.style.display = 'none'; });
+      menu.style.display = isVisible ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+      }
+    });
+  });
+}
+
+

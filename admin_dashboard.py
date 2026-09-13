@@ -1,42 +1,20 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
-import sqlite3
+import os
+from PIL import Image, ImageTk
+import database
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_statistics():
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT COUNT(*) FROM complaints")
-    total = cursor.fetchone()[0]
-
-    cursor.execute("""
-        SELECT COUNT(*) FROM complaints
-        WHERE status = 'Pending'
-    """)
-    pending = cursor.fetchone()[0]
-
-    cursor.execute("""
-        SELECT COUNT(*) FROM complaints
-        WHERE status = 'In Progress'
-    """)
-    in_progress = cursor.fetchone()[0]
-
-    cursor.execute("""
-        SELECT COUNT(*) FROM complaints
-        WHERE status = 'Resolved'
-    """)
-    resolved = cursor.fetchone()[0]
-
-    conn.close()
-
-    return total, pending, in_progress, resolved
+    stats = database.get_admin_statistics()
+    return stats["total"], stats["pending"], stats["in_progress"], stats["resolved"]
 
 
 def update_statistics():
     total, pending, in_progress, resolved = get_statistics()
-
     total_label.config(text=str(total))
     pending_label.config(text=str(pending))
     progress_label.config(text=str(in_progress))
@@ -44,26 +22,16 @@ def update_statistics():
 
 
 def update_status(complaint_id, status, root):
-
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        UPDATE complaints
-        SET status = ?
-        WHERE complaint_id = ?
-    """, (status, complaint_id))
-
-    conn.commit()
-    conn.close()
-
-    messagebox.showinfo(
-        "Success",
-        "Complaint status updated successfully!"
-    )
-
-    root.destroy()
-    open_admin_dashboard()
+    success, msg = database.update_complaint_status(complaint_id, status)
+    if success:
+        messagebox.showinfo(
+            "Success",
+            f"Complaint #{complaint_id:03d} status updated to '{status}'!"
+        )
+        root.destroy()
+        open_admin_dashboard()
+    else:
+        messagebox.showerror("Error", msg)
 
 
 def add_hover_effect(button, normal_bg, hover_bg):
@@ -73,7 +41,6 @@ def add_hover_effect(button, normal_bg, hover_bg):
 
 
 def get_status_style(status):
-    """Returns color schemes for different complaint statuses."""
     if status == "Pending":
         return {"bg": "#FEF3C7", "fg": "#D97706"}
     elif status == "In Progress":
@@ -84,7 +51,6 @@ def get_status_style(status):
 
 
 def get_priority_style(priority):
-    """Returns color schemes for complaint priority levels."""
     if priority == "High":
         return {"bg": "#FEE2E2", "fg": "#DC2626"}
     elif priority == "Medium":
@@ -94,74 +60,74 @@ def get_priority_style(priority):
     return {"bg": "#F1F5F9", "fg": "#64748B"}
 
 
+def open_admin_photo_viewer(parent, photo_rel_path, complaint_id):
+    full_path = os.path.join(BASE_DIR, photo_rel_path)
+    if not os.path.isfile(full_path):
+        messagebox.showerror("Image Error", f"Evidence image file not found on disk:\n{photo_rel_path}")
+        return
+
+    viewer = tk.Toplevel(parent)
+    viewer.title(f"Evidence Photo - Complaint #{complaint_id}")
+    viewer.geometry("700x600")
+    viewer.configure(bg="#0F172A")
+
+    # Header
+    header = tk.Frame(viewer, bg="#1E293B", padx=15, pady=10)
+    header.pack(fill="x")
+
+    tk.Label(
+        header,
+        text=f"📸 Admin Review: Evidence Photo for Complaint #{complaint_id:03d}",
+        font=("Segoe UI", 11, "bold"),
+        fg="#FFFFFF",
+        bg="#1E293B"
+    ).pack(side="left")
+
+    tk.Label(
+        header,
+        text=os.path.basename(full_path),
+        font=("Segoe UI", 9),
+        fg="#94A3B8",
+        bg="#1E293B"
+    ).pack(side="right")
+
+    # Image canvas/label
+    img_container = tk.Frame(viewer, bg="#0F172A")
+    img_container.pack(fill="both", expand=True, padx=15, pady=15)
+
+    try:
+        raw_img = Image.open(full_path)
+        raw_img.thumbnail((660, 480))
+        photo_img = ImageTk.PhotoImage(raw_img)
+
+        lbl = tk.Label(img_container, image=photo_img, bg="#0F172A")
+        lbl.image = photo_img
+        lbl.pack(expand=True)
+    except Exception as e:
+        tk.Label(
+            img_container,
+            text=f"Failed to display image:\n{e}",
+            fg="#F87171",
+            bg="#0F172A",
+            font=("Segoe UI", 11)
+        ).pack(expand=True)
+
+
 def load_complaints(
     root,
     status_filter,
     priority_filter,
     search_text
 ):
-
     # Remove old complaint frames
     for widget in root.winfo_children():
-        if getattr(widget, "is_complaint_frame", False):
-            widget.destroy()
+        widget.destroy()
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    query = """
-        SELECT
-            complaints.complaint_id,
-            students.name,
-            complaints.category,
-            complaints.description,
-            complaints.location,
-            complaints.priority,
-            complaints.status,
-            complaints.date
-        FROM complaints
-        JOIN students
-        ON complaints.student_id = students.student_id
-        WHERE 1=1
-    """
-
-    parameters = []
-
-    # Status filter
-    if status_filter != "All":
-        query += " AND complaints.status = ?"
-        parameters.append(status_filter)
-
-    # Priority filter
-    if priority_filter != "All":
-        query += " AND complaints.priority = ?"
-        parameters.append(priority_filter)
-
-    # Search
-    if search_text != "":
-        query += """
-            AND (
-                students.name LIKE ?
-                OR complaints.category LIKE ?
-                OR complaints.description LIKE ?
-                OR complaints.location LIKE ?
-            )
-        """
-
-        search_value = "%" + search_text + "%"
-
-        parameters.extend([
-            search_value,
-            search_value,
-            search_value,
-            search_value
-        ])
-
-    cursor.execute(query, parameters)
-
-    complaints = cursor.fetchall()
-
-    conn.close()
+    complaints = database.get_all_complaints_admin(
+        status_filter=status_filter,
+        priority_filter=priority_filter,
+        search_text=search_text
+    )
 
     if not complaints:
         no_data_frame = tk.Frame(
@@ -173,7 +139,6 @@ def load_complaints(
             pady=30
         )
         no_data_frame.pack(fill="x", padx=20, pady=20)
-        no_data_frame.is_complaint_frame = True
 
         tk.Label(
             no_data_frame,
@@ -182,23 +147,27 @@ def load_complaints(
             fg="#64748B",
             bg="#FFFFFF"
         ).pack()
-
         return
 
-    # Find top-level window for update_status parameter
     top_window = root.winfo_toplevel()
 
-    # Display complaints
-    for complaint in complaints:
-
-        complaint_id = complaint[0]
-        student_name = complaint[1]
-        category = complaint[2]
-        description = complaint[3]
-        location = complaint[4]
-        priority = complaint[5]
-        status = complaint[6]
-        date_str = complaint[7]
+    for item in complaints:
+        complaint_id = item["complaint_id"]
+        student_name = item["student_name"]
+        student_email = item["student_email"]
+        category = item["category"]
+        description = item["description"]
+        photo_path = item["photo_path"]
+        block = item["block"] or "Campus"
+        floor_no = item["floor_no"] or "-"
+        room_no = item["room_no"] or "-"
+        corridor_side = item["corridor_side"] or "-"
+        nearby_area = item["nearby_area"] or "-"
+        add_loc = item["additional_location"] or ""
+        location_str = item["location"]
+        priority = item["priority"]
+        status = item["status"]
+        date_str = item["date"]
 
         # Complaint Card Container
         card = tk.Frame(
@@ -209,16 +178,8 @@ def load_complaints(
             highlightthickness=1,
             highlightbackground="#E2E8F0"
         )
+        card.pack(fill="x", padx=20, pady=8)
 
-        card.pack(
-            fill="x",
-            padx=20,
-            pady=8
-        )
-
-        card.is_complaint_frame = True
-
-        # Inner Container for clean padding
         inner = tk.Frame(card, bg="#FFFFFF", padx=16, pady=14)
         inner.pack(fill="x")
 
@@ -232,7 +193,7 @@ def load_complaints(
 
         tk.Label(
             left_header,
-            text=f"Complaint #{complaint_id}",
+            text=f"Complaint #{complaint_id:03d}",
             font=("Segoe UI", 12, "bold"),
             fg="#1E3A8A",
             bg="#FFFFFF"
@@ -279,65 +240,69 @@ def load_complaints(
         # Date Label
         tk.Label(
             right_header,
-            text=f"Date: {date_str}",
+            text=f"📅 {date_str}",
             font=("Segoe UI", 9),
             fg="#64748B",
             bg="#FFFFFF"
         ).pack(side="left")
 
-        # --- Details Row ---
-        details_row = tk.Frame(inner, bg="#FFFFFF")
-        details_row.pack(fill="x", pady=(0, 8))
+        # --- Student Details Row ---
+        student_row = tk.Frame(inner, bg="#FFFFFF")
+        student_row.pack(fill="x", pady=(0, 6))
 
         tk.Label(
-            details_row,
-            text="Student: ",
-            font=("Segoe UI", 10, "bold"),
+            student_row,
+            text="Submitting Student: ",
+            font=("Segoe UI", 9, "bold"),
             fg="#1E293B",
             bg="#FFFFFF"
         ).pack(side="left")
 
         tk.Label(
-            details_row,
-            text=f"{student_name}   |   ",
-            font=("Segoe UI", 10),
-            fg="#334155",
+            student_row,
+            text=f"{student_name} ({student_email})",
+            font=("Segoe UI", 9),
+            fg="#2563EB",
             bg="#FFFFFF"
         ).pack(side="left")
 
+        # --- Location Hierarchy Row ---
+        loc_frame = tk.Frame(inner, bg="#F8FAFC", padx=12, pady=8, relief="solid", bd=1)
+        loc_frame.pack(fill="x", pady=(0, 8))
+
+        loc_text = f"📍 Block: {block}   |   Floor: {floor_no}   |   Room: {room_no}   |   Side: {corridor_side}"
+        if nearby_area and nearby_area != "-":
+            loc_text += f"   |   Near: {nearby_area}"
+        if add_loc:
+            loc_text += f"\n   Details: {add_loc}"
+
         tk.Label(
-            details_row,
-            text="Location: ",
-            font=("Segoe UI", 10, "bold"),
+            loc_frame,
+            text=loc_text,
+            font=("Segoe UI", 9),
             fg="#1E293B",
-            bg="#FFFFFF"
-        ).pack(side="left")
-
-        tk.Label(
-            details_row,
-            text=location,
-            font=("Segoe UI", 10),
-            fg="#334155",
-            bg="#FFFFFF"
-        ).pack(side="left")
+            bg="#F8FAFC",
+            justify="left",
+            anchor="w"
+        ).pack(fill="x")
 
         # --- Description Frame ---
         desc_frame = tk.Frame(
             inner,
-            bg="#F8FAFC",
+            bg="#FFFFFF",
             bd=1,
             relief="solid",
             highlightthickness=1,
             highlightbackground="#E2E8F0"
         )
-        desc_frame.pack(fill="x", pady=(0, 10))
+        desc_frame.pack(fill="x", pady=(0, 8))
 
         tk.Label(
             desc_frame,
             text=description,
             font=("Segoe UI", 10),
             fg="#334155",
-            bg="#F8FAFC",
+            bg="#FFFFFF",
             justify="left",
             anchor="w",
             wraplength=800,
@@ -345,7 +310,45 @@ def load_complaints(
             pady=8
         ).pack(fill="x")
 
-        # --- Footer / Action Row ---
+        # --- Evidence Photo Row ---
+        evidence_row = tk.Frame(inner, bg="#FFFFFF")
+        evidence_row.pack(fill="x", pady=(0, 10))
+
+        if photo_path and os.path.isfile(os.path.join(BASE_DIR, photo_path)):
+            tk.Label(
+                evidence_row,
+                text="📸 Evidence Photo:",
+                font=("Segoe UI", 9, "bold"),
+                fg="#059669",
+                bg="#FFFFFF"
+            ).pack(side="left", padx=(0, 8))
+
+            view_btn = tk.Button(
+                evidence_row,
+                text="🔍 View Evidence Photo",
+                font=("Segoe UI", 9, "bold"),
+                bg="#0284C7",
+                fg="#FFFFFF",
+                activebackground="#0369A1",
+                activeforeground="#FFFFFF",
+                relief="flat",
+                bd=0,
+                padx=10,
+                pady=3,
+                cursor="hand2",
+                command=lambda p=photo_path, c=complaint_id: open_admin_photo_viewer(top_window, p, c)
+            )
+            view_btn.pack(side="left")
+        else:
+            tk.Label(
+                evidence_row,
+                text="📸 Evidence: No image attached (Legacy record)",
+                font=("Segoe UI", 9, "italic"),
+                fg="#94A3B8",
+                bg="#FFFFFF"
+            ).pack(side="left")
+
+        # --- Footer / Action Row (Status update) ---
         footer_row = tk.Frame(inner, bg="#FFFFFF")
         footer_row.pack(fill="x", pady=(4, 0))
 
@@ -358,8 +361,7 @@ def load_complaints(
         ).pack(side="left", padx=(0, 8))
 
         # Status dropdown
-        status_var = tk.StringVar()
-        status_var.set(status)
+        status_var = tk.StringVar(value=status)
 
         status_menu = ttk.Combobox(
             footer_row,
@@ -372,16 +374,12 @@ def load_complaints(
             state="readonly",
             width=15
         )
-
-        status_menu.pack(
-            side="left",
-            padx=(0, 10)
-        )
+        status_menu.pack(side="left", padx=(0, 10))
 
         # Update button
         update_button = tk.Button(
             footer_row,
-            text="Update Status",
+            text="Save Status",
             font=("Segoe UI", 9, "bold"),
             bg="#2563EB",
             fg="#FFFFFF",
@@ -392,31 +390,22 @@ def load_complaints(
             padx=12,
             pady=4,
             cursor="hand2",
-            command=lambda cid=complaint_id,
-            var=status_var:
-            update_status(
-                cid,
-                var.get(),
-                top_window
-            )
+            command=lambda cid=complaint_id, var=status_var: update_status(cid, var.get(), top_window)
         )
-
         update_button.pack(side="left")
         add_hover_effect(update_button, "#2563EB", "#1D4ED8")
 
 
 def open_admin_dashboard():
-
     global total_label
     global pending_label
     global progress_label
     global resolved_label
 
     root = tk.Tk()
-
-    root.title("Student Complaint & Solution Tracker - Admin Dashboard")
-    root.geometry("980x780")
-    root.minsize(850, 650)
+    root.title("CampusCare - Administrator Grievance Command Center")
+    root.geometry("1020x820")
+    root.minsize(880, 680)
     root.configure(bg="#F8FAFC")
 
     # Configure ttk styles for Combobox
@@ -428,7 +417,6 @@ def open_admin_dashboard():
         background="#E2E8F0"
     )
 
-    # Grid configuration for responsive layout
     root.rowconfigure(3, weight=1)
     root.columnconfigure(0, weight=1)
 
@@ -443,7 +431,7 @@ def open_admin_dashboard():
 
     title_label = tk.Label(
         header,
-        text="Admin Dashboard",
+        text="🛡️ Admin Management Dashboard",
         font=("Segoe UI", 20, "bold"),
         fg="#FFFFFF",
         bg="#1E3A8A"
@@ -452,7 +440,7 @@ def open_admin_dashboard():
 
     subtitle_label = tk.Label(
         header,
-        text="Student Complaint & Solution Tracker — Overview & Management",
+        text="Student Complaint & Solution Tracker — Campus Grievance Inspection & Status Redressal",
         font=("Segoe UI", 10),
         fg="#93C5FD",
         bg="#1E3A8A"
@@ -482,7 +470,6 @@ def open_admin_dashboard():
         )
         card.grid(row=0, column=col, padx=8, sticky="ew")
 
-        # Top accent color bar
         accent_bar = tk.Frame(card, bg=accent_color, height=4)
         accent_bar.pack(fill="x", side="top")
 
@@ -507,20 +494,11 @@ def open_admin_dashboard():
         count_lbl.pack(anchor="w", pady=(4, 0))
         return count_lbl
 
-    total_label = create_stat_card(
-        stats_container, 0, "TOTAL COMPLAINTS", "#2563EB"
-    )
-    pending_label = create_stat_card(
-        stats_container, 1, "PENDING", "#D97706"
-    )
-    progress_label = create_stat_card(
-        stats_container, 2, "IN PROGRESS", "#0284C7"
-    )
-    resolved_label = create_stat_card(
-        stats_container, 3, "RESOLVED", "#059669"
-    )
+    total_label = create_stat_card(stats_container, 0, "TOTAL COMPLAINTS", "#2563EB")
+    pending_label = create_stat_card(stats_container, 1, "PENDING", "#D97706")
+    progress_label = create_stat_card(stats_container, 2, "IN PROGRESS", "#0284C7")
+    resolved_label = create_stat_card(stats_container, 3, "RESOLVED", "#059669")
 
-    # Update statistics
     update_statistics()
 
     # 3. Filter and Search Bar Container
@@ -564,18 +542,11 @@ def open_admin_dashboard():
         bg="#FFFFFF"
     ).pack(side="left", padx=(0, 6))
 
-    status_filter = tk.StringVar()
-    status_filter.set("All")
-
+    status_filter = tk.StringVar(value="All")
     status_menu = ttk.Combobox(
         filter_inner,
         textvariable=status_filter,
-        values=[
-            "All",
-            "Pending",
-            "In Progress",
-            "Resolved"
-        ],
+        values=["All", "Pending", "In Progress", "Resolved"],
         state="readonly",
         width=12
     )
@@ -590,18 +561,11 @@ def open_admin_dashboard():
         bg="#FFFFFF"
     ).pack(side="left", padx=(0, 6))
 
-    priority_filter = tk.StringVar()
-    priority_filter.set("All")
-
+    priority_filter = tk.StringVar(value="All")
     priority_menu = ttk.Combobox(
         filter_inner,
         textvariable=priority_filter,
-        values=[
-            "All",
-            "Low",
-            "Medium",
-            "High"
-        ],
+        values=["All", "Low", "Medium", "High"],
         state="readonly",
         width=10
     )
@@ -661,7 +625,6 @@ def open_admin_dashboard():
     reset_btn.pack(side="left")
     add_hover_effect(reset_btn, "#64748B", "#475569")
 
-    # Bind Enter key to search
     search_entry.bind("<Return>", lambda e: trigger_search())
 
     # 4. Scrollable Complaints Area
@@ -676,16 +639,8 @@ def open_admin_dashboard():
     main_content_frame.rowconfigure(0, weight=1)
     main_content_frame.columnconfigure(0, weight=1)
 
-    canvas = tk.Canvas(
-        main_content_frame,
-        bg="#F8FAFC",
-        highlightthickness=0
-    )
-    scrollbar = ttk.Scrollbar(
-        main_content_frame,
-        orient="vertical",
-        command=canvas.yview
-    )
+    canvas = tk.Canvas(main_content_frame, bg="#F8FAFC", highlightthickness=0)
+    scrollbar = ttk.Scrollbar(main_content_frame, orient="vertical", command=canvas.yview)
     scrollable_frame = tk.Frame(canvas, bg="#F8FAFC")
 
     scrollable_frame.bind(
@@ -708,7 +663,6 @@ def open_admin_dashboard():
     canvas.grid(row=0, column=0, sticky="nsew")
     scrollbar.grid(row=0, column=1, sticky="ns")
 
-    # Mousewheel scrolling
     def _on_mousewheel(event):
         canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
