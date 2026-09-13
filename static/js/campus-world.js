@@ -45,16 +45,35 @@
     }
   };
 
-  function getPhaseForHour(hour) {
-    if (hour >= 4 && hour < 10) {
-      return 'morning'; // 04:00 AM – 09:59 AM
-    } else if (hour >= 10 && hour < 17) {
-      return 'afternoon'; // 10:00 AM – 04:59 PM
-    } else if (hour >= 17 && hour < 19) {
-      return 'evening'; // 05:00 PM – 06:59 PM
+  /**
+   * Centralized function to evaluate the campus time category based on local browser time:
+   * 🌅 MORNING:   5:00 AM – 11:59 AM (hours 5 to 11)
+   * ☀️ AFTERNOON: 12:00 PM – 4:59 PM  (hours 12 to 16)
+   * 🌇 EVENING:   5:00 PM – 7:59 PM  (hours 17 to 19)
+   * 🌙 NIGHT:     8:00 PM – 4:59 AM  (hours 20 to 23, 0 to 4)
+   * @param {Date} [dateObj]
+   * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
+   */
+  function getCampusBackground(dateObj) {
+    const now = dateObj || new Date();
+    const hour = now.getHours(); // 0 - 23 in user's local timezone
+
+    if (hour >= 5 && hour < 12) {
+      return 'morning';
+    } else if (hour >= 12 && hour < 17) {
+      return 'afternoon';
+    } else if (hour >= 17 && hour < 20) {
+      return 'evening';
     } else {
-      return 'night'; // 07:00 PM – 03:59 AM
+      return 'night';
     }
+  }
+  window.getCampusBackground = getCampusBackground;
+
+  function getPhaseForHour(hour) {
+    const d = new Date();
+    d.setHours(hour, 30, 0, 0);
+    return getCampusBackground(d);
   }
 
   function formatTime(date) {

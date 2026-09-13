@@ -665,10 +665,10 @@
    * CampusCare Dynamic Time-Based Campus Background Controller
    * - Uses client-side browser/device local time (JavaScript Date)
    * - Automatically crossfades between 4 time phases:
-   *     1. MORNING   (04:00 AM – 09:59 AM) -> Bright morning campus image
-   *     2. AFTERNOON (10:00 AM – 04:59 PM) -> Bright daytime campus image
-   *     3. EVENING   (05:00 PM – 06:59 PM) -> Warm sunset / golden-hour campus image
-   *     4. NIGHT     (07:00 PM – 03:59 AM) -> Dark blue nighttime campus with campus lights
+   *     1. MORNING   (05:00 AM – 11:59 AM) -> Bright morning campus image
+   *     2. AFTERNOON (12:00 PM – 04:59 PM) -> Bright afternoon campus image
+   *     3. EVENING   (05:00 PM – 07:59 PM) -> Warm golden-hour sunset campus image
+   *     4. NIGHT     (08:00 PM – 04:59 AM) -> Dark nighttime campus with lit lamps
    * - Dual-layer 1.8s smooth cinematic crossfade
    * - Checks automatically every 30 seconds and on tab visibility change
    */
@@ -690,28 +690,29 @@
     });
 
     /**
-     * Categorize time based on user's device/browser local time
+     * Centralized function to evaluate the campus time category based on local browser time:
+     * 🌅 MORNING:   5:00 AM – 11:59 AM (hours 5 to 11)
+     * ☀️ AFTERNOON: 12:00 PM – 4:59 PM  (hours 12 to 16)
+     * 🌇 EVENING:   5:00 PM – 7:59 PM  (hours 17 to 19)
+     * 🌙 NIGHT:     8:00 PM – 4:59 AM  (hours 20 to 23, 0 to 4)
      * @param {Date} [dateObj]
      * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
      */
-    function getTimeCategory(dateObj) {
+    function getCampusBackground(dateObj) {
       const now = dateObj || new Date();
-      const hour = now.getHours(); // 0 - 23
+      const hour = now.getHours(); // 0 - 23 in user's local timezone
 
-      if (hour >= 4 && hour < 10) {
-        // 04:00 AM – 09:59 AM
+      if (hour >= 5 && hour < 12) {
         return 'morning';
-      } else if (hour >= 10 && hour < 17) {
-        // 10:00 AM – 04:59 PM
+      } else if (hour >= 12 && hour < 17) {
         return 'afternoon';
-      } else if (hour >= 17 && hour < 19) {
-        // 05:00 PM – 06:59 PM
+      } else if (hour >= 17 && hour < 20) {
         return 'evening';
       } else {
-        // 07:00 PM – 03:59 AM (includes 19:00-23:59, 00:00-03:59)
         return 'night';
       }
     }
+    window.getCampusBackground = getCampusBackground;
 
     let currentCategory = null;
     let activeLayer = 1; // Currently visible layer (1 or 2)
@@ -759,13 +760,13 @@
     }
 
     function checkTimePeriod() {
-      const targetCategory = getTimeCategory(new Date());
+      const targetCategory = getCampusBackground(new Date());
       applyTimeBackground(targetCategory, false);
     }
 
     function startEngine() {
       // 1. Initial check using user's real browser time
-      const initialCategory = getTimeCategory(new Date());
+      const initialCategory = getCampusBackground(new Date());
       applyTimeBackground(initialCategory, true);
 
       // 2. Periodic check every 30 seconds
@@ -790,7 +791,7 @@
     window.__testCampusTime = function (hour) {
       const mockDate = new Date();
       mockDate.setHours(hour, 30, 0, 0);
-      const cat = getTimeCategory(mockDate);
+      const cat = getCampusBackground(mockDate);
       applyTimeBackground(cat, false);
       return cat;
     };
