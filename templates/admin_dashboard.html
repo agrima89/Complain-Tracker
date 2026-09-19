@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Management Dashboard - CampusCare{% endblock %}
+{% block title %}Admin Management & Analytics Dashboard - CampusCare{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 1280px;">
+<div class="container" style="max-width: 1320px;">
 
   <!-- Live Time & Greeting -->
   <div class="floating-time-display" style="margin-bottom: 1.5rem;">
@@ -21,10 +21,16 @@
         <span class="tag-cyan-dot"></span>
         <span>ADMINISTRATIVE COMMAND CENTER</span>
       </div>
-      <h1>Admin Management Dashboard</h1>
-      <p class="page-header-subtitle">Monitor, inspect coordinates, review evidence photos, and resolve student grievances across all university blocks.</p>
+      <h1>Admin Management & Analytics Dashboard</h1>
+      <p class="page-header-subtitle">Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints across all university blocks.</p>
     </div>
-    <div class="page-header-actions">
+    <div class="page-header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{{ url_for('admin_summary_report_pdf', status=status_filter, priority=priority_filter, q=search_text) }}" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Comprehensive Complaint Analytics PDF Report">
+        <span>📄</span> Generate Complaint Report
+      </a>
+      <a href="{{ url_for('landing') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+        <span>🌐</span> Campus Home
+      </a>
       <a href="{{ url_for('profile_view') }}" class="btn btn-secondary btn-sm">
         🛡️ Admin Profile
       </a>
@@ -32,7 +38,7 @@
   </div>
 
   <!-- Live Statistics Cards Grid -->
-  <div class="stats-grid">
+  <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
     
     <!-- Total Complaints -->
     <div class="stat-card">
@@ -70,7 +76,610 @@
       <div id="stat-resolved" class="stat-value" style="color: #4ade80;">{{ stats.resolved }}</div>
     </div>
 
+    <!-- Attention Required / Escalated -->
+    <a href="{{ url_for('admin_dashboard', escalated='true') }}" class="stat-card" style="text-decoration: none; border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #f87171;">Attention Required</span>
+        <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">⚠</div>
+      </div>
+      <div id="stat-escalated" class="stat-value" style="color: #f87171;">{{ stats.escalated or 0 }}</div>
+    </a>
+
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- ⚡ CAMPUS PULSE: REAL-TIME EXECUTIVE COMMAND TELEMETRY                    -->
+  <!-- ========================================================================= -->
+  <div class="campus-pulse-section cinematic-card" style="margin-bottom: 2rem; padding: 1.5rem; position: relative; overflow: hidden;">
+    <div class="pulse-glow-ambient"></div>
+    
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-bottom: 0.85rem;">
+      <div style="display: flex; align-items: center; gap: 0.6rem;">
+        <span class="pulse-live-indicator">
+          <span class="pulse-ping-dot"></span>
+          <span class="pulse-core-dot"></span>
+        </span>
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <span>⚡</span> Campus Pulse & Health Telemetry
+          </h2>
+          <p style="font-size: 0.8rem; color: #94a3b8; margin: 0.15rem 0 0 0;">
+            Live operational metrics, resolution velocity, and university infrastructure status
+          </p>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-size: 0.75rem;">
+          ● Systems Operational
+        </span>
+        <span class="badge" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8; font-size: 0.75rem;">
+          Avg Turnaround: ~{{ pulse_data.avg_resolution_days }}d
+        </span>
+      </div>
+    </div>
+
+    <!-- Pulse 4-Metric Grid -->
+    <div class="pulse-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+      
+      <!-- Card 1: Critical Issues -->
+      <div class="pulse-card pulse-card-critical">
+        <div class="pulse-card-header">
+          <span class="pulse-card-title">Critical & Escalated</span>
+          <span class="pulse-card-icon" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">🚨</span>
+        </div>
+        <div class="pulse-card-value pulse-counter" data-target="{{ pulse_data.critical_issues }}" style="color: #f87171;">
+          {{ pulse_data.critical_issues }}
+        </div>
+        <div class="pulse-card-subtext">
+          <span>{{ pulse_data.escalated_count }} flagged for escalation</span>
+          {% if pulse_data.critical_issues > 0 %}
+            <a href="{{ url_for('admin_dashboard', priority='High') }}" style="color: #f87171; text-decoration: underline; font-size: 0.75rem; margin-left: auto;">Inspect &rarr;</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Card 2: Top Hotspot Area -->
+      <div class="pulse-card pulse-card-hotspot">
+        <div class="pulse-card-header">
+          <span class="pulse-card-title">Top Hotspot Zone</span>
+          <span class="pulse-card-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">📍</span>
+        </div>
+        <div class="pulse-card-value" style="font-size: 1.35rem; color: #fbbf24; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ pulse_data.top_problem_area }}">
+          {{ pulse_data.top_problem_area }}
+        </div>
+        <div class="pulse-card-subtext">
+          <span>Highest grievance concentration</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Resolution Rate -->
+      <div class="pulse-card pulse-card-resolution">
+        <div class="pulse-card-header">
+          <span class="pulse-card-title">Campus Resolution Rate</span>
+          <span class="pulse-card-icon" style="background: rgba(52, 211, 153, 0.2); color: #34d399;">⚡</span>
+        </div>
+        <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+          <div class="pulse-card-value pulse-counter" data-target="{{ pulse_data.resolution_rate }}" style="color: #34d399;">
+            {{ pulse_data.resolution_rate }}
+          </div>
+          <span style="font-size: 1.25rem; font-weight: 700; color: #34d399;">%</span>
+        </div>
+        <!-- Progress Bar -->
+        <div class="pulse-progress-bar-bg" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; margin: 0.5rem 0 0.25rem; overflow: hidden;">
+          <div class="pulse-progress-bar-fill" style="width: {{ pulse_data.resolution_rate }}%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 999px; transition: width 1s ease;"></div>
+        </div>
+        <div class="pulse-card-subtext">
+          <span>{{ stats.resolved }} of {{ stats.total }} issues solved</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Active Workload -->
+      <div class="pulse-card pulse-card-workload">
+        <div class="pulse-card-header">
+          <span class="pulse-card-title">Active Workload</span>
+          <span class="pulse-card-icon" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">🔄</span>
+        </div>
+        <div class="pulse-card-value pulse-counter" data-target="{{ pulse_data.active_complaints }}" style="color: #38bdf8;">
+          {{ pulse_data.active_complaints }}
+        </div>
+        <div class="pulse-card-subtext">
+          <span>{{ pulse_data.status_breakdown.Pending }} pending &middot; {{ pulse_data.status_breakdown['In Progress'] }} in progress</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 7-Day Complaint Velocity Sparkline Strip -->
+    <div class="pulse-velocity-strip" style="background: rgba(3, 7, 18, 0.45); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 0.85rem 1.15rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
+        <span style="font-size: 0.85rem; font-weight: 600; color: #e2e8f0;">📊 7-Day Grievance Velocity:</span>
+        <span style="font-size: 0.8rem; color: #94a3b8;">Daily incoming ticket trajectory</span>
+      </div>
+      <div class="velocity-bars-container" style="display: flex; align-items: flex-end; gap: 0.65rem; height: 38px;">
+        {% for day in pulse_data.velocity_7d %}
+          <div class="velocity-bar-col" style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;" title="{{ day.date }}: {{ day.count }} tickets">
+            {% set max_count = 10 %}
+            {% set bar_h = (day.count / max_count * 28)|round|int %}
+            {% if bar_h < 4 %}{% set bar_h = 4 %}{% endif %}
+            {% if bar_h > 28 %}{% set bar_h = 28 %}{% endif %}
+            <div class="velocity-bar" style="width: 14px; height: {{ bar_h }}px; background: {% if day.count > 3 %}#f87171{% elif day.count > 0 %}#38bdf8{% else %}rgba(255, 255, 255, 0.1){% endif %}; border-radius: 3px; transition: height 0.5s ease;"></div>
+            <span style="font-size: 0.65rem; color: #64748b; font-family: monospace;">{{ day.day_name }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 🗺️ CAMPUS PROBLEM HEATMAP — ARCHITECTURAL HOTSPOT INTELLIGENCE            -->
+  <!-- ========================================================================= -->
+  <div class="campus-heatmap-section cinematic-card" style="margin-bottom: 2rem; padding: 1.75rem 1.5rem;">
+    
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🗺️</span> Campus Problem Heatmap & Zone Telemetry
+        </h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.2rem 0 0 0;">
+          Interactive architectural floorplan with real-time complaint intensity, hotspot radar, and zone diagnostics
+        </p>
+      </div>
+
+      <!-- Heatmap Filter Toolbar -->
+      <div class="heatmap-filter-group" style="display: flex; gap: 0.4rem; background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 999px; padding: 0.25rem;">
+        <button type="button" class="heatmap-filter-btn active" data-filter="all">All Zones</button>
+        <button type="button" class="heatmap-filter-btn" data-filter="critical">🚨 Critical / High</button>
+        <button type="button" class="heatmap-filter-btn" data-filter="active">⚡ Active Issues</button>
+      </div>
+    </div>
+
+    <!-- Heatmap Layout Grid (Map Canvas + Telemetry Inspector) -->
+    <div class="heatmap-layout-grid" style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;">
+      
+      <!-- Interactive SVG Map Canvas -->
+      <div class="heatmap-canvas-container" style="background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8), rgba(3, 7, 18, 0.95)); border: 1px solid rgba(56, 189, 248, 0.18); border-radius: 16px; padding: 1.25rem; position: relative; overflow: hidden; min-height: 480px; box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);">
+        
+        <!-- Legend Strip -->
+        <div class="heatmap-legend" style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; margin-bottom: 0.75rem; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap;">
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);"></span> Critical (&ge;5 active)
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);"></span> High (3-4)
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 8px rgba(6, 182, 212, 0.7);"></span> Moderate (1-2)
+          </span>
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Calm / Cleared (0)
+          </span>
+        </div>
+
+        <!-- SVG Map Graphic -->
+        <svg id="campusHeatmapSvg" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));">
+          <defs>
+            <!-- SVG Gradients -->
+            <linearGradient id="grad-critical" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(239, 68, 68, 0.45)" />
+              <stop offset="100%" stop-color="rgba(185, 28, 28, 0.7)" />
+            </linearGradient>
+            <linearGradient id="grad-high" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(245, 158, 11, 0.4)" />
+              <stop offset="100%" stop-color="rgba(180, 83, 9, 0.65)" />
+            </linearGradient>
+            <linearGradient id="grad-moderate" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(6, 182, 212, 0.3)" />
+              <stop offset="100%" stop-color="rgba(14, 116, 144, 0.55)" />
+            </linearGradient>
+            <linearGradient id="grad-low" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(16, 185, 129, 0.25)" />
+              <stop offset="100%" stop-color="rgba(5, 150, 105, 0.45)" />
+            </linearGradient>
+            <linearGradient id="grad-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(30, 41, 59, 0.5)" />
+              <stop offset="100%" stop-color="rgba(15, 23, 42, 0.7)" />
+            </linearGradient>
+
+            <!-- Glow Filters -->
+            <filter id="glow-critical" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="glow-high" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+
+          <!-- Architectural Campus Pathways & Grid Lines -->
+          <g class="campus-pathways" opacity="0.35">
+            <!-- Main Campus Boulevard (Horizontal) -->
+            <line x1="40" y1="215" x2="760" y2="215" stroke="#38bdf8" stroke-width="6" stroke-dasharray="10,6" />
+            <line x1="40" y1="345" x2="760" y2="345" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+            <!-- Vertical Avenues -->
+            <line x1="265" y1="40" x2="265" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+            <line x1="435" y1="40" x2="435" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+            <line x1="605" y1="40" x2="605" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+            
+            <!-- Campus Boundary Outer Ring -->
+            <rect x="25" y="25" width="750" height="470" rx="16" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5" stroke-dasharray="5,5" />
+            <!-- Central Roundabout -->
+            <circle cx="435" cy="215" r="24" fill="rgba(56, 189, 248, 0.08)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+            <text x="435" y="219" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">CAMPUS CIRCLE</text>
+          </g>
+
+          <!-- Zone Nodes Rendered Dynamically from heatmap_data -->
+          <g id="heatmapZonesGroup">
+            {% for zone in heatmap_data %}
+              <g class="heatmap-zone-node" id="zoneNode-{{ zone.id }}" data-zone-id="{{ zone.id }}" data-zone-name="{{ zone.name }}" data-intensity="{{ zone.intensity }}" data-unresolved="{{ zone.unresolved_count }}" data-total="{{ zone.total_complaints }}" style="cursor: pointer;">
+                
+                <!-- Zone Shape Background -->
+                <rect 
+                  x="{{ zone.x }}" 
+                  y="{{ zone.y }}" 
+                  width="{{ zone.w }}" 
+                  height="{{ zone.h }}" 
+                  rx="10" 
+                  class="zone-rect intensity-{{ zone.intensity|lower }}"
+                  fill="{% if zone.intensity == 'Critical' %}url(#grad-critical){% elif zone.intensity == 'High' %}url(#grad-high){% elif zone.intensity == 'Moderate' %}url(#grad-moderate){% elif zone.total_complaints > 0 %}url(#grad-low){% else %}url(#grad-neutral){% endif %}"
+                  stroke="{% if zone.intensity == 'Critical' %}#ef4444{% elif zone.intensity == 'High' %}#f59e0b{% elif zone.intensity == 'Moderate' %}#06b6d4{% elif zone.total_complaints > 0 %}#10b981{% else %}rgba(255, 255, 255, 0.15){% endif %}"
+                  stroke-width="{% if zone.intensity == 'Critical' or zone.intensity == 'High' %}2{% else %}1.2{% endif %}"
+                  {% if zone.intensity == 'Critical' %}filter="url(#glow-critical)"{% elif zone.intensity == 'High' %}filter="url(#glow-high)"{% endif %}
+                />
+
+                <!-- Pulsing Radar Indicator if Unresolved > 0 -->
+                {% if zone.unresolved_count > 0 %}
+                  <circle 
+                    cx="{{ zone.x + zone.w - 18 }}" 
+                    cy="{{ zone.y + 18 }}" 
+                    r="8" 
+                    class="radar-ring radar-ring-anim-{% if zone.intensity == 'Critical' %}critical{% elif zone.intensity == 'High' %}high{% else %}cyan{% endif %}"
+                    fill="none" 
+                    stroke="{% if zone.intensity == 'Critical' %}#ef4444{% elif zone.intensity == 'High' %}#f59e0b{% else %}#38bdf8{% endif %}"
+                    stroke-width="1.5"
+                  />
+                  <circle 
+                    cx="{{ zone.x + zone.w - 18 }}" 
+                    cy="{{ zone.y + 18 }}" 
+                    r="4" 
+                    fill="{% if zone.intensity == 'Critical' %}#ef4444{% elif zone.intensity == 'High' %}#f59e0b{% else %}#38bdf8{% endif %}"
+                  />
+                {% endif %}
+
+                <!-- Zone Building Label -->
+                <text 
+                  x="{{ zone.x + 14 }}" 
+                  y="{{ zone.y + 26 }}" 
+                  fill="#ffffff" 
+                  font-size="13" 
+                  font-weight="700" 
+                  font-family="'Inter', sans-serif"
+                >
+                  {{ zone.name }}
+                </text>
+
+                <!-- Zone Subtitle / Department -->
+                <text 
+                  x="{{ zone.x + 14 }}" 
+                  y="{{ zone.y + 44 }}" 
+                  fill="#94a3b8" 
+                  font-size="9.5" 
+                  font-family="'Inter', sans-serif"
+                >
+                  {{ zone.type }}
+                </text>
+
+                <!-- Zone Status Metric Pill inside Building -->
+                {% if zone.total_complaints > 0 %}
+                  <rect 
+                    x="{{ zone.x + 14 }}" 
+                    y="{{ zone.y + zone.h - 30 }}" 
+                    width="{{ 75 if zone.unresolved_count > 0 else 60 }}" 
+                    height="18" 
+                    rx="5" 
+                    fill="rgba(0, 0, 0, 0.55)" 
+                    stroke="rgba(255, 255, 255, 0.15)"
+                    stroke-width="0.8"
+                  />
+                  <text 
+                    x="{{ zone.x + 20 }}" 
+                    y="{{ zone.y + zone.h - 17 }}" 
+                    fill="{% if zone.unresolved_count > 0 %}#fca5a5{% else %}#4ade80{% endif %}" 
+                    font-size="9.5" 
+                    font-weight="600"
+                    font-family="monospace"
+                  >
+                    {% if zone.unresolved_count > 0 %}
+                      ⚠ {{ zone.unresolved_count }} active
+                    {% else %}
+                      ✓ {{ zone.resolved_count }} done
+                    {% endif %}
+                  </text>
+                {% else %}
+                  <text 
+                    x="{{ zone.x + 14 }}" 
+                    y="{{ zone.y + zone.h - 17 }}" 
+                    fill="#64748b" 
+                    font-size="9" 
+                    font-family="'Inter', sans-serif"
+                  >
+                    0 issues
+                  </text>
+                {% endif %}
+
+              </g>
+            {% endfor %}
+          </g>
+        </svg>
+
+        <!-- Dynamic Instruction Banner -->
+        <div style="position: absolute; bottom: 0.85rem; left: 1.25rem; font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+          <span>💡</span> Click or hover over any campus zone for instant diagnostics & filter.
+        </div>
+      </div>
+
+      <!-- Zone Telemetry Inspector Drawer -->
+      <div id="zoneInspectorDrawer" class="zone-inspector-card" style="background: rgba(6, 11, 24, 0.85); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(14px); box-shadow: 0 10px 30px rgba(0,0,0,0.55); display: flex; flex-direction: column;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
+          <div>
+            <div style="font-size: 0.725rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.08em; text-transform: uppercase;">ZONE DIAGNOSTICS</div>
+            <h3 id="inspectorZoneName" style="font-size: 1.2rem; font-weight: 700; color: #ffffff; margin: 0.25rem 0 0 0;">
+              {{ heatmap_data[0].name if heatmap_data else 'Select a Zone' }}
+            </h3>
+            <div id="inspectorZoneType" style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.15rem;">
+              {{ heatmap_data[0].type if heatmap_data else 'Campus Infrastructure' }}
+            </div>
+          </div>
+          <span id="inspectorIntensityBadge" class="badge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 700; font-size: 0.75rem;">
+            {{ heatmap_data[0].intensity if heatmap_data else 'Low' }}
+          </span>
+        </div>
+
+        <!-- Telemetry Stats Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 0.75rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.2rem;">Total Logged</div>
+            <div id="inspectorTotalCount" style="font-size: 1.4rem; font-weight: 700; color: #ffffff;">
+              {{ heatmap_data[0].total_complaints if heatmap_data else 0 }}
+            </div>
+          </div>
+          <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 0.75rem; text-align: center;">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.2rem;">Unresolved</div>
+            <div id="inspectorUnresolvedCount" style="font-size: 1.4rem; font-weight: 700; color: #f87171;">
+              {{ heatmap_data[0].unresolved_count if heatmap_data else 0 }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Priority Breakdown Pills -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="font-size: 0.775rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">Urgency Distribution:</div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; font-size: 0.75rem;">
+              High: <strong id="inspectorHighCount" style="margin-left: 0.25rem;">{{ heatmap_data[0].high_priority_count if heatmap_data else 0 }}</strong>
+            </span>
+            <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fcd34d; font-size: 0.75rem;">
+              Medium: <strong id="inspectorMediumCount" style="margin-left: 0.25rem;">{{ heatmap_data[0].medium_priority_count if heatmap_data else 0 }}</strong>
+            </span>
+            <span class="badge" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac; font-size: 0.75rem;">
+              Low: <strong id="inspectorLowCount" style="margin-left: 0.25rem;">{{ heatmap_data[0].low_priority_count if heatmap_data else 0 }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Top Category -->
+        <div style="background: rgba(15, 23, 42, 0.4); border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+          <div style="font-size: 0.725rem; color: #94a3b8; text-transform: uppercase;">Dominant Category</div>
+          <div id="inspectorTopCategory" style="font-size: 0.9rem; font-weight: 600; color: #38bdf8; margin-top: 0.2rem;">
+            {{ heatmap_data[0].top_category if heatmap_data else 'None Recorded' }}
+          </div>
+        </div>
+
+        <!-- 📋 Complaints in this Zone Section -->
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-size: 0.775rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📋</span>
+              <span id="zoneComplaintsHeader">COMPLAINTS IN {{ heatmap_data[0].name|upper if heatmap_data else 'THIS ZONE' }}</span>
+            </div>
+            <span id="zoneComplaintsBadge" class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.7rem; font-weight: 700;">
+              {{ heatmap_data[0].complaints|length if heatmap_data else 0 }} issues
+            </span>
+          </div>
+
+          <!-- Dynamic Complaints List Container -->
+          <div id="zoneComplaintsContainer" class="zone-complaints-scroll-list" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.25rem;">
+            {% if heatmap_data and heatmap_data[0].complaints %}
+              {% for c in heatmap_data[0].complaints %}
+                <div class="zone-complaint-item" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 0.85rem; transition: all 0.2s ease;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.4rem;">
+                    <span style="font-family: monospace; font-weight: 700; font-size: 0.8rem; color: #38bdf8;">#{{ c.ticket_id }}</span>
+                    <div style="display: flex; gap: 0.35rem;">
+                      <span class="badge" style="font-size: 0.68rem; font-weight: 700; {% if c.priority == 'High' %}background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;{% elif c.priority == 'Medium' %}background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fcd34d;{% else %}background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac;{% endif %}">
+                        {{ c.priority }}
+                      </span>
+                      <span class="badge" style="font-size: 0.68rem; font-weight: 700; {% if c.status == 'Resolved' %}background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;{% elif c.status == 'In Progress' %}background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;{% else %}background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24;{% endif %}">
+                        {{ c.status }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; color: #cbd5e1; font-weight: 600; margin-bottom: 0.25rem;">
+                    <span>📁 {{ c.category }}</span>
+                    <span style="color: #64748b;">•</span>
+                    <span style="color: #94a3b8;">👤 {{ c.student_name }}</span>
+                  </div>
+
+                  <div style="font-size: 0.825rem; color: #e2e8f0; line-height: 1.35; margin-bottom: 0.4rem; word-break: break-word;">
+                    {{ c.description }}
+                  </div>
+
+                  <div style="font-size: 0.75rem; color: #94a3b8; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.4rem;">
+                    <span>📍</span>
+                    <span>{{ c.location }}</span>
+                  </div>
+
+                  {% if c.has_photo %}
+                    <div style="margin-bottom: 0.5rem;">
+                      <a href="{{ url_for('static', filename=c.photo_path.replace('static/', '')) if c.photo_path.startswith('static/') else ('/' + c.photo_path) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: #38bdf8; text-decoration: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 0.25rem 0.5rem;">
+                        <span>📷</span>
+                        <span>Evidence Photo</span>
+                      </a>
+                    </div>
+                  {% endif %}
+
+                  <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.725rem; color: #64748b; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 0.4rem; margin-top: 0.4rem;">
+                    <span>📅 {{ c.date_formatted or c.date }}</span>
+                    <a href="{{ url_for('admin_complaint_detail_view', complaint_id=c.complaint_id) }}" class="text-link" style="color: #38bdf8; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.2rem;">
+                      <span>Details</span>
+                      <span>&rarr;</span>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div id="zoneEmptyState" style="background: rgba(15, 23, 42, 0.4); border: 1px dashed rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 1.75rem 1rem; text-align: center; color: #64748b;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.35rem;">🛡️</div>
+                <div style="font-size: 0.85rem; color: #94a3b8; font-weight: 600;">No complaints recorded in this zone.</div>
+                <div style="font-size: 0.75rem; margin-top: 0.2rem;">All facilities in this area are operating normally.</div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
+          <a id="inspectorFilterLink" href="{{ url_for('admin_dashboard', q=(heatmap_data[0].name if heatmap_data else '')) }}" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center; text-decoration: none;">
+            🔍 Filter Table by this Zone
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive Visual Analytics Charts Grid -->
+  <div class="cinematic-card" style="margin-bottom: 2rem; padding: 1.75rem 1.5rem;">
+    <div class="card-header" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <h2 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem;">
+          <span>📈</span> Real-Time Grievance Analytics & Resolution Trends
+        </h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem;">
+          Overall Resolution Rate: <strong style="color: #4ade80;">{{ analytics.resolved_percentage }}%</strong> across {{ analytics.total_complaints }} logged issues
+        </p>
+      </div>
+      <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Live Telemetry</span>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Chart 1: Categories Breakdown -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>📁</span> Complaints by Category
+          </h3>
+          <div style="position: relative; height: 210px;">
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Priority Distribution -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>⚡</span> Priority Breakdown
+          </h3>
+          <div style="position: relative; height: 210px;">
+            <canvas id="priorityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Monthly Trends -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>📅</span> 6-Month Volume Trend
+          </h3>
+          <div style="position: relative; height: 210px;">
+            <canvas id="monthlyTrendChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Transport Analytics Charts Grid (Only visible if transport stats exist) -->
+  {% if transport_stats and transport_stats.total > 0 %}
+  <div class="cinematic-card" style="margin-bottom: 2rem; padding: 1.75rem 1.5rem;">
+    <div class="card-header" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+      <div>
+        <h2 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem;">
+          <span>🚌</span> Transport Infrastructure Pulse
+        </h2>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem;">
+          Live routing metrics, fleet issues, and transport operations. Total Transport Tickets: <strong style="color: #38bdf8;">{{ transport_stats.total }}</strong>
+        </p>
+      </div>
+      <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399;">Active Transport DB</span>
+    </div>
+
+    <div class="card-body" style="padding: 0;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+        
+        <!-- Status Breakdown -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>📊</span> Status Breakdown
+          </h3>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            <li style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;"><span style="color:#94a3b8;">Pending:</span> <strong style="color:#fbbf24;">{{ transport_stats.pending }}</strong></li>
+            <li style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;"><span style="color:#94a3b8;">In Progress:</span> <strong style="color:#38bdf8;">{{ transport_stats.in_progress }}</strong></li>
+            <li style="display: flex; justify-content: space-between;"><span style="color:#94a3b8;">Resolved:</span> <strong style="color:#34d399;">{{ transport_stats.resolved }}</strong></li>
+          </ul>
+        </div>
+
+        <!-- Top Routes -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🗺️</span> Top Affected Routes
+          </h3>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {% for route in transport_stats.by_route[:4] %}
+            <li style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color:#e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ route.route }}">{{ route.route }}</span>
+              <strong style="color:#38bdf8; margin-left: 0.5rem;">{{ route.count }}</strong>
+            </li>
+            {% else %}
+            <li style="color:#64748b; font-style: italic;">No route data</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Issue Types -->
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+          <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>⚠️</span> Top Issue Types
+          </h3>
+          <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem;">
+            {% for typ in transport_stats.by_type[:4] %}
+            <li style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+              <span style="color:#e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ typ.transport_complaint_type }}">{{ typ.transport_complaint_type }}</span>
+              <strong style="color:#38bdf8; margin-left: 0.5rem;">{{ typ.count }}</strong>
+            </li>
+            {% else %}
+            <li style="color:#64748b; font-style: italic;">No issue data</li>
+            {% endfor %}
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Filter & Search Toolbar -->
   <form action="{{ url_for('admin_dashboard') }}" method="GET" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(6, 11, 24, 0.65); border: 1px solid rgba(56, 189, 248, 0.16); border-radius: 16px; padding: 1rem 1.25rem; backdrop-filter: blur(12px);">
@@ -85,7 +694,7 @@
           name="q"
           class="form-input"
           style="padding-left: 2.75rem;"
-          placeholder="Search student, college email, block, category, description, or #ID..."
+          placeholder="Search ticket ID (CMP-2026-0001), student, email, block, category..."
           value="{{ search_text or '' }}"
         >
       </div>
@@ -116,6 +725,14 @@
         </select>
       </div>
 
+      <!-- Escalated Toggle Pill -->
+      <div style="display: flex; align-items: center;">
+        <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; color: #f87171; font-weight: 600; background: rgba(239, 68, 68, 0.12); padding: 0.4rem 0.85rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+          <input type="checkbox" name="escalated" value="true" {% if escalated_only %}checked{% endif %} onchange="this.form.submit()">
+          <span>⚠ Escalated ({{ stats.escalated }})</span>
+        </label>
+      </div>
+
     </div>
 
     <!-- Filter Action Buttons -->
@@ -123,7 +740,7 @@
       <button type="submit" class="btn btn-primary btn-sm">
         Apply Filters
       </button>
-      {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+      {% if status_filter != 'All' or priority_filter != 'All' or search_text or escalated_only %}
         <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm" title="Clear all filters">
           Reset
         </a>
@@ -134,16 +751,16 @@
 
   <!-- Complaints Management Table -->
   <div class="cinematic-card">
-    <div class="card-header">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
       <div style="font-weight: 700; color: #ffffff; font-size: 1.05rem;">
         {% if complaints %}
-          Showing {{ complaints|length }} Campus Grievance Ticket{% if complaints|length > 1 %}s{% endif %}
+          Showing {{ complaints|length }} of {{ pagination.total }} Grievance Ticket{% if pagination.total > 1 %}s{% endif %}
         {% else %}
-          Campus Complaints List
+          Campus Complaints Registry
         {% endif %}
       </div>
       <div>
-        {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+        {% if status_filter != 'All' or priority_filter != 'All' or search_text or escalated_only %}
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Filtered Results</span>
         {% endif %}
       </div>
@@ -158,45 +775,48 @@
                 <th>Ticket ID</th>
                 <th>Student</th>
                 <th>Category</th>
-                <th>Block & Exact Location</th>
-                <th>Evidence Photo</th>
+                <th>Block & Location</th>
+                <th>Evidence</th>
                 <th>Priority</th>
-                <th>Date</th>
-                <th>Current Status</th>
+                <th>Date / Updated</th>
+                <th>Status</th>
                 <th>Quick Status Update</th>
                 <th style="text-align: right;">Review</th>
               </tr>
             </thead>
             <tbody>
               {% for item in complaints %}
-                <tr>
-                  <!-- Ticket ID -->
-                  <td style="font-weight: 700; font-family: monospace;">
+                <tr style="{% if item.is_escalated %}background: rgba(239, 68, 68, 0.05);{% endif %}">
+                  <!-- Ticket ID & Escalation Badge -->
+                  <td style="font-weight: 700; font-family: monospace; white-space: nowrap;">
                     <a href="{{ url_for('admin_complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
-                      #{{ "%03d"|format(item.complaint_id) }}
+                      {{ item.ticket_id if item.ticket_id else ('CMP-2026-%04d'|format(item.complaint_id)) }}
                     </a>
+                    {% if item.is_escalated %}
+                      <div style="margin-top: 0.25rem;">
+                        <span class="badge" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; font-size: 0.7rem; font-weight: 700;">
+                          ⚠ Escalated
+                        </span>
+                      </div>
+                    {% endif %}
                   </td>
 
                   <!-- Student Details -->
                   <td>
-                    <div style="font-weight: 600; color: #ffffff; font-size: 0.9rem;">
-                      {{ item.student_name }}
-                    </div>
-                    <div style="font-size: 0.775rem; color: #38bdf8;">
-                      {{ item.student_email }}
-                    </div>
+                    <div style="font-weight: 600; color: #ffffff;">{{ item.student_name }}</div>
+                    <div style="font-size: 0.775rem; color: #94a3b8;">{{ item.student_email }}</div>
                   </td>
 
                   <!-- Category -->
                   <td>
-                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">{{ item.category }}</span>
+                    <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1;">
+                      {{ item.category }}
+                    </span>
                   </td>
 
-                  <!-- Location -->
+                  <!-- Block & Exact Location -->
                   <td>
-                    <div style="font-weight: 600; color: #ffffff; font-size: 0.875rem;">
-                      {{ item.block or 'Campus' }}
-                    </div>
+                    <div style="font-weight: 600; color: #ffffff;">{{ item.block or 'Campus' }}</div>
                     <div style="font-size: 0.775rem; color: #94a3b8;">
                       {% if item.floor_no %}{{ item.floor_no }}{% endif %}
                       {% if item.room_no %}, Room {{ item.room_no }}{% endif %}
@@ -204,14 +824,14 @@
                     </div>
                   </td>
 
-                  <!-- Evidence Photo -->
+                  <!-- Evidence Photo / Document -->
                   <td>
                     {% if item.photo_path %}
                       <a href="/{{ item.photo_path }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
-                        <span>📸 View Photo</span>
+                        <span>📸 View File</span>
                       </a>
                     {% else %}
-                      <span style="color: #64748b; font-size: 0.8rem;">No Photo</span>
+                      <span style="color: #64748b; font-size: 0.8rem;">No File</span>
                     {% endif %}
                   </td>
 
@@ -226,8 +846,15 @@
                     {% endif %}
                   </td>
 
-                  <!-- Date -->
-                  <td style="color: #94a3b8; font-size: 0.825rem;">{{ item.date }}</td>
+                  <!-- Date & Last Updated -->
+                  <td>
+                    <div style="color: #cbd5e1; font-size: 0.825rem;">{{ item.date }}</div>
+                    {% if item.last_updated and item.last_updated != item.date %}
+                      <div style="font-size: 0.725rem; color: #38bdf8;" title="Last updated timestamp">
+                        🕒 {{ item.last_updated[:16] }}
+                      </div>
+                    {% endif %}
+                  </td>
 
                   <!-- Status Badge -->
                   <td>
@@ -236,9 +863,10 @@
                     </span>
                   </td>
 
-                  <!-- Quick Status Update Form (AJAX enabled) -->
+                  <!-- Quick Status Update Form (AJAX & CSRF enabled) -->
                   <td>
                     <form class="admin-status-form" data-complaint-id="{{ item.complaint_id }}" style="display: flex; align-items: center; gap: 0.4rem;">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                       <select class="form-select status-select" style="padding: 0.35rem 0.5rem; font-size: 0.825rem; width: auto;">
                         <option value="Pending" {% if item.status == 'Pending' %}selected{% endif %}>Pending</option>
                         <option value="In Progress" {% if item.status == 'In Progress' %}selected{% endif %}>In Progress</option>
@@ -250,9 +878,12 @@
                     </form>
                   </td>
 
-                  <!-- Full Review Action -->
-                  <td style="text-align: right;">
-                    <a href="{{ url_for('admin_complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                  <!-- Full Review & PDF Actions -->
+                  <td style="text-align: right; white-space: nowrap;">
+                    <a href="{{ url_for('admin_complaint_pdf', complaint_id=item.complaint_id) }}" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; margin-right: 0.35rem;" title="Download Official PDF Dossier">
+                      📄 PDF
+                    </a>
+                    <a href="{{ url_for('admin_complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
                       Inspect &rarr;
                     </a>
                   </td>
@@ -261,18 +892,57 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Pagination Controls -->
+        {% if pagination.total_pages > 1 %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; gap: 1rem;">
+            <div style="font-size: 0.875rem; color: #94a3b8;">
+              Page <strong style="color: #ffffff;">{{ pagination.page }}</strong> of <strong style="color: #ffffff;">{{ pagination.total_pages }}</strong> ({{ pagination.total }} total items)
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              {% if pagination.has_prev %}
+                <a href="{{ url_for('admin_dashboard', page=pagination.page - 1, status=status_filter, priority=priority_filter, q=search_text, escalated=escalated_only) }}" class="btn btn-secondary btn-sm">
+                  &larr; Previous
+                </a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.4;">&larr; Previous</button>
+              {% endif %}
+
+              <div style="display: flex; gap: 0.25rem;">
+                {% for p in range(1, pagination.total_pages + 1) %}
+                  {% if p == pagination.page %}
+                    <span class="btn btn-primary btn-sm" style="padding: 0.3rem 0.65rem; font-weight: 700;">{{ p }}</span>
+                  {% elif p <= 3 or p >= pagination.total_pages - 1 or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                    <a href="{{ url_for('admin_dashboard', page=p, status=status_filter, priority=priority_filter, q=search_text, escalated=escalated_only) }}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem;">
+                      {{ p }}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if pagination.has_next %}
+                <a href="{{ url_for('admin_dashboard', page=pagination.page + 1, status=status_filter, priority=priority_filter, q=search_text, escalated=escalated_only) }}" class="btn btn-secondary btn-sm">
+                  Next &rarr;
+                </a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.4;">Next &rarr;</button>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
       {% else %}
         <div style="text-align: center; padding: 3.5rem 1.5rem;">
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
           <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No matching complaints found</h3>
           <p style="color: #94a3b8; max-width: 440px; margin: 0 auto 1.5rem; font-size: 0.9rem;">
-            {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+            {% if status_filter != 'All' or priority_filter != 'All' or search_text or escalated_only %}
               No complaints match your active filter criteria. Try resetting filters to view all records.
             {% else %}
               There are currently no complaints in the system.
             {% endif %}
           </p>
-          {% if status_filter != 'All' or priority_filter != 'All' or search_text %}
+          {% if status_filter != 'All' or priority_filter != 'All' or search_text or escalated_only %}
             <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
               Clear All Filters
             </a>
@@ -283,8 +953,20 @@
   </div>
 
 </div>
+
+<!-- Embedded Analytics JSON for Chart.js Rendering -->
+<script id="analyticsData" type="application/json">
+  {{ analytics|tojson }}
+</script>
+<script id="heatmapData" type="application/json">
+  {{ heatmap_data|tojson }}
+</script>
+<script id="pulseData" type="application/json">
+  {{ pulse_data|tojson }}
+</script>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 {% endblock %}

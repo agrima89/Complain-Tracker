@@ -104,7 +104,7 @@
             <div class="auth-floating-stat stat-pos-1">
               <div class="auth-stat-icon stat-icon-green">✓</div>
               <div class="auth-stat-text">
-                <div class="stat-top-val">2,316</div>
+                <div class="stat-top-val">{{ stats.resolved_complaints if stats else 0 }}</div>
                 <div class="stat-sub-lbl">Issues Resolved</div>
               </div>
             </div>
@@ -113,7 +113,7 @@
             <div class="auth-floating-stat stat-pos-2">
               <div class="auth-stat-icon stat-icon-amber">⚡</div>
               <div class="auth-stat-text">
-                <div class="stat-top-val">18 Hours</div>
+                <div class="stat-top-val">{{ stats.average_response_display if stats else '--' }}</div>
                 <div class="stat-sub-lbl">Avg Response</div>
               </div>
             </div>
@@ -122,7 +122,7 @@
             <div class="auth-floating-stat stat-pos-3">
               <div class="auth-stat-icon stat-icon-blue">🛡️</div>
               <div class="auth-stat-text">
-                <div class="stat-top-val">93.4%</div>
+                <div class="stat-top-val">{{ stats.resolution_rate_display if stats else '0.0%' }}</div>
                 <div class="stat-sub-lbl">Resolution Rate</div>
               </div>
             </div>
@@ -209,6 +209,7 @@
 
         <!-- Login Form -->
         <form action="{{ url_for('student_login_view') }}" method="POST" id="studentLoginForm" autocomplete="on">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           
           <!-- Email Input -->
           <div class="auth-input-group">
@@ -222,8 +223,8 @@
                 id="email"
                 name="email"
                 class="auth-form-input"
-                placeholder="25LBCS3099@culkomail.in"
-                pattern="^[A-Za-z0-9]+@[cC][uU][lL][kK][oO][mM][aA][iI][lL]\.[iI][nN]$"
+                placeholder="e.g. studentID@culkomail.in"
+                pattern="[A-Za-z0-9]+@[cC][uU][lL][kK][oO][mM][aA][iI][lL]\.[iI][nN]"
                 title="Please use your official Chandigarh University email (@culkomail.in)"
                 value="{{ email or '' }}"
                 required

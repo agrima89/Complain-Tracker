@@ -39,8 +39,8 @@
       <div style="background: rgba(3, 7, 18, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px; padding: 1.75rem 2rem; max-width: 520px; margin: 0 auto 2.5rem; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
           <span style="color: #94a3b8; font-size: 0.9rem; font-weight: 500;">Ticket Reference ID</span>
-          <span style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.25rem; background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">
-            #{{ "%03d"|format(submitted_id) }}
+          <span style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.15rem; background: rgba(56, 189, 248, 0.12); padding: 0.25rem 0.75rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">
+            {{ ticket_id if ticket_id else ('CMP-2026-%04d'|format(submitted_id)) }}
           </span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
@@ -106,6 +106,7 @@
 
     <!-- 2. Main Form Formulating Guided Sections -->
     <form id="complaintForm" action="{{ url_for('submit_complaint_view') }}" method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       
       <!-- ====================================================================
            SECTION 01: WHAT IS THE ISSUE?
@@ -134,9 +135,7 @@
               -- Select Complaint Category --
             </option>
             {% for cat in categories %}
-              <option value="{{ cat }}" {% if form_data and form_data.get('category') == cat %}selected{% endif %}>
-                {{ cat }}
-              </option>
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
             {% endfor %}
           </select>
           <span class="form-hint">Choose the relevant facility or department domain (e.g. Electrical, Cleaning, Hostel, etc.).</span>
@@ -162,6 +161,127 @@
             <span class="form-hint">Please provide specific details regarding the problem and hazard level.</span>
             <span class="char-counter" id="descCharCount">0 / 1000</span>
           </div>
+
+          <!-- ✨ Smart Complaint Detection Live Panel -->
+          <div id="smartAssistPanel" class="smart-assist-panel" style="display: none; margin-top: 1.25rem;">
+            <div class="smart-assist-header">
+              <div class="smart-assist-tag">
+                <span class="smart-pulse-dot"></span>
+                <span>✨ SMART ASSIST ANALYSIS</span>
+              </div>
+              <span class="smart-confidence-pill" id="smartConfidencePill">⚡ High Confidence</span>
+            </div>
+
+            <div class="smart-assist-grid">
+              <div class="smart-pill-item">
+                <span class="smart-pill-label">Detected Category</span>
+                <span class="smart-pill-val" id="smartCatVal">📁 Electrical</span>
+              </div>
+              <div class="smart-pill-item">
+                <span class="smart-pill-label">Suggested Priority</span>
+                <span class="smart-pill-val" id="smartPrioVal">🔴 High Priority</span>
+              </div>
+              <div class="smart-pill-item">
+                <span class="smart-pill-label">Possible Location</span>
+                <span class="smart-pill-val" id="smartLocVal">🏢 Girls Hostel</span>
+              </div>
+            </div>
+
+            <div class="smart-reason-box">
+              <span class="smart-reason-label">Context Reason:</span>
+              <span class="smart-reason-text" id="smartReasonText">"Water leakage + safety risk detected"</span>
+            </div>
+
+            <div class="smart-assist-actions">
+              <button type="button" id="applySmartSuggestionsBtn" class="btn btn-primary btn-sm" style="box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35); font-weight: 600;">
+                <span>✓</span> Apply Suggestions
+              </button>
+              <span class="smart-assist-hint">You can change any suggestion at any time before submitting.</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           SECTION 02 (TRANSPORT): TRANSPORT DETAILS
+           ==================================================================== -->
+      <div class="guided-section-card" id="section-transport" style="display: none;">
+        <div class="section-header-wrap">
+          <div class="section-header-left">
+            <div class="section-badge-num">02</div>
+            <div>
+              <h2 class="section-title">TRANSPORT DETAILS</h2>
+              <p class="section-desc">Provide specific details about your transport issue.</p>
+            </div>
+          </div>
+          <span class="section-status-tag tag-mandatory">* REQUIRED</span>
+        </div>
+
+        <div class="form-grid-2col">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="transport_type" class="form-label-with-icon">
+              <span class="field-icon">🚌</span>
+              <span>Transport Type</span>
+              <span class="required-star">*</span>
+            </label>
+            <select id="transport_type" name="transport_type" class="form-select transport-input">
+              <option value="" disabled selected>-- Select Type --</option>
+              <option value="College Bus">College Bus</option>
+              <option value="Shuttle">Shuttle</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="bus_number" class="form-label-with-icon">
+              <span class="field-icon">🔢</span>
+              <span>Bus/Vehicle Number</span>
+              <span class="required-star">*</span>
+            </label>
+            <input type="text" id="bus_number" name="bus_number" class="form-control transport-input" placeholder="e.g. BUS-01">
+          </div>
+        </div>
+
+        <div class="form-grid-2col" style="margin-top: 1.5rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="route" class="form-label-with-icon">
+              <span class="field-icon">🗺️</span>
+              <span>Route</span>
+              <span class="required-star">*</span>
+            </label>
+            <input type="text" id="route" name="route" class="form-control transport-input" placeholder="Enter route name">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="pickup_drop_point" class="form-label-with-icon">
+              <span class="field-icon">📍</span>
+              <span>Pickup/Drop Point</span>
+              <span class="required-star">*</span>
+            </label>
+            <input type="text" id="pickup_drop_point" name="pickup_drop_point" class="form-control transport-input" placeholder="Enter exact stop">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.5rem; margin-bottom: 0;">
+          <label for="transport_complaint_type" class="form-label-with-icon">
+            <span class="field-icon">⚠️</span>
+            <span>Complaint Type</span>
+            <span class="required-star">*</span>
+          </label>
+          <select id="transport_complaint_type" name="transport_complaint_type" class="form-select transport-input">
+            <option value="" disabled selected>-- Select Issue --</option>
+            <option value="Bus Timing">Bus Timing</option>
+            <option value="Bus Not Arriving">Bus Not Arriving</option>
+            <option value="Route Issue">Route Issue</option>
+            <option value="Driver/Conductor Issue">Driver/Conductor Issue</option>
+            <option value="Overcrowding">Overcrowding</option>
+            <option value="Cleanliness">Cleanliness</option>
+            <option value="Bus Condition/Maintenance">Bus Condition/Maintenance</option>
+            <option value="AC/Heating Issue">AC/Heating Issue</option>
+            <option value="Safety Issue">Safety Issue</option>
+            <option value="Other">Other</option>
+          </select>
         </div>
       </div>
 
@@ -444,6 +564,34 @@
 
         </div>
 
+        <!-- ⚠️ Similar / Duplicate Complaint Warning Alert Panel -->
+        <div id="similarComplaintAlert" class="similar-complaint-alert" style="display: none; margin-top: 1.5rem;">
+          <div class="similar-alert-header">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <span class="similar-alert-icon">⚠️</span>
+              <div>
+                <h3 class="similar-alert-title">Similar Active Complaint Detected</h3>
+                <p class="similar-alert-subtitle" id="similarCountText">We found matching unresolved complaints recently filed in this location.</p>
+              </div>
+            </div>
+            <span class="badge badge-priority-medium" id="similarMatchBadge">● Similar Issue</span>
+          </div>
+
+          <!-- Similar Complaints Cards List Container -->
+          <div id="similarComplaintsList" class="similar-cards-container">
+            <!-- Dynamically populated by student.js -->
+          </div>
+
+          <div class="similar-alert-actions">
+            <button type="button" id="toggleSimilarDetailsBtn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span>🔍</span> <span id="toggleSimilarBtnText">View Similar Complaint</span>
+            </button>
+            <button type="button" id="submitAnywayBtn" class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #0284c7, #0369a1); font-weight: 600; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+              Submit Anyway &rarr;
+            </button>
+          </div>
+        </div>
+
         <!-- Submission Final Bar -->
         <div class="submission-final-bar">
           <div class="submission-note">
@@ -472,4 +620,34 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/student.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category');
+    const sectionLocation = document.getElementById('section-location');
+    const sectionTransport = document.getElementById('section-transport');
+    const blockInput = document.getElementById('block');
+    const transportInputs = document.querySelectorAll('.transport-input');
+
+    function toggleSections() {
+        if (categorySelect.value === 'Transport Complaint') {
+            sectionLocation.style.display = 'none';
+            sectionTransport.style.display = 'block';
+            blockInput.removeAttribute('required');
+            transportInputs.forEach(input => input.setAttribute('required', 'required'));
+        } else {
+            sectionLocation.style.display = 'block';
+            sectionTransport.style.display = 'none';
+            blockInput.setAttribute('required', 'required');
+            transportInputs.forEach(input => input.removeAttribute('required'));
+        }
+    }
+
+    categorySelect.addEventListener('change', toggleSections);
+    
+    // Initial call in case category is pre-selected
+    if (categorySelect.value) {
+        toggleSections();
+    }
+});
+</script>
 {% endblock %}

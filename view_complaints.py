@@ -118,6 +118,7 @@ def load_complaints(scroll_frame, student_id, status_filter):
 
     for item in complaints:
         cid = item["complaint_id"]
+        ticket_id = item["ticket_id"] if "ticket_id" in item.keys() and item["ticket_id"] else f"#{cid:03d}"
         category = item["category"]
         description = item["description"]
         photo_path = item["photo_path"]
@@ -154,7 +155,7 @@ def load_complaints(scroll_frame, student_id, status_filter):
 
         tk.Label(
             left_hdr,
-            text=f"Ticket #{cid:03d}",
+            text=f"Ticket {ticket_id}",
             font=("Segoe UI", 12, "bold"),
             fg="#1E3A8A",
             bg="#FFFFFF"
@@ -277,7 +278,7 @@ def load_complaints(scroll_frame, student_id, status_filter):
                 cursor="hand2",
                 command=lambda p=photo_path, c=cid: open_photo_viewer(top_window, p, c)
             )
-            view_photo_btn.pack(side="left")
+            view_photo_btn.pack(side="left", padx=(0, 8))
         else:
             tk.Label(
                 evidence_row,
@@ -285,7 +286,46 @@ def load_complaints(scroll_frame, student_id, status_filter):
                 font=("Segoe UI", 9, "italic"),
                 fg="#94A3B8",
                 bg="#FFFFFF"
-            ).pack(side="left")
+            ).pack(side="left", padx=(0, 8))
+
+        def export_pdf(c_id=cid):
+            from tkinter import filedialog
+            import pdf_generator
+            complaint_data = database.get_complaint_by_id(c_id)
+            if not complaint_data:
+                messagebox.showerror("Error", "Complaint not found.")
+                return
+            history_data = database.get_complaint_history(c_id)
+            default_name = pdf_generator.get_pdf_filename(complaint_data["complaint_id"], complaint_data["student_name"])
+            save_path = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF Documents", "*.pdf")],
+                initialfile=default_name
+            )
+            if save_path:
+                try:
+                    with open(save_path, "wb") as f:
+                        pdf_generator.generate_complaint_pdf(complaint_data, history_data, f)
+                    messagebox.showinfo("Success", f"Complaint PDF saved successfully:\n{os.path.basename(save_path)}")
+                except Exception as e:
+                    messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")
+
+        pdf_btn = tk.Button(
+            evidence_row,
+            text="📄 Export PDF",
+            font=("Segoe UI", 9, "bold"),
+            bg="#2563EB",
+            fg="#FFFFFF",
+            activebackground="#1D4ED8",
+            activeforeground="#FFFFFF",
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=3,
+            cursor="hand2",
+            command=export_pdf
+        )
+        pdf_btn.pack(side="right")
 
 
 def view_complaints(student_id):

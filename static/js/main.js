@@ -490,9 +490,7 @@ function initJourneyTimelineAnimation() {
   observer.observe(timeline);
 }
 
-/* --------------------------------------------------------------------------
-   9. LIVE STATISTICS COUNT-UP NUMBERS (INTERSECTION OBSERVER)
-   -------------------------------------------------------------------------- */
+/* ---------------- 9. LIVE STATISTICS COUNT-UP NUMBERS (INTERSECTION OBSERVER & AJAX) ---------------- */
 function initCountUpStats() {
   const statSection = document.getElementById('statsSection');
   if (!statSection) return;
@@ -500,11 +498,20 @@ function initCountUpStats() {
   const counters = statSection.querySelectorAll('.metric-counter');
 
   function animateCounter(el) {
-    const target = parseFloat(el.dataset.target || 0);
+    const rawTarget = el.dataset.target;
+    const customDisplay = el.dataset.display;
+
+    // If custom non-numeric display (e.g., '--')
+    if (customDisplay === '--' || rawTarget === '' || rawTarget === undefined || isNaN(parseFloat(rawTarget))) {
+      el.textContent = customDisplay || '--';
+      return;
+    }
+
+    const target = parseFloat(rawTarget);
     const decimals = parseInt(el.dataset.decimals || 0, 10);
     const prefix = el.dataset.prefix || '';
     const suffix = el.dataset.suffix || '';
-    const duration = 1800; // ms
+    const duration = 1600; // ms
     const startTime = performance.now();
 
     function updateValue(now) {
@@ -522,22 +529,79 @@ function initCountUpStats() {
 
       if (progress < 1) {
         requestAnimationFrame(updateValue);
+      } else if (customDisplay && customDisplay !== '--' && customDisplay !== `${prefix}${Math.floor(current).toLocaleString()}${suffix}`) {
+        // If there is an explicit formatted string like "18h 32m"
+        el.textContent = customDisplay;
       }
     }
 
     requestAnimationFrame(updateValue);
   }
 
+  let animated = false;
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting) {
+      if (entry.isIntersecting && !animated) {
+        animated = true;
         counters.forEach((counter) => animateCounter(counter));
-        observer.unobserve(statSection);
       }
     });
-  }, { threshold: 0.25 });
+  }, { threshold: 0.2 });
 
   observer.observe(statSection);
+
+  // Live AJAX statistics polling & update function
+  async function fetchLiveStats() {
+    try {
+      const response = await fetch('/api/public-stats');
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data && data.success && data.stats) {
+        updateStatsUI(data.stats);
+      }
+    } catch (e) {
+      // Graceful fallback: server-rendered values remain intact
+    }
+  }
+
+  function updateStatsUI(stats) {
+    const elSubmitted = document.getElementById('statComplaintsSubmitted');
+    const elResolved = document.getElementById('statIssuesResolved');
+    const elRate = document.getElementById('statResolutionRate');
+    const elAvg = document.getElementById('statAverageResponse');
+    const heroResolved = document.getElementById('heroResolvedCount');
+    const heroAvg = document.getElementById('heroAvgResponseVal');
+
+    if (elSubmitted) {
+      elSubmitted.dataset.target = stats.total_complaints;
+      elSubmitted.textContent = stats.total_complaints.toLocaleString();
+    }
+    if (elResolved) {
+      elResolved.dataset.target = stats.resolved_complaints;
+      elResolved.textContent = stats.resolved_complaints.toLocaleString();
+    }
+    if (elRate) {
+      elRate.dataset.target = stats.resolution_rate;
+      elRate.textContent = stats.resolution_rate_display;
+    }
+    if (elAvg) {
+      elAvg.dataset.target = stats.average_response_hours !== null && stats.average_response_hours !== undefined ? stats.average_response_hours : '';
+      elAvg.dataset.display = stats.average_response_display;
+      elAvg.textContent = stats.average_response_display;
+    }
+
+    if (heroResolved) {
+      heroResolved.textContent = `${stats.resolved_complaints} Complaints Resolved`;
+    }
+    if (heroAvg) {
+      heroAvg.textContent = stats.average_response_display;
+    }
+  }
+
+  window.refreshPublicStats = fetchLiveStats;
+
+  // Poll for live statistics every 30 seconds
+  setInterval(fetchLiveStats, 30000);
 }
 
 /* --------------------------------------------------------------------------
@@ -642,7 +706,121 @@ function initNotificationDropdown() {
         menu.style.display = 'none';
       }
     });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && menu.style.display === 'block') {
+        menu.style.display = 'none';
+      }
+    });
   });
 }
+
+/* --------------------------------------------------------------------------
+   13. REDESIGNED STUDENT NAVBAR & COMPLAINTS DROPDOWN
+   -------------------------------------------------------------------------- */
+function initMobileNav() {
+  initStudentNavbar();
+}
+
+function initStudentNavbar() {
+  // 1. Complaints Dropdown
+  const dropdownWrapper = document.getElementById('complaintsDropdownWrapper');
+  const dropdownBtn = document.getElementById('complaintsDropdownBtn');
+  const dropdownMenu = document.getElementById('complaintsDropdown');
+
+  if (dropdownWrapper && dropdownBtn && dropdownMenu) {
+    function toggleDropdown(show) {
+      const isOpen = show !== undefined ? show : !dropdownWrapper.classList.contains('is-open');
+      dropdownWrapper.classList.toggle('is-open', isOpen);
+      dropdownBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+
+    dropdownBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleDropdown();
+    });
+
+    // Keyboard navigation
+    dropdownBtn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        toggleDropdown(true);
+        const firstLink = dropdownMenu.querySelector('a');
+        if (firstLink) firstLink.focus();
+      } else if (e.key === 'Escape') {
+        toggleDropdown(false);
+      }
+    });
+
+    dropdownMenu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleDropdown(false);
+        dropdownBtn.focus();
+      }
+    });
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (!dropdownWrapper.contains(e.target)) {
+        toggleDropdown(false);
+      }
+    });
+  }
+
+  // 2. Mobile Drawer Navigation
+  const mobileToggle = document.getElementById('mobileNavToggle');
+  const mobileDrawer = document.getElementById('mobileNavDrawer');
+  const toggleIcon = document.getElementById('mobileNavToggleIcon');
+
+  if (mobileToggle && mobileDrawer) {
+    function toggleDrawer(show) {
+      const isOpen = show !== undefined ? show : !mobileDrawer.classList.contains('is-open');
+      mobileDrawer.classList.toggle('is-open', isOpen);
+      mobileToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      mobileDrawer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      if (toggleIcon) {
+        toggleIcon.textContent = isOpen ? '✕' : '☰';
+      }
+    }
+
+    mobileToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleDrawer();
+    });
+
+    // Close drawer when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileDrawer.contains(e.target) && e.target !== mobileToggle && !mobileToggle.contains(e.target)) {
+        toggleDrawer(false);
+      }
+    });
+
+    // Close on link clicks
+    const drawerLinks = mobileDrawer.querySelectorAll('a');
+    drawerLinks.forEach((link) => {
+      link.addEventListener('click', () => {
+        toggleDrawer(false);
+      });
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && mobileDrawer.classList.contains('is-open')) {
+        toggleDrawer(false);
+        mobileToggle.focus();
+      }
+    });
+
+    // Auto close on desktop resize
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 960 && mobileDrawer.classList.contains('is-open')) {
+        toggleDrawer(false);
+      }
+    });
+  }
+}
+
 
 

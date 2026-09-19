@@ -1,30 +1,31 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Review: Ticket #{{ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
+{% block title %}Admin Review: {{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
 
 {% block content %}
-<div class="container" style="max-width: 960px;">
+<div class="container" style="max-width: 980px;">
 
   <!-- Live Time & Greeting -->
   <div class="floating-time-display" style="margin-bottom: 1.5rem;">
     <span class="time-headline-text">
       <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
-      <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+      <span id="worldLiveTimeText">CAMPUS COMMAND</span>
     </span>
-    <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+    <span class="time-signature-message" id="worldSignatureGreeting">"Precision grievance tracking & resolution management."</span>
   </div>
 
   <!-- Breadcrumb Navigation -->
   <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
+    <a href="{{ url_for('landing') }}" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
     <a href="{{ url_for('admin_dashboard') }}" style="color: #38bdf8; text-decoration: none;">Admin Dashboard</a> &nbsp;/&nbsp; 
-    <span style="color: #ffffff; font-weight: 600;">Inspect Ticket #{{ "%03d"|format(complaint.complaint_id) }}</span>
+    <span style="color: #ffffff; font-weight: 600;">Inspect {{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</span>
   </div>
 
   <!-- Page Header -->
   <div class="page-header" style="margin-bottom: 1.5rem;">
     <div class="page-header-title">
       <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <h1 style="font-family: monospace; letter-spacing: -0.02em;">Ticket #{{ "%03d"|format(complaint.complaint_id) }}</h1>
+        <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</h1>
         
         <!-- Status Badge -->
         {% if complaint.status == 'Pending' %}
@@ -43,13 +44,28 @@
         {% else %}
           <span class="badge badge-priority-low">● Low Priority</span>
         {% endif %}
+
+        <!-- Escalation Badge -->
+        {% if is_escalated %}
+          <span class="badge" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171; font-weight: 700;">
+            ⚠️ Escalated (> 48h Overdue)
+          </span>
+        {% endif %}
       </div>
-      <p class="page-header-subtitle">Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> ({{ complaint.student_email }}) on {{ complaint.date }}</p>
+      <p class="page-header-subtitle">
+        Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> ({{ complaint.student_email }}) on {{ complaint.date }}
+        {% if complaint.last_updated and complaint.last_updated != complaint.date %}
+          &bull; <span style="color: #94a3b8;">Last updated: {{ complaint.last_updated }}</span>
+        {% endif %}
+      </p>
     </div>
 
-    <div>
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('admin_complaint_pdf', complaint_id=complaint.complaint_id) }}" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Official PDF Dossier">
+        <span>📄</span> Generate PDF
+      </a>
       <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary btn-sm">
-        ← Back to Management Dashboard
+        ← Back to Dashboard
       </a>
     </div>
   </div>
@@ -64,12 +80,13 @@
     </div>
 
     <div class="card-body">
-      <form action="{{ url_for('api_update_status') }}" method="POST" style="display: flex; align-items: flex-end; gap: 1.25rem; flex-wrap: wrap;">
+      <form action="{{ url_for('api_update_status') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; align-items: flex-end;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="complaint_id" value="{{ complaint.complaint_id }}">
 
-        <div style="flex: 1; min-width: 240px;">
+        <div>
           <label for="statusSelect" class="form-label" style="margin-bottom: 0.35rem;">
-            Update Current Lifecycle Status:
+            Update Lifecycle Status:
           </label>
           <select id="statusSelect" name="status" class="form-select">
             <option value="Pending" {% if complaint.status == 'Pending' %}selected{% endif %}>Pending</option>
@@ -78,9 +95,24 @@
           </select>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-lg">
-          Save Status Update
-        </button>
+        <div>
+          <label for="statusRemarks" class="form-label" style="margin-bottom: 0.35rem;">
+            Audit Trail Note / Action Log:
+          </label>
+          <input
+            type="text"
+            id="statusRemarks"
+            name="remarks"
+            class="form-input"
+            placeholder="e.g. Electrician dispatched, parts ordered..."
+          >
+        </div>
+
+        <div>
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+            Save Status & Log Action
+          </button>
+        </div>
       </form>
     </div>
   </div>
@@ -105,6 +137,28 @@
           <div style="font-size: 0.8rem; color: #38bdf8;">{{ complaint.student_email }}</div>
         </div>
 
+        {% if complaint.category == 'Transport Complaint' %}
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Transport Type</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;">
+            🚌 {{ complaint.transport_type or 'N/A' }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Bus/Vehicle No & Route</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            🔢 {{ complaint.bus_number or 'N/A' }} ({{ complaint.route or 'N/A' }})
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Pickup/Drop Point</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            📍 {{ complaint.pickup_drop_point or 'N/A' }}
+          </div>
+        </div>
+        {% else %}
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Campus Block</div>
           <div style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;">
@@ -125,6 +179,7 @@
             🧭 {{ complaint.corridor_side or 'N/A' }}
           </div>
         </div>
+        {% endif %}
 
       </div>
 
@@ -160,7 +215,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.6rem; font-size: 0.825rem;">
               <span style="color: #4ade80;">✓ Evidence Attached</span>
               <a href="/{{ complaint.photo_path }}" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.25rem 0.65rem; font-size: 0.8rem;">
-                🔍 View Evidence Photo ↗
+                🔍 View Full File ↗
               </a>
             </div>
           </div>
@@ -171,6 +226,93 @@
         {% endif %}
       </div>
 
+    </div>
+  </div>
+
+  <!-- Status Lifecycle History Audit Trail -->
+  <div class="cinematic-card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <h2 class="card-title">📜 Lifecycle Audit Trail & Status History</h2>
+      <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Audit Log</span>
+    </div>
+
+    <div class="card-body">
+      {% if history %}
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          {% for h in history %}
+            <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span style="font-weight: 600; color: #94a3b8; font-size: 0.85rem;">{{ h.old_status or 'Created' }}</span>
+                  <span style="color: #38bdf8;">&rarr;</span>
+                  <span class="badge {% if h.new_status == 'Resolved' %}badge-resolved{% elif h.new_status == 'In Progress' %}badge-progress{% else %}badge-pending{% endif %}" style="font-size: 0.75rem;">
+                    {{ h.new_status }}
+                  </span>
+                  <span style="font-size: 0.8rem; color: #cbd5e1; margin-left: 0.5rem;">by <strong>{{ h.changed_by }}</strong></span>
+                </div>
+                {% if h.remarks %}
+                  <div style="font-size: 0.875rem; color: #e2e8f0; margin-top: 0.25rem; font-style: italic;">
+                    "{{ h.remarks }}"
+                  </div>
+                {% endif %}
+              </div>
+              <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
+                🕒 {{ h.timestamp }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">No status changes recorded yet for this ticket.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Internal Admin Notes (Staff Only) -->
+  <div class="cinematic-card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+      <h2 class="card-title">🔒 Internal Admin Remarks (Staff Only)</h2>
+      <span class="badge" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: #facc15;">Confidential</span>
+    </div>
+
+    <div class="card-body">
+      <!-- Add Note Form -->
+      <form action="{{ url_for('admin_add_note_view', complaint_id=complaint.complaint_id) }}" method="POST" style="margin-bottom: 1.5rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="margin-bottom: 0.75rem;">
+          <textarea
+            name="note"
+            rows="3"
+            class="form-input"
+            placeholder="Add an internal note or communication for other administrators (visible only to admins)..."
+            required
+          ></textarea>
+        </div>
+        <div style="text-align: right;">
+          <button type="submit" class="btn btn-secondary btn-sm">
+            ➕ Add Internal Remark
+          </button>
+        </div>
+      </form>
+
+      <!-- Notes Timeline -->
+      {% if notes %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for n in notes %}
+            <div style="background: rgba(3, 7, 18, 0.5); border-left: 3px solid #facc15; border-radius: 0 8px 8px 0; padding: 0.85rem 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; font-size: 0.8rem;">
+                <span style="font-weight: 700; color: #facc15;">🛡️ {{ n.admin_name }}</span>
+                <span style="color: #64748b;">{{ n.timestamp }}</span>
+              </div>
+              <div style="font-size: 0.9rem; color: #e2e8f0; white-space: pre-wrap;">{{ n.note }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="color: #64748b; font-size: 0.85rem; font-style: italic;">
+          No internal admin notes added yet.
+        </div>
+      {% endif %}
     </div>
   </div>
 

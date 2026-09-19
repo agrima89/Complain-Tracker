@@ -3,7 +3,7 @@
 {% block title %}Student Dashboard - CampusCare{% endblock %}
 
 {% block content %}
-<div style="width: 100%;">
+<div class="container" style="max-width: 1260px;">
 
   <!-- Live Time & Signature Greeting -->
   <div class="floating-time-display" style="margin-bottom: 1.5rem;">
@@ -28,34 +28,37 @@
       </p>
     </div>
 
-    <div>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{{ url_for('landing') }}" class="btn btn-secondary" style="padding: 0.65rem 1.15rem; font-size: 0.95rem;">
+        <span>🌐</span> Campus Home
+      </a>
       <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35); padding: 0.65rem 1.25rem; font-size: 0.95rem;">
         <span>📝</span> Report an Issue
       </a>
     </div>
   </div>
 
-  <!-- 1. COMPACT SAAS STATISTICS GRID -->
-  <div class="stats-grid">
+    <!-- 1. COMPACT SAAS STATISTICS GRID -->
+  <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
     
     <!-- Total Logged -->
     <div class="stat-card">
       <div class="stat-header">
-        <span class="stat-label">TOTAL LOGGED</span>
+        <span class="stat-label">TOTAL</span>
         <div class="stat-icon">📊</div>
       </div>
       <div class="stat-value">{{ stats.total }}</div>
-      <div class="stat-subtext">Total Complaints</div>
+      <div class="stat-subtext">Complaints</div>
     </div>
 
     <!-- Pending Review -->
     <div class="stat-card stat-pending">
       <div class="stat-header">
-        <span class="stat-label" style="color: #fbbf24;">PENDING REVIEW</span>
+        <span class="stat-label" style="color: #fbbf24;">OPEN</span>
         <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
       </div>
       <div class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
-      <div class="stat-subtext">Awaiting Review</div>
+      <div class="stat-subtext">New/Forwarded</div>
     </div>
 
     <!-- In Progress -->
@@ -65,7 +68,27 @@
         <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
       </div>
       <div class="stat-value" style="color: #38bdf8;">{{ stats.in_progress }}</div>
-      <div class="stat-subtext">Under Action</div>
+      <div class="stat-subtext">Working</div>
+    </div>
+    
+    <!-- Awaiting Confirmation -->
+    <div class="stat-card" style="border-top-color: #a855f7; background: linear-gradient(180deg, rgba(168, 85, 247, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #c084fc;">CONFIRM</span>
+        <div class="stat-icon" style="color: #c084fc; background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.3);">⚠️</div>
+      </div>
+      <div class="stat-value" style="color: #c084fc;">{{ stats.awaiting }}</div>
+      <div class="stat-subtext">Needs Action</div>
+    </div>
+
+    <!-- Regenerated -->
+    <div class="stat-card" style="border-top-color: #f43f5e; background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #fb7185;">REGENERATED</span>
+        <div class="stat-icon" style="color: #fb7185; background: rgba(244, 63, 94, 0.12); border-color: rgba(244, 63, 94, 0.3);">🔄</div>
+      </div>
+      <div class="stat-value" style="color: #fb7185;">{{ stats.regenerated }}</div>
+      <div class="stat-subtext">Sent Back</div>
     </div>
 
     <!-- Resolved -->
@@ -75,7 +98,7 @@
         <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3);">✓</div>
       </div>
       <div class="stat-value" style="color: #4ade80;">{{ stats.resolved }}</div>
-      <div class="stat-subtext">Completed & Closed</div>
+      <div class="stat-subtext">Closed</div>
     </div>
 
   </div>
@@ -155,7 +178,7 @@
                 <tr>
                   <td style="font-weight: 700; font-family: monospace;">
                     <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
-                      #{{ "%03d"|format(item.complaint_id) }}
+                      {{ item.ticket_id or '#' ~ "%03d"|format(item.complaint_id) }}
                     </a>
                   </td>
                   <td>

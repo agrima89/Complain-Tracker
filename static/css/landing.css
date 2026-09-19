@@ -5,8 +5,12 @@
    ========================================================================== */
 
 /* Flush main container */
-.main-content--flush {
+.main-content--flush,
+.main-content:has(.landing-page-master),
+body:has(.landing-page-master) .main-content {
   padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
   overflow-x: hidden;
 }
 

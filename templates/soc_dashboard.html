@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}SOC Audit Logs - CampusCare{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px;">
+  <div class="page-header" style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div>
+        <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+          <span class="tag-cyan-dot" style="background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
+          <span style="color: #ef4444;">SECURITY OPERATIONS CENTER</span>
+        </div>
+        <h1>SOC Audit Logs</h1>
+        <p class="page-header-subtitle">System-wide security monitoring and compliance tracking.</p>
+      </div>
+      <div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card">
+      <div class="stat-header">
+        <span class="stat-label">TOTAL LOGS</span>
+        <div class="stat-icon">📝</div>
+      </div>
+      <div class="stat-value">{{ total }}</div>
+    </div>
+    <div class="stat-card stat-pending" style="border-top-color: #f97316;">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #f97316;">FAILED LOGINS</span>
+        <div class="stat-icon" style="color: #f97316; background: rgba(249, 115, 22, 0.1);">⚠️</div>
+      </div>
+      <div class="stat-value" style="color: #f97316;">{{ failed_logins }}</div>
+    </div>
+    <div class="stat-card stat-progress" style="border-top-color: #ef4444;">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #ef4444;">UNAUTHORIZED ACCESS</span>
+        <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.1);">🚫</div>
+      </div>
+      <div class="stat-value" style="color: #ef4444;">{{ unauthorized }}</div>
+    </div>
+    <div class="stat-card stat-resolved" style="border-top-color: #b91c1c;">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #b91c1c;">HIGH SEVERITY</span>
+        <div class="stat-icon" style="color: #b91c1c; background: rgba(185, 28, 28, 0.1);">🚨</div>
+      </div>
+      <div class="stat-value" style="color: #b91c1c;">{{ high_severity }}</div>
+    </div>
+  </div>
+
+  <div class="cinematic-card">
+    <div class="card-header" style="padding: 1rem 1.5rem;">
+      <h2 style="font-size: 1.1rem; font-weight: 700;">Recent Security Events (Last 100)</h2>
+    </div>
+    <div class="card-body" style="padding: 0;">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event Type</th>
+              <th>User Email</th>
+              <th>Department</th>
+              <th>Severity</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td style="font-family: monospace; font-size: 0.85rem; color: #94a3b8;">{{ log.timestamp }}</td>
+              <td>
+                <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; font-size: 0.78rem;">
+                  {{ log.event_type }}
+                </span>
+              </td>
+              <td style="color: #cbd5e1;">{{ log.user_email }}</td>
+              <td style="color: #cbd5e1;">{{ log.department or '-' }}</td>
+              <td>
+                {% if log.severity == 'HIGH' %}
+                  <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">🚨 HIGH</span>
+                {% elif log.severity == 'MEDIUM' %}
+                  <span class="badge" style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3);">⚠️ MEDIUM</span>
+                {% else %}
+                  <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3);">LOW</span>
+                {% endif %}
+              </td>
+              <td style="color: #94a3b8; font-size: 0.85rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ log.details }}">
+                {{ log.details }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">No security events recorded.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

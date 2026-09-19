@@ -64,6 +64,7 @@
 
     <!-- Admin Form -->
     <form action="{{ url_for('admin_login_view') }}" method="POST" autocomplete="on">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       
       <!-- Username -->
       <div class="auth-input-group">

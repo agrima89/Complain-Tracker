@@ -24,8 +24,11 @@
       <h1>My Complaints & Grievance History</h1>
       <p class="page-header-subtitle">View, search, and track all grievance tickets and photo evidence you have submitted.</p>
     </div>
-    <div class="page-header-actions">
-      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);">
+    <div class="page-header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{{ url_for('landing') }}" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem;">
+        <span>🌐</span> Campus Home
+      </a>
+      <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem;">
         <span>📝</span> Submit New Issue
       </a>
     </div>
@@ -43,7 +46,7 @@
           name="q"
           class="form-input"
           style="padding-left: 2.75rem;"
-          placeholder="Search by category, keyword, block, room..."
+          placeholder="Search by ticket ID (CMP-2026-0001), category, keyword, block, room..."
           value="{{ search_query or '' }}"
         >
       </div>
@@ -80,7 +83,7 @@
     <div class="card-header">
       <div style="font-weight: 600; color: #ffffff;">
         {% if complaints %}
-          Showing {{ complaints|length }} complaint ticket{% if complaints|length > 1 %}s{% endif %}
+          Showing {{ complaints|length }} of {{ pagination.total_items if pagination else complaints|length }} grievance ticket{% if (pagination.total_items if pagination else complaints|length) != 1 %}s{% endif %}
         {% else %}
           Grievance Tickets
         {% endif %}
@@ -102,9 +105,9 @@
                 <th>Category</th>
                 <th>Description Preview</th>
                 <th>Block & Exact Location</th>
-                <th>Evidence Photo</th>
+                <th>Evidence</th>
                 <th>Priority</th>
-                <th>Date Lodged</th>
+                <th>Date / Updated</th>
                 <th>Status</th>
                 <th style="text-align: right;">Action</th>
               </tr>
@@ -114,7 +117,7 @@
                 <tr>
                   <td style="font-weight: 700; font-family: monospace;">
                     <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
-                      #{{ "%03d"|format(item.complaint_id) }}
+                      {{ item.ticket_id or '#' ~ "%03d"|format(item.complaint_id) }}
                     </a>
                   </td>
                   <td>
@@ -140,10 +143,10 @@
                   <td>
                     {% if item.photo_path %}
                       <a href="/{{ item.photo_path }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
-                        <span>📸 View Photo</span>
+                        <span>📸 View File</span>
                       </a>
                     {% else %}
-                      <span style="color: #64748b; font-size: 0.8rem;">No Photo</span>
+                      <span style="color: #64748b; font-size: 0.8rem;">No Evidence</span>
                     {% endif %}
                   </td>
                   <td>
@@ -155,7 +158,12 @@
                       <span class="badge badge-priority-low">● Low</span>
                     {% endif %}
                   </td>
-                  <td style="color: #94a3b8; font-size: 0.85rem;">{{ item.date }}</td>
+                  <td>
+                    <div style="color: #cbd5e1; font-size: 0.825rem;">{{ item.date }}</div>
+                    {% if item.last_updated and item.last_updated != item.date %}
+                      <div style="color: #64748b; font-size: 0.725rem;">Upd: {{ item.last_updated }}</div>
+                    {% endif %}
+                  </td>
                   <td>
                     {% if item.status == 'Pending' %}
                       <span class="badge badge-pending">⏳ Pending</span>
@@ -167,8 +175,11 @@
                       <span class="badge">{{ item.status }}</span>
                     {% endif %}
                   </td>
-                  <td style="text-align: right;">
-                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm">
+                  <td style="text-align: right; white-space: nowrap;">
+                    <a href="{{ url_for('student_complaint_pdf', complaint_id=item.complaint_id) }}" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; margin-right: 0.35rem;" title="Download Official PDF Report">
+                      📄 PDF
+                    </a>
+                    <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
                       Details &rarr;
                     </a>
                   </td>
@@ -177,6 +188,46 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Server-side Pagination Controls -->
+        {% if pagination and pagination.total_pages > 1 %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12); flex-wrap: wrap; gap: 1rem;">
+            <div style="font-size: 0.85rem; color: #94a3b8;">
+              Page <strong style="color: #ffffff;">{{ pagination.page }}</strong> of <strong style="color: #ffffff;">{{ pagination.total_pages }}</strong> ({{ pagination.total_items }} tickets total)
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              {% if pagination.has_prev %}
+                <a href="{{ url_for('my_complaints_view', page=pagination.page - 1, status=status_filter, q=search_query) }}" class="btn btn-secondary btn-sm">
+                  &larr; Previous
+                </a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.4;">&larr; Previous</button>
+              {% endif %}
+
+              <div style="display: flex; gap: 0.25rem;">
+                {% for p in range(1, pagination.total_pages + 1) %}
+                  {% if p == pagination.page %}
+                    <span class="btn btn-primary btn-sm" style="padding: 0.3rem 0.65rem; font-weight: 700;">{{ p }}</span>
+                  {% elif p <= 3 or p >= pagination.total_pages - 1 or (p >= pagination.page - 1 and p <= pagination.page + 1) %}
+                    <a href="{{ url_for('my_complaints_view', page=p, status=status_filter, q=search_query) }}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem;">
+                      {{ p }}
+                    </a>
+                  {% endif %}
+                {% endfor %}
+              </div>
+
+              {% if pagination.has_next %}
+                <a href="{{ url_for('my_complaints_view', page=pagination.page + 1, status=status_filter, q=search_query) }}" class="btn btn-secondary btn-sm">
+                  Next &rarr;
+                </a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.4;">Next &rarr;</button>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
       {% else %}
         <div style="text-align: center; padding: 3.5rem 1.5rem;">
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>

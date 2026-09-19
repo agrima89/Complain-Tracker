@@ -395,6 +395,46 @@ def load_complaints(
         update_button.pack(side="left")
         add_hover_effect(update_button, "#2563EB", "#1D4ED8")
 
+        def export_admin_pdf(c_id=complaint_id):
+            from tkinter import filedialog
+            import pdf_generator
+            complaint_data = database.get_complaint_by_id(c_id)
+            if not complaint_data:
+                messagebox.showerror("Error", "Complaint not found.")
+                return
+            history_data = database.get_complaint_history(c_id)
+            default_name = pdf_generator.get_pdf_filename(complaint_data["complaint_id"], complaint_data["student_name"])
+            save_path = filedialog.asksaveasfilename(
+                defaultextension=".pdf",
+                filetypes=[("PDF Documents", "*.pdf")],
+                initialfile=default_name
+            )
+            if save_path:
+                try:
+                    with open(save_path, "wb") as f:
+                        pdf_generator.generate_complaint_pdf(complaint_data, history_data, f)
+                    messagebox.showinfo("Success", f"Complaint PDF saved successfully:\n{os.path.basename(save_path)}")
+                except Exception as e:
+                    messagebox.showerror("Export Error", f"Failed to generate PDF:\n{e}")
+
+        pdf_export_btn = tk.Button(
+            footer_row,
+            text="📄 Generate PDF",
+            font=("Segoe UI", 9, "bold"),
+            bg="#0284C7",
+            fg="#FFFFFF",
+            activebackground="#0369A1",
+            activeforeground="#FFFFFF",
+            relief="flat",
+            bd=0,
+            padx=10,
+            pady=4,
+            cursor="hand2",
+            command=export_admin_pdf
+        )
+        pdf_export_btn.pack(side="right")
+        add_hover_effect(pdf_export_btn, "#0284C7", "#0369A1")
+
 
 def open_admin_dashboard():
     global total_label
@@ -622,8 +662,57 @@ def open_admin_dashboard():
         cursor="hand2",
         command=reset_filters
     )
-    reset_btn.pack(side="left")
+    reset_btn.pack(side="left", padx=(0, 8))
     add_hover_effect(reset_btn, "#64748B", "#475569")
+
+    def export_summary_pdf():
+        from tkinter import filedialog
+        import pdf_generator
+        stats_data = database.get_admin_statistics()
+        analytics_data = database.get_analytics_data()
+        complaints_data = database.get_all_complaints_for_report(
+            status_filter=status_filter.get(),
+            priority_filter=priority_filter.get(),
+            search_text=search_entry.get().strip()
+        )
+        default_name = pdf_generator.get_summary_pdf_filename()
+        save_path = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF Documents", "*.pdf")],
+            initialfile=default_name
+        )
+        if save_path:
+            try:
+                with open(save_path, "wb") as f:
+                    pdf_generator.generate_admin_summary_pdf(
+                        stats=stats_data,
+                        category_stats=analytics_data["by_category"],
+                        priority_stats=analytics_data["by_priority"],
+                        complaints_list=complaints_data,
+                        admin_name="Administrator",
+                        output_stream=f
+                    )
+                messagebox.showinfo("Success", f"Complaint Summary Report saved successfully:\n{os.path.basename(save_path)}")
+            except Exception as e:
+                messagebox.showerror("Export Error", f"Failed to generate Summary PDF:\n{e}")
+
+    report_pdf_btn = tk.Button(
+        btn_frame,
+        text="📄 Generate Report PDF",
+        font=("Segoe UI", 9, "bold"),
+        bg="#059669",
+        fg="#FFFFFF",
+        activebackground="#047857",
+        activeforeground="#FFFFFF",
+        relief="flat",
+        bd=0,
+        padx=12,
+        pady=5,
+        cursor="hand2",
+        command=export_summary_pdf
+    )
+    report_pdf_btn.pack(side="left")
+    add_hover_effect(report_pdf_btn, "#059669", "#047857")
 
     search_entry.bind("<Return>", lambda e: trigger_search())
 

@@ -47,10 +47,10 @@
 
   /**
    * Centralized function to evaluate the campus time category based on local browser time:
-   * 🌅 MORNING:   5:00 AM – 11:59 AM (hours 5 to 11)
-   * ☀️ AFTERNOON: 12:00 PM – 4:59 PM  (hours 12 to 16)
-   * 🌇 EVENING:   5:00 PM – 7:59 PM  (hours 17 to 19)
-   * 🌙 NIGHT:     8:00 PM – 4:59 AM  (hours 20 to 23, 0 to 4)
+   * 🌅 MORNING:   4:00 AM – 9:59 AM  (hours 4 to 9)
+   * ☀️ AFTERNOON: 10:00 AM – 4:59 PM (hours 10 to 16)
+   * 🌇 EVENING:   5:00 PM – 6:59 PM  (hours 17 to 18)
+   * 🌙 NIGHT:     7:00 PM – 3:59 AM  (hours 19 to 23, 0 to 3)
    * @param {Date} [dateObj]
    * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
    */
@@ -58,11 +58,11 @@
     const now = dateObj || new Date();
     const hour = now.getHours(); // 0 - 23 in user's local timezone
 
-    if (hour >= 5 && hour < 12) {
+    if (hour >= 4 && hour < 10) {
       return 'morning';
-    } else if (hour >= 12 && hour < 17) {
+    } else if (hour >= 10 && hour < 17) {
       return 'afternoon';
-    } else if (hour >= 17 && hour < 20) {
+    } else if (hour >= 17 && hour < 19) {
       return 'evening';
     } else {
       return 'night';
@@ -124,9 +124,9 @@
   function initWorldTimeEngine() {
     updateEnvironmentLoop();
 
-    // Check every 30 seconds smoothly without page refresh
+    // Check every 60 seconds smoothly without page refresh
     if (clockTimer) clearInterval(clockTimer);
-    clockTimer = setInterval(updateEnvironmentLoop, 30000);
+    clockTimer = setInterval(updateEnvironmentLoop, 60000);
   }
 
   /* --------------------------------------------------------------------------

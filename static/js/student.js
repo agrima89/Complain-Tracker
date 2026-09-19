@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPriorityChipSelector();
   initDescriptionCharCounter();
   initProgressIndicatorTracker();
+  initSmartComplaintAssist();
+  initSimilarComplaintDetection();
 });
 
 /**
@@ -416,6 +418,315 @@ function initLocationParamAutoSelect() {
       blockSelect.dispatchEvent(new Event('change', { bubbles: true }));
       break;
     }
+  }
+}
+
+/**
+ * 1. Smart Complaint Detection - Real-time client-side assist
+ */
+function initSmartComplaintAssist() {
+  const descTextarea = document.getElementById('description');
+  const panel = document.getElementById('smartAssistPanel');
+  const catVal = document.getElementById('smartCatVal');
+  const prioVal = document.getElementById('smartPrioVal');
+  const locVal = document.getElementById('smartLocVal');
+  const reasonText = document.getElementById('smartReasonText');
+  const confidencePill = document.getElementById('smartConfidencePill');
+  const applyBtn = document.getElementById('applySmartSuggestionsBtn');
+
+  if (!descTextarea || !panel) return;
+
+  let debounceTimer = null;
+  let latestAnalysis = null;
+
+  const categoryIcons = {
+    'Electrical': '⚡ Electrical',
+    'Cleaning': '🚰 Cleaning / Water',
+    'Hostel': '🏢 Hostel',
+    'Wi-Fi/Internet': '💻 Wi-Fi / Internet',
+    'Classroom': '🏫 Classroom',
+    'Library': '📚 Library',
+    'Infrastructure': '🏗️ Infrastructure',
+    'Other': '📁 Other'
+  };
+
+  descTextarea.addEventListener('input', () => {
+    const text = descTextarea.value.trim();
+    clearTimeout(debounceTimer);
+
+    if (text.length < 8) {
+      panel.style.display = 'none';
+      latestAnalysis = null;
+      return;
+    }
+
+    debounceTimer = setTimeout(async () => {
+      try {
+        const response = await fetch('/api/smart-detect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: JSON.stringify({ text: text })
+        });
+
+        if (!response.ok) return;
+        const data = await response.json();
+
+        if (data.success) {
+          latestAnalysis = data;
+
+          // Category display
+          if (catVal) {
+            catVal.textContent = categoryIcons[data.category] || `📁 ${data.category}`;
+          }
+
+          // Priority display
+          if (prioVal) {
+            const prioColors = {
+              'High': '<span style="color: #f87171;">🔴 High Priority</span>',
+              'Medium': '<span style="color: #fbbf24;">🟡 Medium Priority</span>',
+              'Low': '<span style="color: #38bdf8;">🟢 Low Priority</span>'
+            };
+            prioVal.innerHTML = prioColors[data.priority] || data.priority;
+          }
+
+          // Location display
+          if (locVal) {
+            locVal.textContent = data.location_label ? `🏢 ${data.location_label}` : (data.location_block ? `📍 ${data.location_block}` : '🏢 Campus Premises');
+          }
+
+          // Reason display
+          if (reasonText) {
+            reasonText.textContent = `"${data.reason}"`;
+          }
+
+          // Confidence display
+          if (confidencePill) {
+            const pct = Math.round(data.confidence * 100);
+            confidencePill.textContent = `⚡ ${pct}% Confidence`;
+          }
+
+          panel.style.display = 'block';
+          panel.classList.add('animate-pop-in');
+        }
+      } catch (err) {
+        console.warn('Smart assist detection note:', err);
+      }
+    }, 280);
+  });
+
+  // Apply Suggestions click handler
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      if (!latestAnalysis) return;
+
+      let appliedCount = 0;
+
+      // 1. Auto-select Category
+      const catSelect = document.getElementById('category');
+      if (catSelect && latestAnalysis.category) {
+        for (let i = 0; i < catSelect.options.length; i++) {
+          if (catSelect.options[i].value === latestAnalysis.category) {
+            catSelect.selectedIndex = i;
+            catSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            catSelect.classList.add('highlight-assist-pulse');
+            setTimeout(() => catSelect.classList.remove('highlight-assist-pulse'), 1500);
+            appliedCount++;
+            break;
+          }
+        }
+      }
+
+      // 2. Auto-select Priority
+      if (latestAnalysis.priority) {
+        const targetRadio = document.querySelector(`input[name="priority"][value="${latestAnalysis.priority}"]`);
+        if (targetRadio) {
+          targetRadio.checked = true;
+          document.querySelectorAll('.priority-card-btn').forEach((card) => card.classList.remove('is-selected'));
+          const parentCard = targetRadio.closest('.priority-card-btn');
+          if (parentCard) {
+            parentCard.classList.add('is-selected');
+            parentCard.classList.add('highlight-assist-pulse');
+            setTimeout(() => parentCard.classList.remove('highlight-assist-pulse'), 1500);
+          }
+          appliedCount++;
+        }
+      }
+
+      // 3. Auto-select Location / Block
+      const blockSelect = document.getElementById('block');
+      if (blockSelect && latestAnalysis.location_block) {
+        for (let i = 0; i < blockSelect.options.length; i++) {
+          if (blockSelect.options[i].value.toLowerCase() === latestAnalysis.location_block.toLowerCase()) {
+            blockSelect.selectedIndex = i;
+            blockSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            blockSelect.classList.add('highlight-assist-pulse');
+            setTimeout(() => blockSelect.classList.remove('highlight-assist-pulse'), 1500);
+            appliedCount++;
+            break;
+          }
+        }
+      }
+
+      // Visual feedback
+      const originalText = applyBtn.innerHTML;
+      applyBtn.innerHTML = '<span>✓</span> Suggestions Applied!';
+      applyBtn.style.background = 'linear-gradient(135deg, #059669, #047857)';
+      setTimeout(() => {
+        applyBtn.innerHTML = originalText;
+        applyBtn.style.background = '';
+      }, 2000);
+
+      if (window.showToast) {
+        window.showToast('info', 'Smart Assist Applied', `Auto-populated Category (${latestAnalysis.category}), Priority (${latestAnalysis.priority})${latestAnalysis.location_block ? ` & Location (${latestAnalysis.location_block})` : ''}.`);
+      }
+    });
+  }
+}
+
+/**
+ * 2. Similar / Duplicate Complaint Detection - Pre-submission check
+ */
+function initSimilarComplaintDetection() {
+  const form = document.querySelector('#complaintForm');
+  const alertPanel = document.getElementById('similarComplaintAlert');
+  const cardsList = document.getElementById('similarComplaintsList');
+  const countText = document.getElementById('similarCountText');
+  const matchBadge = document.getElementById('similarMatchBadge');
+  const toggleBtn = document.getElementById('toggleSimilarDetailsBtn');
+  const toggleBtnText = document.getElementById('toggleSimilarBtnText');
+  const submitAnywayBtn = document.getElementById('submitAnywayBtn');
+
+  if (!form || !alertPanel) return;
+
+  let allowSubmitAnyway = false;
+
+  // Intercept Form Submit to check similarity
+  form.addEventListener('submit', async (e) => {
+    if (allowSubmitAnyway) {
+      return; // Proceed with submission
+    }
+
+    const descTextarea = form.querySelector('#description');
+    const catSelect = form.querySelector('#category');
+    const blockSelect = form.querySelector('#block');
+
+    if (!descTextarea || descTextarea.value.trim().length < 8) return;
+
+    // Check if photo is provided first (standard validation)
+    const fileInput = form.querySelector('#photoInput');
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      return; // Let standard validation flag photo
+    }
+
+    e.preventDefault();
+
+    try {
+      const response = await fetch('/api/check-similar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+          description: descTextarea.value.trim(),
+          category: catSelect ? catSelect.value : '',
+          block: blockSelect ? blockSelect.value : ''
+        })
+      });
+
+      if (!response.ok) {
+        allowSubmitAnyway = true;
+        form.requestSubmit();
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.found && data.similar && data.similar.length > 0) {
+        // Render Similar Complaints Cards
+        renderSimilarComplaints(data.similar);
+        
+        if (countText) {
+          countText.textContent = `We found ${data.count} similar unresolved complaint${data.count > 1 ? 's' : ''} recently reported in this area.`;
+        }
+
+        if (matchBadge) {
+          matchBadge.textContent = `${data.similar[0].similarity}% Keyword Similarity`;
+        }
+
+        alertPanel.style.display = 'block';
+        alertPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alertPanel.classList.add('animate-shake-attention');
+        setTimeout(() => alertPanel.classList.remove('animate-shake-attention'), 800);
+      } else {
+        // No duplicate found -> Submit seamlessly
+        allowSubmitAnyway = true;
+        form.requestSubmit();
+      }
+    } catch (err) {
+      console.warn('Similarity check bypassed due to network note:', err);
+      allowSubmitAnyway = true;
+      form.requestSubmit();
+    }
+  });
+
+  // "Submit Anyway" button click
+  if (submitAnywayBtn) {
+    submitAnywayBtn.addEventListener('click', () => {
+      allowSubmitAnyway = true;
+      form.requestSubmit();
+    });
+  }
+
+  // Toggle details button
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (cardsList) {
+        const isCollapsed = cardsList.classList.contains('is-collapsed');
+        if (isCollapsed) {
+          cardsList.classList.remove('is-collapsed');
+          if (toggleBtnText) toggleBtnText.textContent = 'Collapse Similar Issues';
+        } else {
+          cardsList.classList.add('is-collapsed');
+          if (toggleBtnText) toggleBtnText.textContent = 'View Similar Complaints';
+        }
+      }
+    });
+  }
+
+  function renderSimilarComplaints(complaints) {
+    if (!cardsList) return;
+    cardsList.innerHTML = '';
+
+    complaints.forEach((c) => {
+      const card = document.createElement('div');
+      card.className = 'similar-item-card';
+
+      const prioColor = c.priority === 'High' ? '#f87171' : (c.priority === 'Medium' ? '#fbbf24' : '#38bdf8');
+      const statusColor = c.status === 'In Progress' ? '#38bdf8' : '#fbbf24';
+
+      card.innerHTML = `
+        <div class="similar-item-header">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span class="similar-item-ticket">${c.ticket_id}</span>
+            <span class="badge" style="background: rgba(15, 23, 42, 0.6); color: #cbd5e1; font-size: 0.75rem;">${c.category}</span>
+            <span style="color: #94a3b8; font-size: 0.8rem;">📍 ${c.location}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.4rem;">
+            <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: ${statusColor}; border: 1px solid rgba(245, 158, 11, 0.3); font-size: 0.725rem;">
+              ● ${c.status}
+            </span>
+            <span style="font-size: 0.75rem; color: #94a3b8;">📅 ${c.date_note || c.date}</span>
+          </div>
+        </div>
+        <p class="similar-item-snippet">"${c.snippet}"</p>
+      `;
+
+      cardsList.appendChild(card);
+    });
   }
 }
 

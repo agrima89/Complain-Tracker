@@ -31,286 +31,374 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/campus-world.css') }}">
 
+  <!-- CSRF Security Token Meta -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
   {% block extra_css %}{% endblock %}
 </head>
 <body>
 
-  {% if session.get('student_id') %}
-    <!-- ==========================================================================
-         STUDENT PORTAL: PROFESSIONAL LEFT SIDEBAR & MODERN TOP HEADER LAYOUT
-         ========================================================================== -->
-    <div class="student-app-layout">
+  <!-- ==========================================================================
+       PREMIUM GLASSMORPHIC SINGLE-LINE NAVBAR
+       ========================================================================== -->
+  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
+    <div class="container navbar-inner">
 
-      <!-- Mobile Sidebar Backdrop Overlay -->
-      <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-      <!-- 1. FIXED VERTICAL LEFT SIDEBAR -->
-      <aside class="student-sidebar" id="studentSidebar">
-        
-        <!-- Sidebar Top: CampusCare Branding -->
-        <div>
-          <a href="{{ url_for('student_dashboard') }}" class="sidebar-brand-wrapper">
-            <div class="sidebar-brand-icon">🏫</div>
-            <div class="sidebar-brand-text">
-              <span class="sidebar-brand-title">CampusCare</span>
-              <span class="sidebar-brand-subtitle">Student Grievance Portal</span>
-            </div>
-          </a>
-
-          <!-- Navigation Items Vertically -->
-          <nav class="sidebar-nav-container">
-            <div class="sidebar-nav-heading">Main Navigation</div>
-
-            <!-- Dashboard -->
-            <a href="{{ url_for('student_dashboard') }}" class="sidebar-nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
-              <span class="nav-icon">🏠</span>
-              <span>Dashboard</span>
-            </a>
-
-            <!-- Submit Complaint -->
-            <a href="{{ url_for('submit_complaint_view') }}" class="sidebar-nav-link {% if request.endpoint == 'submit_complaint_view' %}active{% endif %}">
-              <span class="nav-icon">📝</span>
-              <span>Submit Complaint</span>
-            </a>
-
-            <!-- My Complaints -->
-            <a href="{{ url_for('my_complaints_view') }}" class="sidebar-nav-link {% if request.endpoint in ['my_complaints_view', 'complaint_detail_view'] %}active{% endif %}">
-              <span class="nav-icon">📋</span>
-              <span>My Complaints</span>
-            </a>
-
-            <!-- Profile -->
-            <a href="{{ url_for('profile_view') }}" class="sidebar-nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
-              <span class="nav-icon">👤</span>
-              <span>Profile</span>
-            </a>
-          </nav>
+      <!-- LEFT SIDE: Compact CampusCare Branding -->
+      <a href="{{ url_for('landing') }}" class="navbar-brand" title="CampusCare - Student Grievance Portal">
+        <div class="brand-icon">
+          <span>🎓</span>
         </div>
-
-        <!-- Sidebar Bottom: Logout Button -->
-        <div class="sidebar-footer">
-          <a href="{{ url_for('logout') }}" class="sidebar-logout-btn" title="Sign out of student account">
-            <span>🚪</span>
-            <span>Sign Out</span>
-          </a>
+        <div class="brand-text">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-tag">Student Grievance Portal</span>
         </div>
+      </a>
 
-      </aside>
+      <!-- CENTER: Clean Modern Navigation Items (Single Line) -->
+      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation">
+        <ul class="navbar-nav">
+          {% if session.get('student_id') %}
+            <!-- Student Navigation -->
+            <li class="nav-item">
+              <a href="{{ url_for('landing') }}" class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}" title="Public Campus Home">
+                <span class="nav-link-icon">⌂</span>
+                <span class="nav-link-text">Home</span>
+              </a>
+            </li>
 
-      <!-- 2. MAIN CONTENT WRAPPER BESIDE SIDEBAR -->
-      <div class="student-main-wrapper">
-        
-        <!-- Compact Top Header -->
-        <header class="student-top-header">
-          <div class="header-left-group">
-            <button type="button" class="sidebar-mobile-toggle" id="sidebarMobileToggle" aria-label="Toggle Navigation Sidebar">
-              ☰
-            </button>
-            <div class="header-live-indicator">
-              <span class="header-live-dot"></span>
-              <span>Grievance Network Active</span>
-            </div>
-          </div>
+            <li class="nav-item">
+              <a href="{{ url_for('student_dashboard') }}" class="nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}" title="Student Dashboard">
+                <span class="nav-link-icon">▣</span>
+                <span class="nav-link-text">Dashboard</span>
+              </a>
+            </li>
 
-          <div class="header-actions-group">
-            <!-- Notification Bell Icon with Dropdown Trigger -->
-            <div style="position: relative;">
-              <button type="button" class="header-icon-btn" id="notificationBellBtn" aria-label="Notifications" title="Recent grievance alerts">
-                <span>🔔</span>
-                <span class="notification-badge-dot"></span>
+            <!-- Complaints Dropdown -->
+            <li class="nav-item nav-dropdown-wrapper" id="complaintsDropdownWrapper">
+              <button
+                type="button"
+                class="nav-link nav-dropdown-toggle {% if request.endpoint in ['submit_complaint_view', 'my_complaints_view', 'complaint_detail_view'] %}active{% endif %}"
+                id="complaintsDropdownBtn"
+                aria-haspopup="true"
+                aria-expanded="false"
+                title="Complaints Management"
+              >
+                <span class="nav-link-icon">✎</span>
+                <span class="nav-link-text">Complaints</span>
+                <span class="dropdown-caret">▾</span>
               </button>
-              
-              <!-- Mini Notification Dropdown -->
-              <div id="notificationDropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 10px); width: 280px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 150;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: 700; color: #ffffff;">
-                  <span>🔔 Notifications</span>
-                  <span style="color: #38bdf8; font-size: 0.75rem;">Live</span>
+
+              <div class="nav-glass-dropdown" id="complaintsDropdown" role="menu" aria-labelledby="complaintsDropdownBtn">
+                <a href="{{ url_for('submit_complaint_view') }}" class="nav-dropdown-item {% if request.endpoint == 'submit_complaint_view' %}active{% endif %}" role="menuitem">
+                  <span class="dropdown-item-icon">📝</span>
+                  <span class="dropdown-item-text">Submit Complaint</span>
+                </a>
+                <a href="{{ url_for('my_complaints_view') }}" class="nav-dropdown-item {% if request.endpoint in ['my_complaints_view', 'complaint_detail_view'] %}active{% endif %}" role="menuitem">
+                  <span class="dropdown-item-icon">📋</span>
+                  <span class="dropdown-item-text">My Complaints</span>
+                </a>
+              </div>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('profile_view') }}" class="nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}" title="My Profile">
+                <span class="nav-link-icon">◉</span>
+                <span class="nav-link-text">Profile</span>
+              </a>
+            </li>
+
+          {% elif session.get('admin_id') %}
+            <!-- Admin Navigation -->
+            <li class="nav-item">
+              <a href="{{ url_for('landing') }}" class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}" title="Public Campus Home">
+                <span class="nav-link-icon">⌂</span>
+                <span class="nav-link-text">Home</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint in ['admin_dashboard', 'admin_complaint_detail_view'] %}active{% endif %}" title="Management Dashboard">
+                <span class="nav-link-icon">📊</span>
+                <span class="nav-link-text">Dashboard</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('profile_view') }}" class="nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}" title="Admin Profile">
+                <span class="nav-link-icon">🛡️</span>
+                <span class="nav-link-text">Profile</span>
+              </a>
+            </li>
+
+          {% else %}
+            <!-- Public Visitor Navigation -->
+            <li class="nav-item">
+              <a href="{{ url_for('landing') }}" class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
+                <span class="nav-link-icon">⌂</span>
+                <span class="nav-link-text">Home</span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('student_login_view') }}" class="nav-link {% if request.endpoint == 'student_login_view' %}active{% endif %}">
+                Student Login
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('student_register_view') }}" class="nav-link {% if request.endpoint == 'student_register_view' %}active{% endif %}">
+                Register
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('admin_login_view') }}" class="nav-link {% if request.endpoint == 'admin_login_view' %}active{% endif %}">
+                Admin Portal
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+
+      <!-- RIGHT SIDE: Compact Icons, Profile Pill & Logout -->
+      <div class="navbar-actions">
+        
+        <!-- 1. Notification Bell -->
+        <div class="navbar-notif-wrapper" style="position: relative;">
+          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
+            <span class="notif-btn-icon">🔔</span>
+            <span class="notification-badge-dot"></span>
+          </button>
+          
+          <!-- Mini Notification Dropdown -->
+          <div id="publicNotificationDropdown" class="glass-notification-dropdown" style="display: none;">
+            <div class="notif-dropdown-head">
+              <span>🔔 Live Campus Updates</span>
+              <span class="notif-live-tag">● Live</span>
+            </div>
+            <div class="notif-dropdown-body">
+              <div class="notif-item">
+                <span class="notif-dot"></span>
+                <div class="notif-content">
+                  <p class="notif-title">Central Library Wi-Fi Ticket #CC-1042</p>
+                  <p class="notif-time">Technician Dispatched • 10m ago</p>
                 </div>
-                <div style="font-size: 0.8rem; color: #cbd5e1; padding: 0.5rem 0; border-top: 1px solid rgba(255,255,255,0.08);">
-                  Grievance resolution desk is currently reviewing campus tickets.
+              </div>
+              <div class="notif-item">
+                <span class="notif-dot notif-dot--success"></span>
+                <div class="notif-content">
+                  <p class="notif-title">Hostel Block C Water Supply</p>
+                  <p class="notif-time">Resolved & Verified • 1h ago</p>
                 </div>
               </div>
             </div>
-
-            <!-- Theme Toggle -->
-            <button type="button" id="themeToggle" class="theme-toggle-btn" aria-label="Toggle dark mode" title="Toggle Theme">
-              <span class="theme-toggle-icon" id="themeToggleIcon">🌙</span>
-            </button>
-
-            <!-- Student Profile Badge -->
-            <a href="{{ url_for('profile_view') }}" class="header-profile-pill" title="View Account Profile">
-              <div class="header-profile-avatar">👤</div>
-              <span class="header-profile-name">{{ session.get('student_name', 'Student') }}</span>
-              <span class="header-role-tag">STUDENT</span>
-            </a>
           </div>
-        </header>
+        </div>
 
-        <!-- Main Page Content Slot -->
-        <main class="student-dashboard-body">
-          {% block content %}{% endblock %}
-        </main>
+        <!-- 2. Compact Theme Toggle -->
+        <button type="button" id="themeToggle" class="theme-toggle-btn navbar-theme-pill" aria-label="Toggle dark mode" title="Switch Theme">
+          <span class="theme-toggle-icon" id="themeToggleIcon">🌙</span>
+        </button>
 
-        <!-- Compact Clean Footer -->
-        <footer style="padding: 1.25rem 2rem; border-top: 1px solid rgba(255, 255, 255, 0.06); font-size: 0.8rem; color: #64748b; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-top: auto;">
-          <div>&copy; 2026 CampusCare &bull; Student Grievance Redressal System</div>
-          <div>Official College Support Network</div>
-        </footer>
+        {% if session.get('student_id') %}
+          <!-- 3. Compact Student Profile Pill -->
+          <a href="{{ url_for('profile_view') }}" class="nav-student-profile-pill" title="View Student Profile">
+            <div class="nav-profile-avatar">👤</div>
+            <div class="nav-profile-meta">
+              <span class="nav-profile-name">{{ session.get('student_name', 'Student') }}</span>
+              <span class="nav-profile-badge">STUDENT</span>
+            </div>
+          </a>
 
+          <!-- 4. Compact Subtle Logout Link -->
+          <a href="{{ url_for('logout') }}" class="nav-logout-btn" title="Sign out of student account">
+            <span class="logout-icon">🚪</span>
+            <span class="logout-text">Logout</span>
+          </a>
+
+        {% elif session.get('admin_id') %}
+          <!-- Admin Profile Pill -->
+          <a href="{{ url_for('profile_view') }}" class="nav-student-profile-pill nav-admin-profile-pill" title="View Admin Profile">
+            <div class="nav-profile-avatar">🛡️</div>
+            <div class="nav-profile-meta">
+              <span class="nav-profile-name">{{ session.get('admin_username', 'Admin') }}</span>
+              <span class="nav-profile-badge nav-admin-badge">ADMIN</span>
+            </div>
+          </a>
+
+          <a href="{{ url_for('logout') }}" class="nav-logout-btn" title="Sign out of admin account">
+            <span class="logout-icon">🚪</span>
+            <span class="logout-text">Logout</span>
+          </a>
+
+        {% else %}
+          <!-- Public Sign In Pill -->
+          <a href="{{ url_for('student_login_view') }}" class="btn-navbar-signin">
+            Sign In
+          </a>
+        {% endif %}
+
+        <!-- Mobile Hamburger Toggle -->
+        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span id="mobileNavToggleIcon">☰</span>
+        </button>
       </div>
 
     </div>
 
-  {% else %}
-    <!-- ==========================================================================
-         PUBLIC & ADMIN PORTAL: FLOATING GLASS CAPSULE NAVBAR
-         ========================================================================== -->
-    <header class="app-navbar floating-glass-navbar" id="appNavbar">
-      <div class="container navbar-inner">
-        <!-- Brand Logo -->
-        <a href="{{ url_for('landing') if not session.get('admin_id') else url_for('admin_dashboard') }}" class="navbar-brand">
-          <div class="brand-icon">
-            <span>🎓</span>
-          </div>
-          <div class="brand-text">
-            <span class="brand-name">CampusCare</span>
-            <span class="brand-tag">Student Grievance Portal</span>
-          </div>
-        </a>
-
-        <!-- Main Navigation Links -->
-        <nav class="navbar-nav-wrapper" id="navbarMenu">
-          <ul class="navbar-nav">
-            {% if session.get('admin_id') %}
-              <li>
-                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint in ['admin_dashboard', 'admin_complaint_detail_view'] %}active{% endif %}">
-                  <span>📊</span> Management Dashboard
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('profile_view') }}" class="nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
-                  <span>🛡️</span> Admin Profile
-                </a>
-              </li>
-            {% else %}
-              <li>
-                <a href="{{ url_for('landing') }}" class="nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
-                  Home
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('student_login_view') }}" class="nav-link {% if request.endpoint == 'student_login_view' %}active{% endif %}">
-                  Student Login
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('student_register_view') }}" class="nav-link {% if request.endpoint == 'student_register_view' %}active{% endif %}">
-                  Register
-                </a>
-              </li>
-              <li>
-                <a href="{{ url_for('admin_login_view') }}" class="nav-link {% if request.endpoint == 'admin_login_view' %}active{% endif %}">
-                  Admin Portal
-                </a>
-              </li>
-            {% endif %}
-          </ul>
-        </nav>
-
-        <!-- Navbar Actions: Notification, Theme Toggle & Sign In -->
-        <div class="navbar-actions">
-          <!-- Notification Bell Trigger -->
-          <div class="navbar-notif-wrapper" style="position: relative;">
-            <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
-              <span>🔔</span>
-              <span class="notification-badge-dot"></span>
-            </button>
-            
-            <!-- Mini Notification Dropdown -->
-            <div id="publicNotificationDropdown" class="glass-notification-dropdown" style="display: none;">
-              <div class="notif-dropdown-head">
-                <span>🔔 Live Campus Updates</span>
-                <span class="notif-live-tag">● Live</span>
+    <!-- Mobile Navigation Drawer -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+      <div class="mobile-nav-drawer-inner">
+        <ul class="mobile-nav-list">
+          {% if session.get('student_id') %}
+            <li>
+              <a href="{{ url_for('landing') }}" class="mobile-nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
+                <span class="mobile-nav-icon">⌂</span>
+                <span>Home</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('student_dashboard') }}" class="mobile-nav-link {% if request.endpoint == 'student_dashboard' %}active{% endif %}">
+                <span class="mobile-nav-icon">▣</span>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li class="mobile-nav-group">
+              <div class="mobile-group-header">
+                <span class="mobile-nav-icon">✎</span>
+                <span>Complaints</span>
               </div>
-              <div class="notif-dropdown-body">
-                <div class="notif-item">
-                  <span class="notif-dot"></span>
-                  <div class="notif-content">
-                    <p class="notif-title">Central Library Wi-Fi Ticket #CC-1042</p>
-                    <p class="notif-time">Technician Dispatched • 10m ago</p>
-                  </div>
-                </div>
-                <div class="notif-item">
-                  <span class="notif-dot notif-dot--success"></span>
-                  <div class="notif-content">
-                    <p class="notif-title">Hostel Block C Water Supply</p>
-                    <p class="notif-time">Resolved & Verified • 1h ago</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Theme Toggle -->
-          <button type="button" id="themeToggle" class="theme-toggle-btn navbar-theme-pill" aria-label="Toggle dark mode" title="Switch Theme">
-            <span class="theme-toggle-icon" id="themeToggleIcon">🌙</span>
-          </button>
-
-          {% if session.get('admin_id') %}
-            <div class="user-badge">
-              <span>{{ session.get('admin_username', 'Admin') }}</span>
-              <span class="role-tag">Administrator</span>
-            </div>
-            <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm" title="Sign out">
-              🚪 Logout
-            </a>
+              <ul class="mobile-sub-list">
+                <li>
+                  <a href="{{ url_for('submit_complaint_view') }}" class="mobile-sub-link {% if request.endpoint == 'submit_complaint_view' %}active{% endif %}">
+                    <span>📝</span> Submit Complaint
+                  </a>
+                </li>
+                <li>
+                  <a href="{{ url_for('my_complaints_view') }}" class="mobile-sub-link {% if request.endpoint in ['my_complaints_view', 'complaint_detail_view'] %}active{% endif %}">
+                    <span>📋</span> My Complaints
+                  </a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="{{ url_for('profile_view') }}" class="mobile-nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
+                <span class="mobile-nav-icon">◉</span>
+                <span>Profile ({{ session.get('student_name', 'Student') }})</span>
+              </a>
+            </li>
+            <li class="mobile-nav-divider"></li>
+            <li>
+              <a href="{{ url_for('logout') }}" class="mobile-nav-link mobile-logout-link">
+                <span class="mobile-nav-icon">🚪</span>
+                <span>Logout</span>
+              </a>
+            </li>
+          {% elif session.get('admin_id') %}
+            <li>
+              <a href="{{ url_for('landing') }}" class="mobile-nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
+                <span class="mobile-nav-icon">⌂</span>
+                <span>Home</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link {% if request.endpoint in ['admin_dashboard', 'admin_complaint_detail_view'] %}active{% endif %}">
+                <span class="mobile-nav-icon">📊</span>
+                <span>Admin Dashboard</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('profile_view') }}" class="mobile-nav-link {% if request.endpoint == 'profile_view' %}active{% endif %}">
+                <span class="mobile-nav-icon">🛡️</span>
+                <span>Admin Profile</span>
+              </a>
+            </li>
+            <li class="mobile-nav-divider"></li>
+            <li>
+              <a href="{{ url_for('logout') }}" class="mobile-nav-link mobile-logout-link">
+                <span class="mobile-nav-icon">🚪</span>
+                <span>Logout</span>
+              </a>
+            </li>
           {% else %}
-            <a href="{{ url_for('student_login_view') }}" class="btn-navbar-signin">
-              Sign In
-            </a>
+            <li>
+              <a href="{{ url_for('landing') }}" class="mobile-nav-link {% if request.endpoint == 'landing' %}active{% endif %}">
+                <span class="mobile-nav-icon">⌂</span>
+                <span>Home</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('student_login_view') }}" class="mobile-nav-link">
+                <span class="mobile-nav-icon">👤</span>
+                <span>Student Login</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('student_register_view') }}" class="mobile-nav-link">
+                <span class="mobile-nav-icon">📝</span>
+                <span>Register</span>
+              </a>
+            </li>
+            <li>
+              <a href="{{ url_for('admin_login_view') }}" class="mobile-nav-link">
+                <span class="mobile-nav-icon">🛡️</span>
+                <span>Admin Portal</span>
+              </a>
+            </li>
           {% endif %}
-
-          <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation">
-            ☰
-          </button>
-        </div>
+        </ul>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main class="main-content">
-      {{ self.content() }}
-    </main>
+  <!-- Main Content Body -->
+  <main class="main-content {% block main_class %}{% endblock %}">
+    {{ self.content() }}
+  </main>
 
-    <footer class="app-footer campus-footer">
-      <div class="container">
-        <div class="footer-top">
-          <div class="footer-brand-section">
-            <a href="{{ url_for('landing') }}" class="footer-brand-logo">
-              <span class="brand-icon-sm">🏫</span>
-              <div class="brand-text">
-                <span class="brand-name">CampusCare</span>
-                <span class="brand-tag">Student Grievance Portal</span>
-              </div>
-            </a>
-            <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
-          </div>
-          <div class="footer-links-section">
-            <ul class="footer-links">
+  <!-- Universal CampusCare Footer -->
+  <footer class="app-footer campus-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-section">
+          <a href="{{ url_for('landing') }}" class="footer-brand-logo">
+            <span class="brand-icon-sm">🏫</span>
+            <div class="brand-text">
+              <span class="brand-name">CampusCare</span>
+              <span class="brand-tag">Student Grievance Portal</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
+        </div>
+        <div class="footer-links-section">
+          <ul class="footer-links">
+            {% if session.get('student_id') %}
+              <li><a href="{{ url_for('landing') }}">Home</a></li>
+              <li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+              <li><a href="{{ url_for('submit_complaint_view') }}">Submit Complaint</a></li>
+              <li><a href="{{ url_for('my_complaints_view') }}">My Complaints</a></li>
+              <li><a href="{{ url_for('profile_view') }}">Profile</a></li>
+            {% elif session.get('admin_id') %}
+              <li><a href="{{ url_for('landing') }}">Home</a></li>
+              <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+              <li><a href="{{ url_for('profile_view') }}">Admin Profile</a></li>
+            {% else %}
               <li><a href="{{ url_for('landing') }}">Home</a></li>
               <li><a href="{{ url_for('student_login_view') }}">Student Login</a></li>
               <li><a href="{{ url_for('student_register_view') }}">Register</a></li>
               <li><a href="{{ url_for('admin_login_view') }}">Admin Portal</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="footer-bottom">
-          <div class="footer-copy">
-            &copy; 2026 CampusCare. Student Grievance Portal.
-          </div>
+            {% endif %}
+          </ul>
         </div>
       </div>
-    </footer>
-  {% endif %}
+      <div class="footer-bottom">
+        <div class="footer-copy">
+          &copy; 2026 CampusCare. Student Grievance Portal.
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- Server Flash Messages -->
   <div class="flash-messages-container" style="display: none;">
@@ -327,8 +415,8 @@
   <div class="toast-container" id="toastContainer"></div>
 
   <!-- Global JavaScript -->
-  <script src="{{ url_for('static', filename='js/main.js') }}?v=20260913"></script>
-  <script src="{{ url_for('static', filename='js/campus-world.js') }}?v=20260913"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}?v=20260913_2"></script>
+  <script src="{{ url_for('static', filename='js/campus-world.js') }}?v=20260913_2"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

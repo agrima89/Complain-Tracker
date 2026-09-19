@@ -113,7 +113,8 @@
         {% endwith %}
 
         <!-- Registration Form -->
-        <form action="{{ url_for('student_register_view') }}" method="POST" autocomplete="on">
+        <form action="{{ url_for('student_register_view') }}" method="POST" autocomplete="off">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           
           <!-- Full Name -->
           <div class="auth-input-group">
@@ -127,8 +128,13 @@
                 id="name"
                 name="name"
                 class="auth-form-input"
-                placeholder="e.g. Agrima Bajpai"
+                placeholder="e.g. Your Full Name"
                 value="{{ name or '' }}"
+                autocomplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
+                spellcheck="false"
                 required
                 autofocus
               >
@@ -147,10 +153,15 @@
                 id="email"
                 name="email"
                 class="auth-form-input"
-                placeholder="25LBCS3099@culkomail.in"
-                pattern="^[A-Za-z0-9]+@[cC][uU][lL][kK][oO][mM][aA][iI][lL]\.[iI][nN]$"
+                placeholder="e.g. studentID@culkomail.in"
+                pattern="[A-Za-z0-9]+@[cC][uU][lL][kK][oO][mM][aA][iI][lL]\.[iI][nN]"
                 title="Please use your official Chandigarh University email (@culkomail.in)"
                 value="{{ email or '' }}"
+                autocomplete="off"
+                data-lpignore="true"
+                data-form-type="other"
+                data-1p-ignore="true"
+                spellcheck="false"
                 required
               >
             </div>
@@ -173,6 +184,9 @@
                 class="auth-form-input"
                 placeholder="Minimum 4 characters"
                 minlength="4"
+                autocomplete="new-password"
+                data-lpignore="true"
+                data-1p-ignore="true"
                 required
               >
               <button type="button" class="auth-password-toggle password-toggle-btn" aria-label="Toggle password visibility">

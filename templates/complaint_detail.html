@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Complaint #{{ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
+{% block title %}{{ complaint.ticket_id or 'Complaint #' ~ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width: 900px;">
@@ -16,16 +16,17 @@
 
   <!-- Breadcrumb Navigation -->
   <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
+    <a href="{{ url_for('landing') }}" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
     <a href="{{ url_for('student_dashboard') }}" style="color: #38bdf8; text-decoration: none;">Dashboard</a> &nbsp;/&nbsp; 
     <a href="{{ url_for('my_complaints_view') }}" style="color: #38bdf8; text-decoration: none;">My Complaints</a> &nbsp;/&nbsp; 
-    <span style="color: #ffffff; font-weight: 600;">Ticket #{{ "%03d"|format(complaint.complaint_id) }}</span>
+    <span style="color: #ffffff; font-weight: 600;">{{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</span>
   </div>
 
   <!-- Header -->
   <div class="page-header" style="margin-bottom: 1.5rem;">
     <div class="page-header-title">
       <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <h1 style="font-family: monospace; letter-spacing: -0.02em;">Complaint #{{ "%03d"|format(complaint.complaint_id) }}</h1>
+        <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or 'Complaint #' ~ "%03d"|format(complaint.complaint_id) }}</h1>
         
         <!-- Status Badge -->
         {% if complaint.status == 'Pending' %}
@@ -46,10 +47,18 @@
         {% endif %}
 
       </div>
-      <p class="page-header-subtitle">Lodged on {{ complaint.date }} &bull; Category: <strong style="color: #38bdf8;">{{ complaint.category }}</strong></p>
+      <p class="page-header-subtitle">
+        Lodged on {{ complaint.date }} &bull; Category: <strong style="color: #38bdf8;">{{ complaint.category }}</strong>
+        {% if complaint.last_updated and complaint.last_updated != complaint.date %}
+          &bull; <span style="color: #94a3b8;">Last updated: {{ complaint.last_updated }}</span>
+        {% endif %}
+      </p>
     </div>
 
-    <div>
+    <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+      <a href="{{ url_for('student_complaint_pdf', complaint_id=complaint.complaint_id) }}" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Official Complaint PDF Report">
+        <span>📄</span> Download PDF
+      </a>
       <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm">
         ← Back to List
       </a>
@@ -59,7 +68,7 @@
   <!-- Floating Complaint Journey Timeline -->
   <div class="cinematic-card" style="margin-bottom: 2rem; padding: 2rem 1.75rem;">
     <div class="timeline-ticket-header" style="margin-bottom: 1.25rem;">
-      <span class="ticket-mono-id">#CC-{{ "%03d"|format(complaint.complaint_id) }}</span>
+      <span class="ticket-mono-id">{{ complaint.ticket_id or '#CC-' ~ "%03d"|format(complaint.complaint_id) }}</span>
       <span class="ticket-live-tag">● Live Resolution Tracker</span>
     </div>
 
@@ -135,6 +144,28 @@
       <!-- Key Location Coordinates Grid -->
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
         
+        {% if complaint.category == 'Transport Complaint' %}
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Transport Type</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">
+            🚌 {{ complaint.transport_type or 'N/A' }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Bus/Vehicle No & Route</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
+            🔢 {{ complaint.bus_number or 'N/A' }} ({{ complaint.route or 'N/A' }})
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Pickup/Drop Point</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;">
+            📍 {{ complaint.pickup_drop_point or 'N/A' }}
+          </div>
+        </div>
+        {% else %}
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Campus Block</div>
           <div style="font-size: 1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;">
@@ -155,6 +186,7 @@
             🧭 {{ complaint.corridor_side or 'N/A' }}
           </div>
         </div>
+        {% endif %}
 
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submission Date</div>
@@ -187,7 +219,7 @@
       <!-- Evidence Photo Block -->
       <div>
         <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-          📸 Attached Photo Evidence
+          📸 Attached Evidence
         </div>
         {% if complaint.photo_path %}
           <div style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 0.75rem; max-width: 440px;">
@@ -197,7 +229,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-size: 0.8rem;">
               <span style="color: #4ade80;">✓ Evidence Verified</span>
               <a href="/{{ complaint.photo_path }}" target="_blank" style="color: #38bdf8; text-decoration: none; font-weight: 600;">
-                🔍 Open Full Image ↗
+                🔍 Open Full File ↗
               </a>
             </div>
           </div>
@@ -210,13 +242,42 @@
 
     </div>
 
+    <!-- Status History Audit Trail for Student -->
+    {% if history %}
+      <div style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12);">
+        <h3 style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+          <span>📜</span> Resolution Activity Log
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for h in history %}
+            <div style="background: rgba(3, 7, 18, 0.5); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                <span style="color: #38bdf8; font-weight: 600;">Status updated to {{ h.new_status }}</span>
+                <span style="color: #64748b;">{{ h.timestamp }}</span>
+              </div>
+              {% if h.remarks %}
+                <div style="font-size: 0.85rem; color: #cbd5e1; font-style: italic;">
+                  "{{ h.remarks }}"
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
     <div style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
       <span style="font-size: 0.85rem; color: #94a3b8;">
         Submitter: <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> ({{ complaint.student_email }})
       </span>
-      <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm">
-        Return to My Complaints
-      </a>
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+        <a href="{{ url_for('student_complaint_pdf', complaint_id=complaint.complaint_id) }}" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+          <span>📄</span> Download PDF Report
+        </a>
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm">
+          Return to My Complaints
+        </a>
+      </div>
     </div>
   </div>
 
