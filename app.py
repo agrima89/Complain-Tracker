@@ -23,7 +23,6 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 import database
 import pdf_generator
-import smart_complaint
 
 app = Flask(
     __name__,
