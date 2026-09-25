@@ -613,7 +613,7 @@ class ComplaintSubmissionForm:
 
         today_str = str(date.today())
 
-        complaint_id = database.create_complaint(
+        sub_res = database.submit_or_attach_complaint(
             student_id=self.student_id,
             category=category,
             description=description,
@@ -628,15 +628,40 @@ class ComplaintSubmissionForm:
             date_str=today_str
         )
 
-        messagebox.showinfo(
-            "Ticket Submitted",
-            f"Your complaint ticket #{complaint_id:03d} has been submitted successfully!\n\n"
-            f"Category: {category}\n"
-            f"Location: {block}, {floor_no}\n"
-            f"Evidence photo saved securely."
-        )
+        status_code = sub_res.get("status")
+        complaint_id = sub_res.get("complaint_id")
+        ticket_id = sub_res.get("ticket_id", f"CMP-{complaint_id:04d}" if complaint_id else "")
 
-        self.root.destroy()
+        if status_code == 'DUPLICATE_REJECTED':
+            messagebox.showwarning(
+                "Duplicate Complaint Detected",
+                f"Duplicate Complaint Detected.\n\n"
+                f"You already have an active complaint ({ticket_id}) for this issue at this location.\n\n"
+                f"Please wait for your existing complaint to be resolved before submitting another complaint.\n"
+                f"No duplicate complaint was created."
+            )
+            return
+
+        elif status_code == 'ATTACHED_TO_MASTER':
+            count = sub_res.get('affected_student_count', 2)
+            messagebox.showinfo(
+                "Report Linked to Existing Issue",
+                f"Your report has been added to an existing complaint for this issue.\n\n"
+                f"Complaint ID: {ticket_id}\n"
+                f"Total students reporting: {count}\n\n"
+                f"The administration will review this higher priority grouped issue."
+            )
+            self.root.destroy()
+
+        else:
+            messagebox.showinfo(
+                "Ticket Submitted",
+                f"Your complaint ticket {ticket_id} has been submitted successfully!\n\n"
+                f"Category: {category}\n"
+                f"Location: {block}, {floor_no}\n"
+                f"Evidence photo saved securely."
+            )
+            self.root.destroy()
 
 
 def open_complaint_form(student_id):

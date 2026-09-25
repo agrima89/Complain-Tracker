@@ -365,12 +365,12 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
     ))
 
     # 2. STATUS & PRIORITY HIGHLIGHT SUMMARY BAR
-    status_str = complaint["status"] or "Pending"
+    status_str = complaint["status"] or "NEW"
     priority_str = complaint["priority"] or "Medium"
 
-    if status_str == "Resolved":
+    if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"]:
         s_fg, s_bg = STATUS_RESOLVED, STATUS_RESOLVED_BG
-    elif status_str == "In Progress":
+    elif status_str in ["IN_PROGRESS", "REOPENED"]:
         s_fg, s_bg = STATUS_PROGRESS, STATUS_PROGRESS_BG
     else:
         s_fg, s_bg = STATUS_PENDING, STATUS_PENDING_BG
@@ -510,13 +510,13 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
                 latest_time = h["timestamp"] if "timestamp" in h.keys() else h["changed_at"]
                 has_resolution = True
                 break
-        if not has_resolution and (status_str in ["In Progress", "Resolved"]):
+        if not has_resolution and (status_str in ["IN_PROGRESS", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED"]):
             has_resolution = True
             latest_remarks = f"Complaint has been placed {status_str} by university authorities."
             latest_resolver = history[-1]["admin_name"] or "Administration"
             latest_time = history[-1]["changed_at"]
 
-    if status_str == "Resolved" or has_resolution:
+    if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"] or has_resolution:
         res_header = [
             [
                 Paragraph("<b>Resolution Status:</b>", styles["FieldLabel"]),
@@ -553,8 +553,8 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
         ]
         remarks_table = Table([[remarks_content]], colWidths=[532])
         remarks_table.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), STATUS_RESOLVED_BG if status_str == "Resolved" else STATUS_PROGRESS_BG),
-            ("BOX", (0, 0), (-1, -1), 1, STATUS_RESOLVED if status_str == "Resolved" else STATUS_PROGRESS),
+            ("BACKGROUND", (0, 0), (-1, -1), STATUS_RESOLVED_BG if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"] else STATUS_PROGRESS_BG),
+            ("BOX", (0, 0), (-1, -1), 1, STATUS_RESOLVED if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"] else STATUS_PROGRESS),
             ("TOPPADDING", (0, 0), (-1, -1), 6),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
             ("LEFTPADDING", (0, 0), (-1, -1), 10),

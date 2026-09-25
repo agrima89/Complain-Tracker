@@ -23,6 +23,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 import database
 import pdf_generator
+import smart_complaint
 
 app = Flask(
     __name__,
@@ -63,8 +64,25 @@ def handle_csrf_error(e):
 @app.route("/uploads/<path:filename>")
 def uploaded_file(filename):
     """Serves uploaded complaint evidence files securely."""
+    student_id = session.get("student_id")
+    admin_id = session.get("admin_id")
+
+    if not student_id and not admin_id:
+        return "Unauthorized", 401
+
+    photo_rel_path = f"uploads/complaints/{filename}"
+    conn = database.get_db_connection()
+    complaint = conn.execute("SELECT * FROM complaints WHERE photo_path = ?", (photo_rel_path,)).fetchone()
+    conn.close()
+
+    if complaint:
+        if student_id and not database.is_student_associated_with_complaint(complaint["complaint_id"], student_id):
+            return "Access Denied", 403
+        if admin_id and session.get("admin_role") == "HOD" and complaint["department"] != session.get("admin_department"):
+            return "Access Denied", 403
+
     uploads_root = os.path.join(database.BASE_DIR, "uploads")
-    return send_from_directory(uploads_root, filename)
+    return send_from_directory(uploads_root, f"complaints/{filename}")
 
 
 # ---------------- AUTHENTICATION DECORATORS ----------------
@@ -311,7 +329,7 @@ def submit_complaint_view():
             return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
 
         today_str = str(date.today())
-        complaint_id, ticket_id = database.create_complaint(
+        sub_res = database.submit_or_attach_complaint(
             student_id=student_id,
             category=category,
             description=description,
@@ -331,15 +349,44 @@ def submit_complaint_view():
             transport_complaint_type=transport_complaint_type
         )
 
+        if sub_res["status"] == "DUPLICATE_REJECTED":
+            flash(sub_res["message"], "warning")
+            return render_template(
+                "submit_complaint.html",
+                categories=categories,
+                blocks=blocks,
+                floors=floors,
+                priorities=priorities,
+                duplicate_info=sub_res,
+                form_data=request.form
+            )
+
+        if sub_res["status"] == "ATTACHED_TO_MASTER":
+            flash(sub_res["message"], "info")
+            return render_template(
+                "submit_complaint.html",
+                categories=categories,
+                blocks=blocks,
+                floors=floors,
+                priorities=priorities,
+                submitted_id=sub_res["complaint_id"],
+                ticket_id=sub_res["ticket_id"],
+                submitted_date=today_str,
+                is_grouped=True,
+                affected_student_count=sub_res.get("affected_student_count", 2)
+            )
+
         return render_template(
             "submit_complaint.html",
             categories=categories,
             blocks=blocks,
             floors=floors,
             priorities=priorities,
-            submitted_id=complaint_id,
-            ticket_id=ticket_id,
-            submitted_date=today_str
+            submitted_id=sub_res["complaint_id"],
+            ticket_id=sub_res["ticket_id"],
+            submitted_date=today_str,
+            is_grouped=False,
+            affected_student_count=1
         )
 
     # Handle pre-selected category and location from URL params
@@ -414,7 +461,7 @@ def my_complaints_view():
 @student_required
 def complaint_detail_view(complaint_id):
     complaint = database.get_complaint_by_id(complaint_id)
-    if not complaint or complaint["student_id"] != session["student_id"]:
+    if not complaint or not database.is_student_associated_with_complaint(complaint_id, session["student_id"]):
         flash("Complaint not found or you do not have permission to view it.", "error")
         return redirect(url_for("my_complaints_view"))
 
@@ -432,7 +479,7 @@ def complaint_detail_view(complaint_id):
 def student_complaint_pdf(complaint_id):
     """Generates and downloads a formal PDF dossier for the student's complaint."""
     complaint = database.get_complaint_by_id(complaint_id)
-    if not complaint or complaint["student_id"] != session["student_id"]:
+    if not complaint or not database.is_student_associated_with_complaint(complaint_id, session["student_id"]):
         flash("Complaint not found or you do not have permission to access it.", "error")
         return redirect(url_for("my_complaints_view"))
 
@@ -453,14 +500,19 @@ def student_complaint_pdf(complaint_id):
 @app.route("/admin/dashboard")
 @admin_required
 def admin_dashboard():
-    department = session.get("admin_department") if session.get("admin_role") == "HOD" else None
+    department = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
     stats = database.get_admin_statistics(department)
-    analytics = database.get_analytics_data()
+    analytics = database.get_analytics_data(department)
     status_filter = request.args.get("status", "All")
     priority_filter = request.args.get("priority", "All")
     search_text = request.args.get("q", "").strip()
     escalated_only = request.args.get("escalated", "false").lower() == "true"
     page = request.args.get("page", 1, type=int)
+
+    # Also load collections for the new top section
+    collections, col_summary = database.get_complaint_collections()
+
+    collections, col_summary = database.get_complaint_collections()
 
     pagination = database.get_all_complaints_admin_paginated(
         status_filter=status_filter,
@@ -480,9 +532,11 @@ def admin_dashboard():
         complaints_list.append(c_dict)
 
     pagination["items"] = complaints_list
-    heatmap_data = database.get_campus_heatmap_data()
-    pulse_data = database.get_campus_pulse_data()
-    transport_stats = database.get_transport_statistics()
+    heatmap_data = database.get_campus_heatmap_data(department)
+    pulse_data = database.get_campus_pulse_data(department)
+    transport_stats = database.get_transport_statistics() if (not department or department == "Transport") else {"total": 0, "active": 0, "resolved": 0, "by_type": {}, "by_route": {}}
+
+    
 
     return render_template(
         "admin_dashboard.html",
@@ -492,11 +546,14 @@ def admin_dashboard():
         pulse_data=pulse_data,
         transport_stats=transport_stats,
         complaints=pagination["items"],
+        collections=collections,
+        col_summary=col_summary,
         pagination=pagination,
         status_filter=status_filter,
         priority_filter=priority_filter,
         search_text=search_text,
-        escalated_only=escalated_only
+        escalated_only=escalated_only,
+        
     )
 
 
@@ -508,21 +565,23 @@ def admin_complaint_detail_view(complaint_id):
         flash("Complaint not found.", "error")
         return redirect(url_for("admin_dashboard"))
         
-    if session.get("admin_role") == "HOD" and complaint["department"] != session.get("admin_department"):
-        database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH", f"HOD attempted to access complaint in {complaint['department']}")
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and complaint["department"] != session.get("admin_department"):
+        database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH", f"Department {session.get('admin_department')} admin attempted to access complaint in {complaint['department']}")
         flash("Access Denied: You can only view complaints assigned to your department.", "error")
         return redirect(url_for("admin_dashboard"))
 
     history = database.get_complaint_history(complaint_id)
     notes = database.get_admin_notes(complaint_id)
     is_escalated = database.check_is_escalated(complaint)
+    reporters = database.get_complaint_reporters(complaint_id)
 
     return render_template(
         "admin_complaint_detail.html",
         complaint=complaint,
         history=history,
         notes=notes,
-        is_escalated=is_escalated
+        is_escalated=is_escalated,
+        reporters=reporters
     )
 
 
@@ -533,6 +592,16 @@ def admin_add_note_view(complaint_id):
     if not note_text:
         flash("Please enter internal remarks text.", "warning")
         return redirect(url_for("admin_complaint_detail_view", complaint_id=complaint_id))
+
+    comp = database.get_complaint_by_id(complaint_id)
+    if not comp:
+        flash("Complaint not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and comp["department"] != session.get("admin_department"):
+        database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH", "Attempted to add note on unauthorized complaint")
+        flash("Access Denied: You can only add remarks to complaints assigned to your department.", "error")
+        return redirect(url_for("admin_dashboard"))
 
     admin_id = session.get("admin_id", 1)
     admin_name = session.get("admin_username", "Administrator")
@@ -568,6 +637,40 @@ def api_update_status():
     admin_id = session.get("admin_id", 1)
     admin_name = session.get("admin_username", "Administrator")
 
+    # Workflow validation
+    comp = database.get_complaint_by_id(int(complaint_id))
+    if not comp:
+        if request.is_json:
+            return jsonify({"success": False, "message": "Complaint not found."}), 404
+        flash("Complaint not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and comp["department"] != session.get("admin_department"):
+        database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH", "Attempted status update on unauthorized complaint")
+        msg = "Access Denied: You can only update complaints assigned to your department."
+        if request.is_json:
+            return jsonify({"success": False, "message": msg}), 403
+        flash(msg, "error")
+        return redirect(url_for("admin_dashboard"))
+
+    old_status = comp["status"]
+    allowed_transitions = {
+        "NEW": ["FORWARDED", "IN_PROGRESS"],
+        "FORWARDED": ["IN_PROGRESS"],
+        "IN_PROGRESS": ["RESOLUTION_SUBMITTED"],
+        "RESOLUTION_SUBMITTED": ["AWAITING_STUDENT_CONFIRMATION"],
+        "AWAITING_STUDENT_CONFIRMATION": ["FINAL_RESOLVED", "REOPENED"], # Sometimes admins might force resolve
+        "REOPENED": ["IN_PROGRESS", "FORWARDED"],
+        "FINAL_RESOLVED": []
+    }
+
+    if new_status not in allowed_transitions.get(old_status, []) and old_status != new_status:
+        msg = f"Invalid transition from {old_status} to {new_status}."
+        if request.is_json:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "error")
+        return redirect(request.referrer or url_for("admin_dashboard"))
+
     success, message = database.update_complaint_status(
         int(complaint_id),
         new_status,
@@ -575,7 +678,8 @@ def api_update_status():
         admin_name=admin_name,
         remarks=remarks
     )
-    stats = database.get_admin_statistics()
+    dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
+    stats = database.get_admin_statistics(dept)
 
     if request.is_json:
         return jsonify({
@@ -597,7 +701,8 @@ def api_update_status():
 @admin_required
 def api_analytics():
     """API endpoint providing real-time data for Chart.js dashboards."""
-    return jsonify(database.get_analytics_data())
+    dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
+    return jsonify(database.get_analytics_data(department=dept))
 
 
 @app.route("/admin/complaint/<int:complaint_id>/download-pdf")
@@ -608,6 +713,11 @@ def admin_complaint_pdf(complaint_id):
     complaint = database.get_complaint_by_id(complaint_id)
     if not complaint:
         flash("Complaint not found.", "error")
+        return redirect(url_for("admin_dashboard"))
+
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and complaint["department"] != session.get("admin_department"):
+        database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH", "Attempted PDF download on unauthorized complaint")
+        flash("Access Denied: You can only access complaints assigned to your department.", "error")
         return redirect(url_for("admin_dashboard"))
 
     history = database.get_complaint_history(complaint_id)
@@ -631,12 +741,14 @@ def admin_summary_report_pdf():
     priority_filter = request.args.get("priority", "All")
     search_text = request.args.get("q", "").strip()
 
-    stats = database.get_admin_statistics()
-    analytics = database.get_analytics_data()
+    dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
+    stats = database.get_admin_statistics(dept)
+    analytics = database.get_analytics_data(dept)
     complaints = database.get_all_complaints_for_report(
         status_filter=status_filter,
         priority_filter=priority_filter,
-        search_text=search_text
+        search_text=search_text,
+        department=dept
     )
 
     admin_name = session.get("admin_username", "Administrator")
@@ -712,7 +824,8 @@ def api_check_similar():
 @admin_required
 def api_admin_heatmap():
     """Returns real-time campus problem heatmap zone telemetry."""
-    zones = database.get_campus_heatmap_data()
+    dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
+    zones = database.get_campus_heatmap_data(department=dept)
     return jsonify({
         "success": True,
         "zones": zones,
@@ -743,9 +856,10 @@ def api_admin_zone_detail(zone_id):
 @admin_required
 def api_admin_pulse():
     """Returns real-time Campus Pulse executive telemetry."""
+    dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
     return jsonify({
         "success": True,
-        "pulse": database.get_campus_pulse_data()
+        "pulse": database.get_campus_pulse_data(department=dept)
     })
 
 
@@ -781,7 +895,7 @@ def api_forward_complaint():
         
     # Check authorization
     comp = database.get_complaint_by_id(complaint_id)
-    if session.get("admin_role") == "HOD" and comp["department"] != session.get("admin_department"):
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and comp["department"] != session.get("admin_department"):
         database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH")
         flash("Access Denied.", "error")
         return redirect(url_for("admin_dashboard"))
@@ -802,7 +916,7 @@ def api_mark_resolved():
     remarks = request.form.get("remarks", "")
     
     comp = database.get_complaint_by_id(complaint_id)
-    if session.get("admin_role") == "HOD" and comp["department"] != session.get("admin_department"):
+    if session.get("admin_role") != "Super Admin" and session.get("admin_department") and comp["department"] != session.get("admin_department"):
         database.log_soc_event("UNAUTHORIZED_ACCESS", session.get("admin_username"), complaint_id, session.get("admin_department"), "HIGH")
         flash("Access Denied.", "error")
         return redirect(url_for("admin_dashboard"))

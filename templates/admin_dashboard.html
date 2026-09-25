@@ -19,10 +19,22 @@
     <div class="page-header-title">
       <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
         <span class="tag-cyan-dot"></span>
-        <span>ADMINISTRATIVE COMMAND CENTER</span>
+        <span>{% if session.get('admin_department') %}{{ session.get('admin_department')|upper }} DEPARTMENT COMMAND CENTER{% else %}ADMINISTRATIVE COMMAND CENTER{% endif %}</span>
       </div>
-      <h1>Admin Management & Analytics Dashboard</h1>
-      <p class="page-header-subtitle">Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints across all university blocks.</p>
+      <h1>
+        {% if session.get('admin_department') %}
+          {{ session.get('admin_department') }} Department Dashboard
+        {% else %}
+          Admin Management & Analytics Dashboard
+        {% endif %}
+      </h1>
+      <p class="page-header-subtitle">
+        {% if session.get('admin_department') %}
+          Isolated department portal: Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints strictly assigned to the <strong>{{ session.get('admin_department') }}</strong> department.
+        {% else %}
+          Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints across all university blocks.
+        {% endif %}
+      </p>
     </div>
     <div class="page-header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
       <a href="{{ url_for('admin_summary_report_pdf', status=status_filter, priority=priority_filter, q=search_text) }}" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Comprehensive Complaint Analytics PDF Report">
@@ -40,19 +52,30 @@
   <!-- Live Statistics Cards Grid -->
   <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
     
-    <!-- Total Complaints -->
+    <!-- Total Complaints (Master Issues) -->
     <div class="stat-card">
       <div class="stat-header">
-        <span class="stat-label">Total Grievances</span>
+        <span class="stat-label">Unique Grievances</span>
         <div class="stat-icon">📊</div>
       </div>
       <div id="stat-total" class="stat-value">{{ stats.total }}</div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Distinct master issues</div>
+    </div>
+
+    <!-- Total Student Reports & Affected Students -->
+    <div class="stat-card" style="border-top-color: #38bdf8; background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #38bdf8;">Student Reports</span>
+        <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">👥</div>
+      </div>
+      <div id="stat-reports" class="stat-value" style="color: #38bdf8;">{{ stats.total_reports or stats.total }}</div>
+      <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">{{ stats.students_affected or stats.total }} students affected</div>
     </div>
 
     <!-- Pending -->
     <div class="stat-card stat-pending">
       <div class="stat-header">
-        <span class="stat-label">Pending Action</span>
+        <span class="stat-label">Pending Action (New & Forwarded)</span>
         <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
       </div>
       <div id="stat-pending" class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
@@ -113,7 +136,7 @@
           ● Systems Operational
         </span>
         <span class="badge" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8; font-size: 0.75rem;">
-          Avg Turnaround: ~{{ pulse_data.avg_resolution_days }}d
+          Avg Turnaround: {% if pulse_data.avg_resolution_days == 'N/A' %}N/A{% else %}~{{ pulse_data.avg_resolution_days }}d{% endif %}
         </span>
       </div>
     </div>
@@ -131,7 +154,7 @@
           {{ pulse_data.critical_issues }}
         </div>
         <div class="pulse-card-subtext">
-          <span>{{ pulse_data.escalated_count }} flagged for escalation</span>
+          <span>{% if pulse_data.escalated_count == 0 %}No complaints currently escalated.{% else %}{{ pulse_data.escalated_count }} complaints currently escalated.{% endif %}</span>
           {% if pulse_data.critical_issues > 0 %}
             <a href="{{ url_for('admin_dashboard', priority='High') }}" style="color: #f87171; text-decoration: underline; font-size: 0.75rem; margin-left: auto;">Inspect &rarr;</a>
           {% endif %}
@@ -706,9 +729,13 @@
         </label>
         <select id="admin-status-filter" name="status" class="form-select" style="width: auto; min-width: 130px;">
           <option value="All" {% if status_filter == 'All' or not status_filter %}selected{% endif %}>All Statuses</option>
-          <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
-          <option value="In Progress" {% if status_filter == 'In Progress' %}selected{% endif %}>In Progress</option>
-          <option value="Resolved" {% if status_filter == 'Resolved' %}selected{% endif %}>Resolved</option>
+          <option value="NEW" {% if status_filter == 'NEW' %}selected{% endif %}>NEW</option>
+<option value="FORWARDED" {% if status_filter == 'FORWARDED' %}selected{% endif %}>FORWARDED</option>
+          <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>IN PROGRESS</option>
+<option value="REOPENED" {% if status_filter == 'REOPENED' %}selected{% endif %}>REOPENED</option>
+          <option value="RESOLUTION_SUBMITTED" {% if status_filter == 'RESOLUTION_SUBMITTED' %}selected{% endif %}>RESOLUTION SUBMITTED</option>
+<option value="AWAITING_STUDENT_CONFIRMATION" {% if status_filter == 'AWAITING_STUDENT_CONFIRMATION' %}selected{% endif %}>AWAITING CONFIRMATION</option>
+<option value="FINAL_RESOLVED" {% if status_filter == 'FINAL_RESOLVED' %}selected{% endif %}>FINAL RESOLVED</option>
         </select>
       </div>
 
@@ -773,6 +800,7 @@
             <thead>
               <tr>
                 <th>Ticket ID</th>
+                <th>Students Affected</th>
                 <th>Student</th>
                 <th>Category</th>
                 <th>Block & Location</th>
@@ -802,7 +830,19 @@
                   </td>
 
                   <!-- Student Details -->
+                                    <!-- Students Affected Badge -->
                   <td>
+                    {% if item.affected_student_count and item.affected_student_count > 1 %}
+                      <button type="button" onclick="document.getElementById('modal-rel-{{ item.complaint_id }}').style.display='flex'" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-weight: 700; font-size: 0.85rem; padding: 0.4rem 0.75rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(56, 189, 248, 0.3)'" onmouseout="this.style.background='rgba(56, 189, 248, 0.2)'" title="View all students who reported this">
+                        👥 {{ item.affected_student_count }} Students
+                      </button>
+                    {% else %}
+                      <span class="badge" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #94a3b8; font-size: 0.8rem; padding: 0.35rem 0.65rem; border-radius: 8px; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        👤 1 Reporter
+                      </span>
+                    {% endif %}
+                  </td>
+<td>
                     <div style="font-weight: 600; color: #ffffff;">{{ item.student_name }}</div>
                     <div style="font-size: 0.775rem; color: #94a3b8;">{{ item.student_email }}</div>
                   </td>
@@ -969,4 +1009,50 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+<!-- Related Complaints Modals -->
+{% for item in complaints %}
+  {% if item.related_complaints_data and item.affected_student_count > 1 %}
+  <div id="modal-rel-{{ item.complaint_id }}" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1050; align-items: center; justify-content: center; padding: 2rem;">
+    <div style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      
+      <!-- Modal Header -->
+      <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: flex-start; background: rgba(255,255,255,0.02);">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0;">Same Complaint Reports</h3>
+          <div style="font-size: 0.95rem; color: #38bdf8; font-weight: 600; margin-bottom: 0.75rem;">
+            {{ item.affected_student_count }} students reported this issue
+          </div>
+          <div style="font-size: 0.85rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 0.35rem;">
+            <div><strong style="color: #94a3b8;">Category:</strong> {{ item.related_complaints_data.category }}</div>
+            <div><strong style="color: #94a3b8;">Location:</strong> {{ item.related_complaints_data.location }}</div>
+            <div><strong style="color: #94a3b8;">Issue:</strong> {{ item.related_complaints_data.issue }}</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('modal-rel-{{ item.complaint_id }}').style.display = 'none'" style="background: none; border: none; color: #94a3b8; font-size: 1.75rem; cursor: pointer; line-height: 1; padding: 0;">&times;</button>
+      </div>
+      
+      <!-- Modal Body (Individual Complaints) -->
+      <div style="padding: 1.5rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for c in item.related_complaints_data.related_complaints %}
+        <a href="{{ url_for('admin_complaint_detail_view', complaint_id=c.complaint_id) }}" style="text-decoration: none;">
+          <div style="padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'; this.style.borderColor='rgba(56,189,248,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.03)'; this.style.borderColor='rgba(255,255,255,0.05)';">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <span style="font-size: 1.1rem;">👤</span>
+                <span style="font-size: 1rem; color: #ffffff; font-weight: 600;">{{ c.student_name }}</span>
+              </div>
+              <div style="font-family: monospace; font-size: 0.9rem; font-weight: 700; color: #94a3b8; margin-left: 1.6rem;">{{ c.ticket_id }}</div>
+            </div>
+            <div style="font-size: 1.25rem; color: #38bdf8; opacity: 0.5;">&rarr;</div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      
+    </div>
+  </div>
+  {% endif %}
+{% endfor %}
+
 {% endblock %}

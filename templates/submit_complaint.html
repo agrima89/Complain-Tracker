@@ -16,23 +16,27 @@
 
   {% if submitted_id %}
     <!-- ==========================================================================
-         SUCCESS CONFIRMATION STATE
+         SUCCESS CONFIRMATION STATE (NEW OR GROUPED)
          ========================================================================== -->
-    <div class="guided-section-card" style="text-align: center; padding: 4rem 2.5rem; border-color: rgba(34, 197, 94, 0.45) !important;">
-      <div style="width: 76px; height: 76px; border-radius: 50%; background: rgba(34, 197, 94, 0.18); border: 2px solid rgba(34, 197, 94, 0.5); color: #4ade80; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 0 35px rgba(34, 197, 94, 0.35);">
-        ✓
+    <div class="guided-section-card" style="text-align: center; padding: 4rem 2.5rem; {% if is_grouped %}border-color: rgba(56, 189, 248, 0.5) !important;{% else %}border-color: rgba(34, 197, 94, 0.45) !important;{% endif %}">
+      <div style="width: 76px; height: 76px; border-radius: 50%; {% if is_grouped %}background: rgba(56, 189, 248, 0.18); border: 2px solid rgba(56, 189, 248, 0.5); color: #38bdf8; box-shadow: 0 0 35px rgba(56, 189, 248, 0.35);{% else %}background: rgba(34, 197, 94, 0.18); border: 2px solid rgba(34, 197, 94, 0.5); color: #4ade80; box-shadow: 0 0 35px rgba(34, 197, 94, 0.35);{% endif %} font-size: 2.5rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+        {% if is_grouped %}👥{% else %}✓{% endif %}
       </div>
       
-      <div class="badge badge-resolved" style="margin-bottom: 1rem; font-size: 0.85rem; padding: 0.35rem 1rem;">
-        Ticket Logged Successfully
+      <div class="badge {% if is_grouped %}badge-progress{% else %}badge-resolved{% endif %}" style="margin-bottom: 1rem; font-size: 0.85rem; padding: 0.35rem 1rem;">
+        {% if is_grouped %}Attached to Existing Master Grievance{% else %}Ticket Logged Successfully{% endif %}
       </div>
 
       <h1 style="font-size: 2.25rem; margin-bottom: 0.75rem; color: #ffffff; font-weight: 700; letter-spacing: -0.02em;">
-        Grievance Ticket Submitted
+        {% if is_grouped %}Report Linked to Existing Issue{% else %}Grievance Ticket Submitted{% endif %}
       </h1>
       
       <p style="color: #94a3b8; max-width: 580px; margin: 0 auto 2.25rem; font-size: 1rem; line-height: 1.6;">
-        Your complaint and photo evidence have been officially recorded in the university grievance registry and queued for immediate administrative inspection.
+        {% if is_grouped %}
+          Your report has been added to an existing complaint for this issue. Multiple students have reported this problem, and the university grievance desk is tracking it as a grouped issue.
+        {% else %}
+          Your complaint and photo evidence have been officially recorded in the university grievance registry and queued for immediate administrative inspection.
+        {% endif %}
       </p>
 
       <!-- Ticket Summary Box -->
@@ -40,12 +44,20 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
           <span style="color: #94a3b8; font-size: 0.9rem; font-weight: 500;">Ticket Reference ID</span>
           <span style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.15rem; background: rgba(56, 189, 248, 0.12); padding: 0.25rem 0.75rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);">
-            {{ ticket_id if ticket_id else ('CMP-2026-%04d'|format(submitted_id)) }}
+            {{ ticket_id }}
           </span>
         </div>
+        {% if is_grouped and duplicate_info %}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
+          <span style="color: #94a3b8; font-size: 0.9rem;">Total Students Reporting</span>
+          <span class="badge" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700;">
+            👥 {{ duplicate_info.affected_student_count }} Students
+          </span>
+        </div>
+        {% endif %}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <span style="color: #94a3b8; font-size: 0.9rem;">Initial Status</span>
-          <span class="badge badge-pending">⏳ Pending Review</span>
+          <span style="color: #94a3b8; font-size: 0.9rem;">Current Status</span>
+          <span class="badge badge-pending">⏳ {{ duplicate_info.status if (duplicate_info and duplicate_info.status) else 'NEW' }}</span>
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="color: #94a3b8; font-size: 0.9rem;">Date Lodged</span>
@@ -55,8 +67,11 @@
 
       <!-- Action Buttons -->
       <div style="display: flex; justify-content: center; gap: 1.25rem; flex-wrap: wrap;">
-        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); padding: 0.8rem 1.75rem;">
-          📋 Track My Complaints
+        <a href="{{ url_for('complaint_detail_view', complaint_id=submitted_id) }}" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 20px rgba(56, 189, 248, 0.4); padding: 0.8rem 1.75rem;">
+          📋 Track This Complaint
+        </a>
+        <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-lg" style="padding: 0.8rem 1.75rem;">
+          All My Complaints
         </a>
         <a href="{{ url_for('submit_complaint_view') }}" class="btn btn-secondary btn-lg" style="padding: 0.8rem 1.75rem;">
           + Report Another Issue
@@ -69,6 +84,41 @@
     <!-- ==========================================================================
          PREMIUM GUIDED GRIEVANCE SUBMISSION FORM
          ========================================================================== -->
+
+    {% if duplicate_info %}
+    <!-- Duplicate Detected Warning Banner -->
+    <div class="guided-section-card" style="border: 2px solid rgba(234, 179, 8, 0.6) !important; background: rgba(30, 27, 75, 0.6); margin-bottom: 2rem; padding: 1.75rem 2rem; box-shadow: 0 10px 30px rgba(234, 179, 8, 0.15);">
+      <div style="display: flex; align-items: flex-start; gap: 1.25rem; flex-wrap: wrap;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; background: rgba(234, 179, 8, 0.2); border: 1px solid rgba(234, 179, 8, 0.4); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;">
+          ⚠️
+        </div>
+        <div style="flex: 1; min-width: 260px;">
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+            <h3 style="color: #facc15; margin: 0; font-size: 1.25rem; font-weight: 700;">
+              Duplicate Complaint Detected
+            </h3>
+            <span class="badge badge-pending" style="font-size: 0.75rem;">
+              ⏳ {{ duplicate_info.current_status or 'Active' }}
+            </span>
+          </div>
+          <p style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1.05rem; font-weight: 500; line-height: 1.5;">
+            You already have an active complaint (<strong style="color: #38bdf8; font-family: monospace;">{{ duplicate_info.ticket_id or duplicate_info.complaint_id }}</strong>) for this issue at this location.
+          </p>
+          <p style="color: #94a3b8; margin: 0 0 1.25rem 0; font-size: 0.9rem; line-height: 1.5;">
+            Please wait for your existing complaint to be resolved before submitting another complaint for this area.
+          </p>
+          <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+            <a href="{{ url_for('complaint_detail_view', complaint_id=duplicate_info.complaint_id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; padding: 0.6rem 1.4rem; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);">
+              🔍 View Existing Complaint ({{ duplicate_info.ticket_id or duplicate_info.complaint_id }})
+            </a>
+            <a href="{{ url_for('my_complaints_view') }}" class="btn btn-secondary btn-sm" style="padding: 0.6rem 1.4rem;">
+              📋 View All My Complaints
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     
     <!-- 1. Header with Visual Progress Indicator -->
     <div class="compact-form-header">

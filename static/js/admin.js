@@ -93,16 +93,18 @@ function updateStatusBadge(complaintId, status) {
   const badge = document.querySelector(`#statusBadge-${complaintId}`);
   if (!badge) return;
 
+  const formatStatus = (s) => s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+
   badge.className = 'badge';
-  if (status === 'Pending') {
+  if (['NEW', 'FORWARDED'].includes(status)) {
     badge.classList.add('badge-pending');
-    badge.innerHTML = '<span class="badge-dot"></span> Pending';
-  } else if (status === 'In Progress') {
+    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
+  } else if (['IN_PROGRESS', 'REOPENED'].includes(status)) {
     badge.classList.add('badge-progress');
-    badge.innerHTML = '<span class="badge-dot"></span> In Progress';
-  } else if (status === 'Resolved') {
+    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
+  } else if (['FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'].includes(status)) {
     badge.classList.add('badge-resolved');
-    badge.innerHTML = '<span class="badge-dot"></span> Resolved';
+    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
   } else {
     badge.classList.add('badge-category');
     badge.textContent = status;
@@ -443,7 +445,7 @@ function initCampusHeatmap() {
     if (currentFilter === 'critical') {
       filtered = filtered.filter((c) => (c.priority === 'High' || c.priority === 'Critical'));
     } else if (currentFilter === 'active') {
-      filtered = filtered.filter((c) => (c.status !== 'Resolved'));
+      filtered = filtered.filter((c) => (!['FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'].includes(c.status)));
     }
 
     if (complaintsHeader) {
@@ -471,8 +473,8 @@ function initCampusHeatmap() {
                    : c.priority === 'Medium' ? 'background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fcd34d;'
                    : 'background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); color: #86efac;';
 
-      const sColor = c.status === 'Resolved' ? 'background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;'
-                   : c.status === 'In Progress' ? 'background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;'
+      const sColor = ['FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'].includes(c.status) ? 'background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399;'
+                   : ['IN_PROGRESS', 'REOPENED'].includes(c.status) ? 'background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;'
                    : 'background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24;';
 
       let photoHtml = '';
@@ -699,6 +701,11 @@ function initCampusHeatmap() {
   }
 
   window.refreshZoneTelemetry = fetchLiveZoneTelemetry;
+
+  // Initial selection
+  if (currentZoneId) {
+    selectZone(currentZoneId);
+  }
 
   // Poll for live zone telemetry every 25 seconds
   setInterval(fetchLiveZoneTelemetry, 25000);

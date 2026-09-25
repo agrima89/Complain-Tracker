@@ -29,12 +29,12 @@
         <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or 'Complaint #' ~ "%03d"|format(complaint.complaint_id) }}</h1>
         
         <!-- Status Badge -->
-        {% if complaint.status == 'Pending' %}
-          <span class="badge badge-pending">⏳ Pending Review</span>
-        {% elif complaint.status == 'In Progress' %}
-          <span class="badge badge-progress">⚡ In Progress</span>
-        {% elif complaint.status == 'Resolved' %}
-          <span class="badge badge-resolved">✓ Resolved</span>
+        {% if complaint.status in ('NEW', 'FORWARDED') %}
+          <span class="badge badge-pending">⏳ {{ complaint.status.replace('_', ' ')|title }}</span>
+        {% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}
+          <span class="badge badge-progress">⚡ {{ complaint.status.replace('_', ' ')|title }}</span>
+        {% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
+          <span class="badge badge-resolved">✓ {{ complaint.status.replace('_', ' ')|title }}</span>
         {% endif %}
 
         <!-- Priority Badge -->
@@ -44,6 +44,12 @@
           <span class="badge badge-priority-medium">● Medium Priority</span>
         {% else %}
           <span class="badge badge-priority-low">● Low Priority</span>
+        {% endif %}
+
+        {% if complaint.affected_student_count and complaint.affected_student_count > 1 %}
+          <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 600;">
+            👥 {{ complaint.affected_student_count }} Students Affected
+          </span>
         {% endif %}
 
       </div>
@@ -88,30 +94,30 @@
           {% if complaint.status in ['In Progress', 'Resolved'] %}✓{% else %}<div class="node-pulse-core"></div>{% endif %}
         </div>
         <span class="node-step-label">Under Review</span>
-        <span class="node-meta-badge {% if complaint.status == 'Pending' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'Pending' %}Awaiting Review{% else %}Reviewed{% endif %}
+        <span class="node-meta-badge {% if complaint.status in ('NEW', 'FORWARDED') %}badge-active-state{% endif %}">
+          {% if complaint.status in ('NEW', 'FORWARDED') %}Awaiting Review{% else %}Reviewed{% endif %}
         </span>
       </div>
 
       <!-- Step 3: Action Taken -->
-      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done{% elif complaint.status == 'In Progress' %}is-active{% endif %}">
+      <div class="timeline-node-step {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}is-done{% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}is-active{% endif %}">
         <div class="node-circular-marker">
-          {% if complaint.status == 'Resolved' %}✓{% elif complaint.status == 'In Progress' %}<div class="node-pulse-core"></div>{% else %}○{% endif %}
+          {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}✓{% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}<div class="node-pulse-core"></div>{% else %}○{% endif %}
         </div>
         <span class="node-step-label">Action Taken</span>
-        <span class="node-meta-badge {% if complaint.status == 'In Progress' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'In Progress' %}In Progress{% elif complaint.status == 'Resolved' %}Completed{% else %}Queued{% endif %}
+        <span class="node-meta-badge {% if complaint.status in ('IN_PROGRESS', 'REOPENED') %}badge-active-state{% endif %}">
+          {% if complaint.status in ('IN_PROGRESS', 'REOPENED') %}In Progress{% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}Completed{% else %}Queued{% endif %}
         </span>
       </div>
 
       <!-- Step 4: Resolved -->
-      <div class="timeline-node-step {% if complaint.status == 'Resolved' %}is-done is-active{% endif %}">
+      <div class="timeline-node-step {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}is-done is-active{% endif %}">
         <div class="node-circular-marker">
-          {% if complaint.status == 'Resolved' %}✓{% else %}○{% endif %}
+          {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}✓{% else %}○{% endif %}
         </div>
         <span class="node-step-label">Resolved</span>
-        <span class="node-meta-badge {% if complaint.status == 'Resolved' %}badge-active-state{% endif %}">
-          {% if complaint.status == 'Resolved' %}Verified & Closed{% else %}Final Step{% endif %}
+        <span class="node-meta-badge {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}badge-active-state{% endif %}">
+          {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}Verified & Closed{% else %}Final Step{% endif %}
         </span>
       </div>
 
@@ -122,11 +128,11 @@
       <div class="minimal-progress-header">
         <span style="color: #94a3b8;">CURRENT STATUS</span>
         <span style="color: #38bdf8; font-weight: 700;">
-          {% if complaint.status == 'Pending' %}PENDING REVIEW (25%){% elif complaint.status == 'In Progress' %}IN PROGRESS (75%){% elif complaint.status == 'Resolved' %}FULLY RESOLVED (100%){% endif %}
+          {% if complaint.status in ('NEW', 'FORWARDED') %}PENDING REVIEW (25%){% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}IN PROGRESS (75%){% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}FULLY RESOLVED (100%){% endif %}
         </span>
       </div>
       <div class="minimal-progress-track">
-        <div class="minimal-progress-fill" style="width: {% if complaint.status == 'Pending' %}25%{% elif complaint.status == 'In Progress' %}75%{% elif complaint.status == 'Resolved' %}100%{% endif %};"></div>
+        <div class="minimal-progress-fill" style="width: {% if complaint.status in ('NEW', 'FORWARDED') %}25%{% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}75%{% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}100%{% endif %};"></div>
       </div>
     </div>
 

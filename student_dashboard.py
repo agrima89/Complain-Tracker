@@ -29,7 +29,7 @@ def get_statistics(student_id):
         SELECT COUNT(*)
         FROM complaints
         WHERE student_id = ?
-        AND status = 'Pending'
+        AND status IN ('NEW', 'FORWARDED')
     """, (student_id,))
 
     pending = cursor.fetchone()[0]
@@ -39,7 +39,7 @@ def get_statistics(student_id):
         SELECT COUNT(*)
         FROM complaints
         WHERE student_id = ?
-        AND status = 'In Progress'
+        AND status IN ('IN_PROGRESS', 'REOPENED')
     """, (student_id,))
 
     in_progress = cursor.fetchone()[0]
@@ -49,7 +49,7 @@ def get_statistics(student_id):
         SELECT COUNT(*)
         FROM complaints
         WHERE student_id = ?
-        AND status = 'Resolved'
+        AND status IN ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION')
     """, (student_id,))
 
     resolved = cursor.fetchone()[0]

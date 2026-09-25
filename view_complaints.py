@@ -8,11 +8,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_status_style(status):
-    if status == "Pending":
+    if status in ("NEW", "FORWARDED"):
         return {"bg": "#FEF3C7", "fg": "#D97706"}
-    elif status == "In Progress":
+    elif status in ("IN_PROGRESS", "REOPENED"):
         return {"bg": "#DBEAFE", "fg": "#2563EB"}
-    elif status == "Resolved":
+    elif status in ("FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"):
         return {"bg": "#D1FAE5", "fg": "#059669"}
     return {"bg": "#E2E8F0", "fg": "#475569"}
 
@@ -371,7 +371,7 @@ def view_complaints(student_id):
     status_menu = ttk.Combobox(
         filter_bar,
         textvariable=status_filter,
-        values=["All", "Pending", "In Progress", "Resolved"],
+        values=["All", "NEW", "IN_PROGRESS", "RESOLUTION_SUBMITTED"],
         state="readonly",
         width=15,
         font=("Segoe UI", 9)

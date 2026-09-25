@@ -178,7 +178,7 @@
                 <tr>
                   <td style="font-weight: 700; font-family: monospace;">
                     <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" style="color: #38bdf8; text-decoration: none;">
-                      {{ item.ticket_id or '#' ~ "%03d"|format(item.complaint_id) }}
+                      {{ item.ticket_id }}
                     </a>
                   </td>
                   <td>
@@ -202,12 +202,12 @@
                   </td>
                   <td style="color: #94a3b8; font-size: 0.825rem;">{{ item.date }}</td>
                   <td>
-                    {% if item.status == 'Pending' %}
-                      <span class="badge badge-pending">⏳ Pending</span>
-                    {% elif item.status == 'In Progress' %}
-                      <span class="badge badge-progress">⚡ In Progress</span>
-                    {% elif item.status == 'Resolved' %}
-                      <span class="badge badge-resolved">✓ Resolved</span>
+                    {% if item.status in ('NEW', 'FORWARDED') %}
+                      <span class="badge badge-pending">⏳ {{ item.status.replace('_', ' ')|title }}</span>
+                    {% elif item.status in ('IN_PROGRESS', 'REOPENED') %}
+                      <span class="badge badge-progress">⚡ {{ item.status.replace('_', ' ')|title }}</span>
+                    {% elif item.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
+                      <span class="badge badge-resolved">✓ {{ item.status.replace('_', ' ')|title }}</span>
                     {% else %}
                       <span class="badge">{{ item.status }}</span>
                     {% endif %}

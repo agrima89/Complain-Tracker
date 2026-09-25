@@ -28,12 +28,12 @@
         <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</h1>
         
         <!-- Status Badge -->
-        {% if complaint.status == 'Pending' %}
-          <span id="detailStatusBadge" class="badge badge-pending">⏳ Pending Review</span>
-        {% elif complaint.status == 'In Progress' %}
-          <span id="detailStatusBadge" class="badge badge-progress">⚡ In Progress</span>
-        {% elif complaint.status == 'Resolved' %}
-          <span id="detailStatusBadge" class="badge badge-resolved">✓ Resolved</span>
+        {% if complaint.status in ('NEW', 'FORWARDED') %}
+          <span id="detailStatusBadge" class="badge badge-pending">⏳ {{ complaint.status.replace('_', ' ')|title }}</span>
+        {% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}
+          <span id="detailStatusBadge" class="badge badge-progress">⚡ {{ complaint.status.replace('_', ' ')|title }}</span>
+        {% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
+          <span id="detailStatusBadge" class="badge badge-resolved">✓ {{ complaint.status.replace('_', ' ')|title }}</span>
         {% endif %}
 
         <!-- Priority Badge -->
@@ -45,6 +45,11 @@
           <span class="badge badge-priority-low">● Low Priority</span>
         {% endif %}
 
+        <!-- Students Affected Badge -->
+        <span class="badge" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-weight: 700;">
+          👥 {{ reporters|length if reporters else (complaint.affected_student_count or 1) }} Students Affected
+        </span>
+
         <!-- Escalation Badge -->
         {% if is_escalated %}
           <span class="badge" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171; font-weight: 700;">
@@ -54,6 +59,9 @@
       </div>
       <p class="page-header-subtitle">
         Submitted by <strong style="color: #ffffff;">{{ complaint.student_name }}</strong> ({{ complaint.student_email }}) on {{ complaint.date }}
+        {% if complaint.affected_student_count and complaint.affected_student_count > 1 %}
+          &bull; <strong style="color: #38bdf8;">{{ complaint.affected_student_count }} total students have reported this problem</strong>
+        {% endif %}
         {% if complaint.last_updated and complaint.last_updated != complaint.date %}
           &bull; <span style="color: #94a3b8;">Last updated: {{ complaint.last_updated }}</span>
         {% endif %}
@@ -89,9 +97,9 @@
             Update Lifecycle Status:
           </label>
           <select id="statusSelect" name="status" class="form-select">
-            <option value="Pending" {% if complaint.status == 'Pending' %}selected{% endif %}>Pending</option>
-            <option value="In Progress" {% if complaint.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-            <option value="Resolved" {% if complaint.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+            <option value="Pending" {% if complaint.status in ('NEW', 'FORWARDED') %}selected{% endif %}>Pending</option>
+            <option value="In Progress" {% if complaint.status in ('IN_PROGRESS', 'REOPENED') %}selected{% endif %}>In Progress</option>
+            <option value="Resolved" {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}selected{% endif %}>Resolved</option>
           </select>
         </div>
 
@@ -226,6 +234,67 @@
         {% endif %}
       </div>
 
+    </div>
+  </div>
+
+  <!-- Students Reporting This Issue Card -->
+  <div class="cinematic-card" style="margin-bottom: 2rem;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 class="card-title" style="margin-bottom: 0.25rem;">👥 Students Reporting This Issue</h2>
+        <div style="font-size: 0.85rem; color: #94a3b8;">
+          Total Students Reporting: <strong style="color: #38bdf8; font-size: 1rem;">{{ reporters|length if reporters else (complaint.affected_student_count or 1) }}</strong>
+        </div>
+      </div>
+      <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 0.825rem; font-weight: 700;">
+        {{ reporters|length if reporters else (complaint.affected_student_count or 1) }} Affected
+      </span>
+    </div>
+
+    <div class="card-body">
+      {% if reporters and reporters|length > 0 %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+          {% for r in reporters %}
+            <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #38bdf8; font-size: 0.875rem;">
+                  {{ loop.index }}
+                </div>
+                <div>
+                  <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff;">
+                    {{ r.student_name or 'Student #' ~ r.student_id }}
+                    {% if loop.first %}
+                      <span class="badge" style="background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; font-size: 0.7rem; padding: 0.1rem 0.45rem; margin-left: 0.4rem; vertical-align: middle;">Primary Submitter</span>
+                    {% else %}
+                      <span class="badge" style="background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8; font-size: 0.7rem; padding: 0.1rem 0.45rem; margin-left: 0.4rem; vertical-align: middle;">Co-Reporter</span>
+                    {% endif %}
+                  </div>
+                  <div style="font-size: 0.825rem; color: #38bdf8;">
+                    {{ r.student_email or r.user_email or 'No email' }}
+                    {% if r.student_department %}
+                      <span style="color: #64748b; margin-left: 0.5rem;">• {{ r.student_department }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; background: rgba(15, 23, 42, 0.5); padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                🕒 Reported on: <span style="color: #e2e8f0; font-weight: 500;">{{ r.reported_at }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-weight: 700; color: #38bdf8;">1.</span>
+            <div>
+              <span style="font-weight: 600; color: #ffffff;">{{ complaint.student_name }}</span> &mdash;
+              <span style="color: #38bdf8; font-size: 0.85rem;">{{ complaint.student_email }}</span>
+            </div>
+          </div>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Reported on: {{ complaint.created_at }}</span>
+        </div>
+      {% endif %}
     </div>
   </div>
 
