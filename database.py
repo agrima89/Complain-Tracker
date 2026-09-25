@@ -247,8 +247,8 @@ def normalize_issue_text(text, room_no=""):
         "windows": "window", "chairs": "chair", "benches": "bench",
         "tables": "table", "desks": "desk", "projectors": "projector",
         "routers": "router", "smelling": "smell", "smells": "smell", "ac": "ac",
-        "airconditioner": "ac", "airconditioners": "ac"
-    }
+        "airconditioner": "ac", "airconditioners": "ac",
+        "cleaned": "clean", "cleaning": "clean", "cleans": "clean"   }
 
     cleaned_tokens = []
     for w in words:
@@ -793,6 +793,7 @@ def create_database():
     """Initializes SQLite database tables, runs safe migrations, and sets default admin account."""
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute("BEGIN EXCLUSIVE")
 
     # Students table
     cursor.execute("""
@@ -971,53 +972,60 @@ def get_student_statistics(student_id):
 
 def get_admin_statistics(department=None):
     conn = get_db_connection()
-    where = "WHERE department = ?" if department else "WHERE 1=1"
-    params = (department,) if department else ()
+    where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    if department:
+        where += " AND department = ?"
+        params = (department,)
+    else:
+        params = ()
 
+    # 1. Unique Grievances (Total Master Complaints)
     total = conn.execute(f"SELECT COUNT(*) FROM complaints {where}", params).fetchone()[0]
 
-    # Total student reports & unique affected students
+    # 2 & 3. Student Reports and Students Affected
+    # Only count reporters that belong to a valid active master complaint
+    # (to prevent double counting if an old/merged record still has reporters)
     if department:
-        total_reports = conn.execute("""
+        total_reports = conn.execute(f"""
             SELECT COUNT(*) FROM complaint_reporters cr
             JOIN complaints c ON cr.complaint_id = c.complaint_id
-            WHERE c.department = ?
-        """, (department,)).fetchone()[0]
-        students_affected = conn.execute("""
+            {where}
+        """, params).fetchone()[0]
+        students_affected = conn.execute(f"""
             SELECT COUNT(DISTINCT cr.student_id) FROM complaint_reporters cr
             JOIN complaints c ON cr.complaint_id = c.complaint_id
-            WHERE c.department = ?
-        """, (department,)).fetchone()[0]
+            {where}
+        """, params).fetchone()[0]
     else:
-        total_reports = conn.execute("SELECT COUNT(*) FROM complaint_reporters").fetchone()[0]
-        students_affected = conn.execute("SELECT COUNT(DISTINCT student_id) FROM complaint_reporters").fetchone()[0]
+        total_reports = conn.execute(f"""
+            SELECT COUNT(*) FROM complaint_reporters cr
+            JOIN complaints c ON cr.complaint_id = c.complaint_id
+            {where}
+        """, params).fetchone()[0]
+        students_affected = conn.execute(f"""
+            SELECT COUNT(DISTINCT cr.student_id) FROM complaint_reporters cr
+            JOIN complaints c ON cr.complaint_id = c.complaint_id
+            {where}
+        """, params).fetchone()[0]
 
     # Ensure reports/affected are at least equal to master complaints count
     total_reports = max(total_reports, total)
     students_affected = max(students_affected, total)
     
-    where_pending = f"{where} AND status = 'NEW'"
+    # 4. Pending Action
+    # The application uses NEW, FORWARDED, RESOLUTION_SUBMITTED, AWAITING_STUDENT_CONFIRMATION for Pending Action
+    # Let's count them according to the rules defined previously.
+    where_pending = f"{where} AND status IN ('NEW', 'FORWARDED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION')"
     pending = conn.execute(f"SELECT COUNT(*) FROM complaints {where_pending}", params).fetchone()[0]
     
-    where_forwarded = f"{where} AND status = 'FORWARDED'"
-    forwarded = conn.execute(f"SELECT COUNT(*) FROM complaints {where_forwarded}", params).fetchone()[0]
-    
-    where_in_progress = f"{where} AND status = 'IN_PROGRESS'"
+    where_in_progress = f"{where} AND status IN ('IN_PROGRESS', 'REOPENED')"
     in_progress = conn.execute(f"SELECT COUNT(*) FROM complaints {where_in_progress}", params).fetchone()[0]
     
-    where_resolved = f"{where} AND status = 'RESOLUTION_SUBMITTED'"
+    where_resolved = f"{where} AND status = 'FINAL_RESOLVED'"
     resolved = conn.execute(f"SELECT COUNT(*) FROM complaints {where_resolved}", params).fetchone()[0]
-    
-    where_awaiting = f"{where} AND status = 'AWAITING_STUDENT_CONFIRMATION'"
-    awaiting = conn.execute(f"SELECT COUNT(*) FROM complaints {where_awaiting}", params).fetchone()[0]
-    
-    where_regenerated = f"{where} AND status = 'REOPENED'"
-    regenerated = conn.execute(f"SELECT COUNT(*) FROM complaints {where_regenerated}", params).fetchone()[0]
-    
-    where_final = f"{where} AND status = 'FINAL_RESOLVED'"
-    final_resolved = conn.execute(f"SELECT COUNT(*) FROM complaints {where_final}", params).fetchone()[0]
 
     # Count escalated items (High Priority + status != 'FINAL_RESOLVED' older than 48 hours)
+    from datetime import datetime, timedelta
     threshold_dt = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d %H:%M:%S")
     threshold_date = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d")
 
@@ -1033,16 +1041,11 @@ def get_admin_statistics(department=None):
         "students_affected": students_affected,
         "pending": pending,
         "new": pending,
-        "forwarded": forwarded,
         "in_progress": in_progress,
-        "resolved_by_department": resolved,
-        "awaiting_student_confirmation": awaiting,
-        "regenerated": regenerated,
-        "resolved": final_resolved,
-        "final_resolved": final_resolved,
+        "resolved": resolved,
+        "final_resolved": resolved,
         "escalated": escalated
     }
-
 
 def get_transport_statistics():
     """Aggregates real-time statistics for transport complaints directly from the database."""
@@ -1188,53 +1191,33 @@ def submit_or_attach_complaint(
     pickup_drop_point="",
     transport_complaint_type=""
 ):
-    """
-    Core complaint deduplication and master grouping logic:
-    1. Computes normalized fingerprint for the incoming issue.
-    2. Searches for an existing active master complaint with the same fingerprint.
-    3. If matching complaint exists:
-       - If current student already reported it: REJECT as duplicate with clear notification.
-       - If current student has NOT reported it: ATTACH student to the master complaint, increment affected_student_count.
-    4. If no matching complaint exists:
-       - CREATE a new master complaint, register student in complaint_reporters, set count = 1.
-    """
-    if not date_str:
-        date_str = datetime.now().strftime("%Y-%m-%d")
-
-    category_dept_map = {
-        "Electrical": "Electrical",
-        "Cleaning": "Cleaning",
-        "Classroom": "Classroom",
-        "Hostel": "Hostel",
-        "Wi-Fi/Internet": "Wi-Fi/Internet",
-        "Library": "Library",
-        "Infrastructure": "Infrastructure",
-        "Transport Complaint": "Transport",
-        "Other": "Other"
-    }
-    department = category_dept_map.get(category, category)
-
-    if category == "Transport Complaint":
-        if not location:
-            location = f"{bus_number} - {route}" if bus_number else "Transport"
-    else:
-        if not location:
-            loc_parts = []
-            if block:
-                loc_parts.append(block)
-            if floor_no:
-                loc_parts.append(f"Floor {floor_no}")
-            if room_no:
-                loc_parts.append(f"Room {room_no}")
-            if corridor_side:
-                loc_parts.append(f"Side: {corridor_side}")
-            if nearby_area:
-                loc_parts.append(f"Near: {nearby_area}")
-            location = ", ".join(loc_parts) if loc_parts else (block or "Campus")
-
+    import time
+    from datetime import datetime, date
     now_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if not date_str:
+        date_str = str(date.today())
 
-    # Compute deterministic fingerprint
+    # Room/Floor Inconsistency Validation
+    if room_no and floor_no:
+        canon_room = extract_canonical_room(room_no)
+        if canon_room and canon_room[0].isdigit():
+            implied_floor = None
+            first_digit = canon_room[0]
+            if first_digit == '0': implied_floor = 'ground'
+            elif first_digit == '1': implied_floor = '1st'
+            elif first_digit == '2': implied_floor = '2nd'
+            elif first_digit == '3': implied_floor = '3rd'
+            elif first_digit == '4': implied_floor = '4th'
+            elif first_digit == '5': implied_floor = '5th'
+            
+            if implied_floor and implied_floor not in floor_no.lower():
+                return {
+                    "status": "VALIDATION_FAILED",
+                    "message": f"Inconsistent location: Room {room_no} appears to be on the {implied_floor} floor, but you selected '{floor_no}'. Please correct the location."
+                }
+
+
+    # STEP 1 & 2: Normalize and generate ONE deterministic fingerprint
     fingerprint = compute_complaint_fingerprint(
         category=category,
         description=description,
@@ -1254,183 +1237,168 @@ def submit_or_attach_complaint(
 
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute("BEGIN EXCLUSIVE")
 
-    # 1. PRIMARY SERVER-SIDE ACTIVE DUPLICATE VALIDATION:
-    # Check if the same student already has an active complaint for:
-    # - Same student / registered email
-    # - Same complaint category
-    # - Same block / building
-    # - Same room / location
-    # - Status is still active (NEW, PENDING, IN_PROGRESS, REOPENED, FORWARDED)
-    active_dup = find_active_duplicate_complaint(
-        student_id=student_id,
-        category=category,
-        description=description,
-        block=block,
-        floor_no=floor_no,
-        room_no=room_no,
-        location=location,
-        bus_number=bus_number,
-        route=route,
-        transport_type=transport_type,
-        conn=conn
-    )
-
-    if active_dup:
-        existing_ticket = active_dup["ticket_id"] or format_ticket_id(active_dup["complaint_id"], active_dup["date"])
-        conn.close()
-        return {
-            "status": "DUPLICATE_REJECTED",
-            "complaint_id": active_dup["complaint_id"],
-            "ticket_id": existing_ticket,
-            "affected_student_count": active_dup["affected_student_count"] or 1,
-            "current_status": active_dup["status"],
-            "category": active_dup["category"],
-            "location": (active_dup["block"] or "") + (f", Room {active_dup['room_no']}" if active_dup["room_no"] else ""),
-            "message": f"Duplicate Complaint Detected. You already have an active complaint ({existing_ticket}) for this issue at this location. You have already reported this issue. Please wait for your existing complaint to be resolved before submitting another complaint."
-        }
-
-    # Retrieve student email for audit record
+    # STEP 4: Server Console Logging
     student_row = cursor.execute("SELECT email, name FROM students WHERE student_id = ?", (student_id,)).fetchone()
     student_email = student_row["email"] if student_row else ""
+    print(f"\n--- SUBMISSION DEBUG ---")
+    print(f"student_id = {student_id}")
+    print(f"email = {student_email}")
+    print(f"fingerprint = {fingerprint}")
 
-    # Look for matching active master complaint (unresolved)
-    sub_loc_key = get_canonical_location_key(
-        category=category,
-        block=block,
-        floor_no=floor_no,
-        room_no=room_no,
-        location=location,
-        bus_number=bus_number,
-        route=route,
-        transport_type=transport_type
-    )
-    candidates = cursor.execute("""
+    # STEP 3: Search for existing ACTIVE master complaint with that exact fingerprint
+    master = cursor.execute("""
         SELECT * FROM complaints 
-        WHERE LOWER(category) = LOWER(?) 
+        WHERE complaint_fingerprint = ? 
           AND status != 'FINAL_RESOLVED' 
-        ORDER BY complaint_id DESC
-    """, ((category or "").strip(),)).fetchall()
-
-    master = None
-    for cand in candidates:
-        cand_loc_key = get_canonical_location_key(
-            category=cand["category"],
-            block=cand["block"],
-            floor_no=cand["floor_no"],
-            room_no=cand["room_no"],
-            location=cand["location"],
-            bus_number=cand["bus_number"],
-            route=cand["route"],
-            transport_type=cand["transport_type"]
-        )
-        if cand_loc_key == sub_loc_key:
-            if is_similar_issue(description, cand["description"], room_no):
-                master = dict(cand)
-                break
-
-    group_id = None
-    is_primary = 1
-    master_ticket = ""
-
+        ORDER BY complaint_id DESC LIMIT 1
+    """, (fingerprint,)).fetchone()
+    
     if master:
-        group_id = master.get("group_id") or master["complaint_id"]
-        is_primary = 0
-        master_ticket = master["ticket_id"] or format_ticket_id(master["complaint_id"], master["date"])
+        master_id = master["complaint_id"]
+        master_ticket = master["ticket_id"] or format_ticket_id(master_id, master["date"])
+        print(f"existing_master_complaint_id = {master_id}")
+        
+        # Check complaint_reporters for current student
+        is_reporter = cursor.execute(
+            "SELECT 1 FROM complaint_reporters WHERE complaint_id = ? AND student_id = ?",
+            (master_id, student_id)
+        ).fetchone()
+        
+        if is_reporter:
+            print("existing_reporter = True")
+            print("ACTION = REJECT_DUPLICATE")
+            conn.rollback()
+            conn.close()
+            return {
+                "status": "DUPLICATE_REJECTED",
+                "complaint_id": master_id,
+                "ticket_id": master_ticket,
+                "affected_student_count": master["affected_student_count"],
+                "current_status": master["status"],
+                "category": master["category"],
+                "location": (master["block"] or "") + (f", Room {master['room_no']}" if master["room_no"] else ""),
+                "message": f"Duplicate Complaint Detected. You already have an active complaint ({master_ticket}) for this issue. You have already reported this issue at this location. Please track your existing complaint instead of submitting the same issue again."
+            }
+        else:
+            print("existing_reporter = False")
+            print("ACTION = ADD_REPORTER_AND_CREATE_TICKET")
+            # Create the non-primary complaint record
+            cursor.execute("""
+                INSERT INTO complaints (
+                    student_id, category, description, photo_path, block, floor_no, room_no,
+                    corridor_side, nearby_area, additional_location, priority,
+                    transport_type, bus_number, route, pickup_drop_point, transport_complaint_type,
+                    department, status, date, location, complaint_fingerprint,
+                    affected_student_count, is_primary, group_id, regeneration_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', ?, ?, ?, ?, 0, ?, 0)
+            """, (
+                student_id, category, description, photo_path, block, floor_no, room_no,
+                corridor_side, nearby_area, additional_location, priority,
+                transport_type, bus_number, route, pickup_drop_point, transport_complaint_type,
+                master["department"], date_str, master["location"], fingerprint,
+                1, master_id
+            ))
+            
+            new_complaint_id = cursor.lastrowid
+            new_ticket_id = format_ticket_id(new_complaint_id, date_str)
+            
+            cursor.execute("UPDATE complaints SET ticket_id = ? WHERE complaint_id = ?", (new_ticket_id, new_complaint_id))
+            
+            # Insert into complaint_reporters for BOTH master and new complaint
+            cursor.execute("""
+                INSERT INTO complaint_reporters (complaint_id, student_id, student_email, reported_at)
+                VALUES (?, ?, ?, ?)
+            """, (master_id, student_id, student_email, now_timestamp))
+            
+            cursor.execute("""
+                INSERT INTO complaint_reporters (complaint_id, student_id, student_email, reported_at)
+                VALUES (?, ?, ?, ?)
+            """, (new_complaint_id, student_id, student_email, now_timestamp))
+            
+            # Update affected_student_count on master
+            cursor.execute("""
+                UPDATE complaints 
+                SET affected_student_count = affected_student_count + 1 
+                WHERE complaint_id = ?
+            """, (master_id,))
+            
+            conn.commit()
+            return {
+                "status": "ATTACHED_TO_MASTER",
+                "complaint_id": new_complaint_id,
+                "ticket_id": new_ticket_id,
+                "affected_student_count": master["affected_student_count"] + 1,
+                "current_status": master["status"],
+                "category": category,
+                "location": location,
+                "message": f"Your complaint has been registered. You have been grouped with an existing active issue. Your Ticket ID is {new_ticket_id}."
+            }
+            
+            # Fetch updated count
+            new_count = cursor.execute("SELECT affected_student_count FROM complaints WHERE complaint_id = ?", (master_id,)).fetchone()[0]
+            conn.close()
+            
+            return {
+                "status": "ATTACHED_TO_MASTER",
+                "complaint_id": master_id,
+                "ticket_id": master_ticket,
+                "affected_student_count": new_count,
+                "message": f"Your complaint has been successfully attached to an existing issue report. Ticket ID: {master_ticket}"
+            }
 
-    # ALWAYS Create NEW master complaint record for every submission
+    # STEP 5: ONLY when no matching master complaint exists
+    print("existing_master_complaint_id = None")
+    print("existing_reporter = False")
+    print("ACTION = CREATE_MASTER")
+    
+    # Assign department (basic assignment logic based on category)
+    department = "General"
+    if category == "Electrical":
+        department = "Electrical"
+    elif category == "Cleaning":
+        department = "Cleaning"
+    elif category == "Plumbing":
+        department = "Plumbing"
+    elif category == "IT / Network":
+        department = "IT Support"
+    elif category == "Transport Complaint":
+        department = "Transport"
+
     cursor.execute("""
         INSERT INTO complaints
         (student_id, ticket_id, category, description, photo_path, block, floor_no, room_no,
          corridor_side, nearby_area, additional_location, location, priority, status, date, last_updated,
          transport_type, bus_number, route, pickup_drop_point, transport_complaint_type, department,
          complaint_fingerprint, affected_student_count, group_id, is_primary)
-        VALUES (?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
+        VALUES (?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NULL, 1)
     """, (
-        student_id,
-        category,
-        description,
-        photo_path or "",
-        block or "",
-        floor_no or "",
-        room_no or "",
-        corridor_side or "",
-        nearby_area or "",
-        additional_location or "",
-        location,
-        priority,
-        date_str,
-        now_timestamp,
-        transport_type or "",
-        bus_number or "",
-        route or "",
-        pickup_drop_point or "",
-        transport_complaint_type or "",
-        department,
-        fingerprint,
-        group_id,
-        is_primary
+        student_id, category, description, photo_path or "", block or "", floor_no or "", room_no or "",
+        corridor_side or "", nearby_area or "", additional_location or "", location or "", priority, date_str,
+        now_timestamp, transport_type or "", bus_number or "", route or "", pickup_drop_point or "",
+        transport_complaint_type or "", department, fingerprint
     ))
+    
     complaint_id = cursor.lastrowid
     ticket_id = format_ticket_id(complaint_id, date_str)
     
-    if is_primary:
-        group_id = complaint_id
-
-    # Save generated ticket_id and group_id
-    cursor.execute("UPDATE complaints SET ticket_id = ?, group_id = ? WHERE complaint_id = ?", (ticket_id, group_id, complaint_id))
-
-    # Link initial submitter in complaint_reporters (for backwards compatibility if needed)
+    cursor.execute("UPDATE complaints SET ticket_id = ?, group_id = ? WHERE complaint_id = ?", (ticket_id, complaint_id, complaint_id))
+    
     cursor.execute("""
         INSERT INTO complaint_reporters (complaint_id, student_id, student_email, reported_at)
         VALUES (?, ?, ?, ?)
     """, (complaint_id, student_id, student_email, now_timestamp))
-
-    # Initial audit history entry
+    
     cursor.execute("""
         INSERT INTO complaint_status_history
         (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at)
         VALUES (?, NULL, 'Student (Submission)', NULL, 'NEW', 'Grievance ticket created and lodged for administration review.', ?)
     """, (complaint_id, now_timestamp))
-
-    # Register active slot for database-level concurrency protection
-    active_slot_key = f"{student_id}::{fingerprint}"
-    try:
-        cursor.execute("""
-            INSERT INTO active_complaint_slots (slot_key, complaint_id, student_id, created_at)
-            VALUES (?, ?, ?, ?)
-        """, (active_slot_key, complaint_id, student_id, now_timestamp))
-    except sqlite3.IntegrityError:
-        conn.rollback()
-        cursor.execute("SELECT complaint_id FROM active_complaint_slots WHERE slot_key = ?", (active_slot_key,))
-        race_row = cursor.fetchone()
-        race_id = race_row["complaint_id"] if race_row else complaint_id
-        race_comp = get_complaint_by_id(race_id)
-        race_ticket = race_comp["ticket_id"] if race_comp else format_ticket_id(race_id)
-        conn.close()
-        return {
-            "status": "DUPLICATE_REJECTED",
-            "complaint_id": race_id,
-            "ticket_id": race_ticket,
-            "affected_student_count": 1,
-            "current_status": "NEW",
-            "category": category,
-            "location": block,
-            "message": f"Duplicate Complaint Detected. You already have an active complaint ({race_ticket}) for this issue at this location. Please wait for your existing complaint to be resolved before submitting another complaint."
-        }
-
+    
     conn.commit()
     conn.close()
     
-    if not is_primary:
-        return {
-            "status": "CREATED_NEW",
-            "complaint_id": complaint_id,
-            "ticket_id": ticket_id,
-            "affected_student_count": 1,
-            "message": f"Grievance ticket {ticket_id} submitted successfully. (Linked to related issue)"
-        }
-        
     return {
         "status": "CREATED_NEW",
         "complaint_id": complaint_id,
@@ -1438,9 +1406,6 @@ def submit_or_attach_complaint(
         "affected_student_count": 1,
         "message": f"Grievance ticket {ticket_id} submitted successfully."
     }
-
-
-
 
 def create_complaint(
     student_id,
@@ -1494,6 +1459,7 @@ def add_status_history(complaint_id, admin_id, admin_name, old_status, new_statu
     now_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute("BEGIN EXCLUSIVE")
     cursor.execute("""
         INSERT INTO complaint_status_history
         (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at)
@@ -1545,6 +1511,7 @@ def add_admin_note(complaint_id, admin_id, admin_name, note):
     now_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn = get_db_connection()
     cursor = conn.cursor()
+    cursor.execute("BEGIN EXCLUSIVE")
     cursor.execute("""
         INSERT INTO admin_notes
         (complaint_id, admin_id, admin_name, note, created_at)
@@ -1780,6 +1747,7 @@ def get_all_complaints_admin_paginated(
 
 def get_complaint_collections():
     conn = get_db_connection()
+    # Fetch all master complaints
     query_sql = """
         SELECT
             complaints.*,
@@ -1787,106 +1755,91 @@ def get_complaint_collections():
             students.email AS student_email
         FROM complaints
         JOIN students ON complaints.student_id = students.student_id
+        WHERE complaints.is_primary = 1 OR complaints.group_id IS NULL
         ORDER BY complaints.complaint_id DESC
     """
     complaints_raw = conn.execute(query_sql).fetchall()
-    conn.close()
-
+    
     collections = []
     
-    priority_rank = {"High": 3, "Medium": 2, "Low": 1, "": 0}
-    
-    for row in complaints_raw:
-        c = dict(row)
-        c['ticket_id'] = c.get('ticket_id') or format_ticket_id(c['complaint_id'], c['date'])
-        
-        is_transport = c.get('category') == 'Transport Complaint'
-        
-        found_col = False
-        for col in collections:
-            if col['category'] != c.get('category'):
-                continue
-                
-            if is_transport:
-                if col.get('bus_number') != c.get('bus_number') or                    col.get('route') != c.get('route') or                    col.get('pickup_drop_point') != c.get('pickup_drop_point'):
-                    continue
-            else:
-                if col.get('block') != c.get('block') or                    col.get('floor_no') != c.get('floor_no') or                    col.get('room_no') != c.get('room_no'):
-                    continue
-            
-            if is_similar_issue(c.get('description', ''), col['representative_description'], c.get('room_no', '')):
-                col['complaints'].append(c)
-                col['report_count'] += 1
-                
-                # Status
-                if c['status'] in ('NEW', 'FORWARDED', 'REOPENED'):
-                    col['status_counts']['NEW'] += 1
-                elif c['status'] in ('IN_PROGRESS', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'):
-                    col['status_counts']['IN_PROGRESS'] += 1
-                elif c['status'] == 'FINAL_RESOLVED':
-                    col['status_counts']['RESOLVED'] += 1
-                    
-                # Priority
-                c_rank = priority_rank.get(c.get('priority', 'Low'), 0)
-                col_rank = priority_rank.get(col.get('priority', 'Low'), 0)
-                if c_rank > col_rank:
-                    col['priority'] = c.get('priority', 'High')
-                
-                # Unique students
-                existing_students = set([comp['student_id'] for comp in col['complaints']])
-                col['student_count'] = len(existing_students)
-                found_col = True
-                break
-                
-        if not found_col:
-            col = {
-                'collection_id': f"COL-{c['complaint_id']:04d}",
-                'issue': c.get('description', ''),
-                'representative_description': c.get('description', ''),
-                'category': c.get('category', ''),
-                'location': f"{c.get('block', '')} • {c.get('floor_no', '')} • {c.get('room_no', '')}" if not is_transport else f"Bus {c.get('bus_number', '')} • Route {c.get('route', '')}",
-                'block': c.get('block', ''),
-                'floor_no': c.get('floor_no', ''),
-                'room_no': c.get('room_no', ''),
-                'bus_number': c.get('bus_number', ''),
-                'route': c.get('route', ''),
-                'pickup_drop_point': c.get('pickup_drop_point', ''),
-                'priority': c.get('priority', 'Low'),
-                'student_count': 1,
-                'report_count': 1,
-                'complaints': [c],
-                'status_counts': {'NEW': 0, 'IN_PROGRESS': 0, 'RESOLVED': 0}
-            }
-            if c['status'] in ('NEW', 'FORWARDED', 'REOPENED'):
-                col['status_counts']['NEW'] = 1
-            elif c['status'] in ('IN_PROGRESS', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'):
-                col['status_counts']['IN_PROGRESS'] = 1
-            elif c['status'] == 'FINAL_RESOLVED':
-                col['status_counts']['RESOLVED'] = 1
-                
-            collections.append(col)
-            
     summary = {
-        'total_issues': len(collections),
+        'total_issues': 0,
         'affected_students': 0,
         'open_issues': 0,
         'in_progress': 0,
         'resolved': 0
     }
     
-    for col in collections:
-        summary['affected_students'] += col['student_count']
+    for row in complaints_raw:
+        c = dict(row)
+        c['ticket_id'] = c.get('ticket_id') or format_ticket_id(c['complaint_id'], c['date'])
         
-        if col['status_counts']['NEW'] == col['report_count']:
-            col['status'] = 'NEW'
+        # In the new paradigm, each collection is just a 1-to-1 mapping with a master complaint.
+        reporters = conn.execute(
+            "SELECT student_id, student_email, reported_at FROM complaint_reporters WHERE complaint_id = ?",
+            (c['complaint_id'],)
+        ).fetchall()
+        
+        is_transport = c.get('category') == 'Transport Complaint'
+        location_str = f"{c.get('block', '')} • {c.get('floor_no', '')} • {c.get('room_no', '')}" if not is_transport else f"Bus {c.get('bus_number', '')} • Route {c.get('route', '')}"
+        
+        status_counts = {'NEW': 0, 'IN_PROGRESS': 0, 'RESOLVED': 0}
+        s = c['status']
+        # The user requested mapping:
+        # NEW, FORWARDED, RESOLUTION_SUBMITTED, AWAITING_STUDENT_CONFIRMATION -> Pending (NEW)
+        # IN_PROGRESS, REOPENED -> In Progress
+        # FINAL_RESOLVED -> Resolved
+        if s in ('NEW', 'FORWARDED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'):
+            status_counts['NEW'] = 1
             summary['open_issues'] += 1
-        elif col['status_counts']['RESOLVED'] == col['report_count']:
-            col['status'] = 'RESOLVED'
-            summary['resolved'] += 1
-        else:
-            col['status'] = 'IN_PROGRESS'
+        elif s in ('IN_PROGRESS', 'REOPENED'):
+            status_counts['IN_PROGRESS'] = 1
             summary['in_progress'] += 1
+        elif s == 'FINAL_RESOLVED':
+            status_counts['RESOLVED'] = 1
+            summary['resolved'] += 1
             
+        student_count = c.get('affected_student_count', 1)
+        summary['affected_students'] += student_count
+        summary['total_issues'] += 1
+        
+        # Build pseudo-complaints for the UI modal so it can display the list of reporters
+        pseudo_complaints = []
+        for r in reporters:
+            pc = dict(c) # copy master
+            pc['student_id'] = r['student_id']
+            pc['student_email'] = r['student_email']
+            # Try to get the student's name
+            student_row = conn.execute("SELECT name FROM students WHERE student_id = ?", (r['student_id'],)).fetchone()
+            if student_row:
+                pc['student_name'] = student_row['name']
+            pseudo_complaints.append(pc)
+            
+        if not pseudo_complaints:
+            pseudo_complaints = [c] # Failsafe
+            
+        col = {
+            'collection_id': f"COL-{c['complaint_id']:04d}",
+            'issue': c.get('description', ''),
+            'representative_description': c.get('description', ''),
+            'category': c.get('category', ''),
+            'location': location_str,
+            'block': c.get('block', ''),
+            'floor_no': c.get('floor_no', ''),
+            'room_no': c.get('room_no', ''),
+            'bus_number': c.get('bus_number', ''),
+            'route': c.get('route', ''),
+            'pickup_drop_point': c.get('pickup_drop_point', ''),
+            'priority': c.get('priority', 'Low'),
+            'student_count': student_count,
+            'report_count': student_count,
+            'complaints': pseudo_complaints,
+            'status_counts': status_counts,
+            'status': c['status'] # Important: direct master status!
+        }
+        collections.append(col)
+        
+    conn.close()
     return collections, summary
 
 def get_complaint_by_id(complaint_id):
@@ -1971,8 +1924,12 @@ def get_analytics_data(department=None):
     Optionally scoped to a specific department.
     """
     conn = get_db_connection()
-    where = "WHERE department = ?" if department else "WHERE 1=1"
-    params = (department,) if department else ()
+    where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    if department:
+        where += " AND department = ?"
+        params = (department,)
+    else:
+        params = ()
 
     # 1. By Category
     cat_rows = conn.execute(f"SELECT category, COUNT(*) as count FROM complaints {where} GROUP BY category ORDER BY count DESC", params).fetchall()
@@ -1991,16 +1948,17 @@ def get_analytics_data(department=None):
     by_status = {"Pending": 0, "In Progress": 0, "Resolved": 0}
     for row in status_rows:
         s = row["status"]
-        if s in ("NEW", "FORWARDED"):
+        if s in ("NEW", "FORWARDED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"):
             by_status["Pending"] += row["count"]
         elif s in ("IN_PROGRESS", "REOPENED"):
             by_status["In Progress"] += row["count"]
-        elif s in ("FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"):
+        elif s == "FINAL_RESOLVED":
             by_status["Resolved"] += row["count"]
     statuses_list = [{"status": s, "count": by_status[s]} for s in ["Pending", "In Progress", "Resolved"]]
 
     # 4. Monthly Trend (Past 6 Months)
     monthly_trend = []
+    from datetime import datetime, timedelta
     now = datetime.now()
     for i in range(5, -1, -1):
         m_date = now - timedelta(days=i * 30)
@@ -2715,9 +2673,8 @@ def get_related_complaints(complaint_id):
     # Get target complaint
     target_comp = conn.execute(
         """
-        SELECT complaints.*, students.name AS student_name, students.email AS student_email
+        SELECT complaints.*
         FROM complaints 
-        JOIN students ON complaints.student_id = students.student_id
         WHERE complaint_id = ?
         """, 
         (complaint_id,)
@@ -2730,40 +2687,36 @@ def get_related_complaints(complaint_id):
     target = dict(target_comp)
     is_transport = target.get('category') == 'Transport Complaint'
     
-    # Base query for same category
-    query_sql = """
-        SELECT complaints.*, students.name AS student_name, students.email AS student_email
-        FROM complaints 
-        JOIN students ON complaints.student_id = students.student_id
-        WHERE complaints.category = ?
-        ORDER BY complaints.complaint_id DESC
-    """
-    all_comps = conn.execute(query_sql, (target.get('category'),)).fetchall()
+    # Get all reporters for this complaint
+    reporters = conn.execute(
+        """
+        SELECT complaint_reporters.*, students.name AS student_name, students.email AS student_email
+        FROM complaint_reporters
+        JOIN students ON complaint_reporters.student_id = students.student_id
+        WHERE complaint_id = ?
+        ORDER BY reported_at DESC
+        """, (complaint_id,)
+    ).fetchall()
+    
     conn.close()
     
     related = []
     unique_students = set()
     
-    for row in all_comps:
-        c = dict(row)
-        
-        # Location matching
-        if is_transport:
-            if c.get('bus_number') != target.get('bus_number') or \
-               c.get('route') != target.get('route') or \
-               c.get('pickup_drop_point') != target.get('pickup_drop_point'):
-                continue
-        else:
-            if c.get('block') != target.get('block') or \
-               c.get('floor_no') != target.get('floor_no') or \
-               c.get('room_no') != target.get('room_no'):
-                continue
-                
-        # Issue similarity matching
-        if is_similar_issue(c.get('description', ''), target.get('description', ''), target.get('room_no', '')):
-            c['ticket_id'] = c.get('ticket_id') or format_ticket_id(c['complaint_id'], c['date'])
-            related.append(c)
-            unique_students.add(c['student_id'])
+    # In the new merged paradigm, every reporter row is effectively a "complaint submission" mapped to this master ticket
+    # To keep the UI compatible with the modal (which expects a ticket_id and student_name for each item),
+    # we yield pseudo-records representing each reporter's submission, sharing the master ticket_id.
+    
+    for row in reporters:
+        r = dict(row)
+        c = {
+            'complaint_id': complaint_id,
+            'ticket_id': target.get('ticket_id') or format_ticket_id(complaint_id, target.get('date')),
+            'student_name': r.get('student_name'),
+            'student_id': r.get('student_id')
+        }
+        related.append(c)
+        unique_students.add(r['student_id'])
             
     return {
         'related_complaints': related,

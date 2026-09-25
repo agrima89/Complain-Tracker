@@ -636,9 +636,8 @@ class ComplaintSubmissionForm:
             messagebox.showwarning(
                 "Duplicate Complaint Detected",
                 f"Duplicate Complaint Detected.\n\n"
-                f"You already have an active complaint ({ticket_id}) for this issue at this location.\n\n"
-                f"Please wait for your existing complaint to be resolved before submitting another complaint.\n"
-                f"No duplicate complaint was created."
+                f"You already have an active complaint ({ticket_id}) for this issue.\n\n"
+                f"You have already reported this issue at this location. Please track your existing complaint instead of submitting the same issue again.\n"
             )
             return
 

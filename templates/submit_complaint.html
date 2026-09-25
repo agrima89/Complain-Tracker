@@ -102,10 +102,10 @@
             </span>
           </div>
           <p style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1.05rem; font-weight: 500; line-height: 1.5;">
-            You already have an active complaint (<strong style="color: #38bdf8; font-family: monospace;">{{ duplicate_info.ticket_id or duplicate_info.complaint_id }}</strong>) for this issue at this location.
+            You already have an active complaint (<strong style="color: #38bdf8; font-family: monospace;">{{ duplicate_info.ticket_id or duplicate_info.complaint_id }}</strong>) for this issue.
           </p>
           <p style="color: #94a3b8; margin: 0 0 1.25rem 0; font-size: 0.9rem; line-height: 1.5;">
-            Please wait for your existing complaint to be resolved before submitting another complaint for this area.
+            You have already reported this issue at this location. Please track your existing complaint instead of submitting the same issue again.
           </p>
           <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
             <a href="{{ url_for('complaint_detail_view', complaint_id=duplicate_info.complaint_id) }}" class="btn btn-primary btn-sm" style="font-weight: 700; padding: 0.6rem 1.4rem; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);">
