@@ -118,6 +118,8 @@ def validate_and_inspect_file(file_path_or_storage, ext):
                 file_path_or_storage.stream.seek(0)
                 img = Image.open(file_path_or_storage.stream)
                 img.verify()
+                if hasattr(img, 'close'):
+                    img.close()
                 file_path_or_storage.stream.seek(0)
             elif isinstance(file_path_or_storage, str) and os.path.isfile(file_path_or_storage):
                 with Image.open(file_path_or_storage) as img:
@@ -1325,6 +1327,18 @@ def submit_or_attach_complaint(
             """, (master_id,))
             
             conn.commit()
+            
+            # --- Diagnostic Logging ---
+            import logging
+            logger = logging.getLogger("deduplication")
+            logging.basicConfig(level=logging.INFO)
+            reporters_list = conn.execute("SELECT student_id, student_email, reported_at FROM complaint_reporters WHERE complaint_id = ?", (master_id,)).fetchall()
+            logger.info(f"[DEDUPLICATION ATTACH] Master Complaint ID: {master_id}, Master Ticket ID: {master_ticket}")
+            logger.info(f"[DEDUPLICATION ATTACH] Original Master Student ID: {master['student_id']}")
+            logger.info(f"[DEDUPLICATION ATTACH] New Duplicate Complaint ID: {new_complaint_id}, Duplicate Submitter ID: {student_id}")
+            logger.info(f"[DEDUPLICATION ATTACH] Reporters List for Master: {[dict(r) for r in reporters_list]}")
+            # ---------------------------
+
             return {
                 "status": "ATTACHED_TO_MASTER",
                 "complaint_id": new_complaint_id,
@@ -1589,7 +1603,7 @@ def get_all_complaints():
 def get_student_complaints_paginated(student_id, status_filter="All", search_query=None, page=1, per_page=10):
     """Returns paginated complaints for a student with search & filter support, showing each master complaint once."""
     conn = get_db_connection()
-    base_where = "WHERE (complaints.complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = ?) OR complaints.student_id = ?)"
+    base_where = "WHERE (complaints.complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = ?) OR complaints.student_id = ?) AND complaints.is_primary = 1"
     params = [student_id, student_id]
 
     if status_filter and status_filter != "All":
@@ -1654,7 +1668,7 @@ def get_all_complaints_admin_paginated(
     department=None
 ):
     conn = get_db_connection()
-    base_where = "WHERE 1=1"
+    base_where = "WHERE complaints.is_primary = 1"
     params = []
 
     if department:
@@ -1857,7 +1871,15 @@ def get_complaint_by_id(complaint_id):
     """
     complaint = conn.execute(query, (complaint_id, str(complaint_id))).fetchone()
     conn.close()
-    return complaint
+    
+    if not complaint:
+        return None
+        
+    c = dict(complaint)
+    c['evidence_path'] = c.get('photo_path')
+    c['evidence_file'] = c.get('photo_path')
+    c['evidence_url'] = c.get('photo_path')
+    return c
 
 
 def update_complaint_status(complaint_id, new_status, admin_id=None, admin_name="Administrator", remarks=""):
@@ -2659,7 +2681,10 @@ def get_grouped_admin_issues():
                 'representative_description': c.get('description', ''),
                 'complaint_count': 1,
                 'affected_students': 1,
-                'complaints': [c]
+                'complaints': [c],
+                'evidence_path': c.get('photo_path'),
+                'evidence_file': c.get('photo_path'),
+                'evidence_url': c.get('photo_path')
             }
             groups.append(new_group)
             
@@ -2713,7 +2738,10 @@ def get_related_complaints(complaint_id):
             'complaint_id': complaint_id,
             'ticket_id': target.get('ticket_id') or format_ticket_id(complaint_id, target.get('date')),
             'student_name': r.get('student_name'),
-            'student_id': r.get('student_id')
+            'student_id': r.get('student_id'),
+            'evidence_path': target.get('photo_path'),
+            'evidence_file': target.get('photo_path'),
+            'evidence_url': target.get('photo_path')
         }
         related.append(c)
         unique_students.add(r['student_id'])
