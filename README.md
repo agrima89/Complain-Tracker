@@ -105,8 +105,7 @@ Visit: **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 | Portal | Role | Username / Email | Password |
 | :--- | :--- | :--- | :--- |
 | **Admin Portal** | Administrator | `admin` | `admin123` |
-| **Student Portal** | Student | `agrima89@gmail.com` | `2304` |
-| **Student Portal** | Student | `mayank1211@gmail.com` | `1211` |
+| **Student Portal** | Student | `agrima89@gmail.com` | `1703` |
 | *New Student* | Student | *Click "Create Account"* | *User defined* |
 
 ---
