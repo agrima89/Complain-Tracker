@@ -1,0 +1,32 @@
+import requests
+
+# 1. Login to get a session cookie
+s = requests.Session()
+r_login = s.post("http://127.0.0.1:5000/login", data={
+    "email": "agrima@gmail.com",
+    "password": "password"
+})
+
+# 2. Submit a complaint with a file
+with open("test_image.jpg", "wb") as f:
+    f.write(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.' \",#\x1c\x1c(7),01444\x1f'9=82<.342\xff\xdb\x00C\x01\t\t\t\x0c\x0b\x0c\x18\r\r\x182!\x1c!22222222222222222222222222222222222222222222222222\xff\xc0\x00\x11\x08\x00\x08\x00\x08\x03\x01\"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x15\x00\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xc4\x00\x14\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xc4\x00\x14\x11\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00\xa0\x00\x0f\xff\xd9")
+
+files = {
+    "photo": ("test_image.jpg", open("test_image.jpg", "rb"), "image/jpeg")
+}
+data = {
+    "category": "Hostel Issue",
+    "block": "Block A",
+    "description": "This is a test upload via requests to see if the file path is saved.",
+    "priority": "Medium"
+}
+r_submit = s.post("http://127.0.0.1:5000/student/submit-complaint", data=data, files=files)
+print("Submit Status:", r_submit.status_code)
+# print(r_submit.text) # Uncomment to see output if failed
+
+# 3. Check Database
+import sqlite3
+conn = sqlite3.connect("database.db")
+row = conn.execute("SELECT complaint_id, photo_path FROM complaints ORDER BY complaint_id DESC LIMIT 1").fetchone()
+print("DB Record:", row)
+conn.close()

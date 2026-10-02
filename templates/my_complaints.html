@@ -153,7 +153,7 @@
                   </td>
                   <td>
                     {% if item.photo_path %}
-                      <a href="/{{ item.photo_path }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                      <a href="{{ url_for('view_evidence', complaint_id=item.complaint_id) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
                         <span>📸 View File</span>
                       </a>
                     {% else %}
@@ -193,6 +193,16 @@
                     <a href="{{ url_for('complaint_detail_view', complaint_id=item.complaint_id) }}" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
                       Details &rarr;
                     </a>
+                    {% if item.status == 'NEW' %}
+                    <button type="button" onclick="showDeleteModal('{{ item.complaint_id }}')" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); margin-left: 0.35rem;">
+                      🗑️ Delete Complaint
+                    </button>
+                    {% else %}
+                    <button type="button" onclick="alert('This complaint can no longer be deleted because it is already being processed by the administration.')" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem; opacity: 0.5; cursor: not-allowed; margin-left: 0.35rem;">
+                      🗑️ Delete Complaint
+                    </button>
+                    {% endif %}
+
                   </td>
                 </tr>
               {% endfor %}
@@ -264,6 +274,29 @@
     </div>
 
   </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: #1e293b; padding: 2rem; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+      <h3 style="color: #ffffff; margin-top: 0; font-size: 1.25rem;">Are you sure you want to delete this complaint?</h3>
+      <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem;">This action will permanently remove the complaint and its associated evidence from your account.</p>
+      <form id="deleteForm" method="POST" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+          <button type="submit" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444; color: white;">Delete Complaint</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+  function showDeleteModal(complaintId) {
+      var modal = document.getElementById('deleteModal');
+      var form = document.getElementById('deleteForm');
+      form.action = '/student/complaint/' + complaintId + '/delete';
+      modal.style.display = 'flex';
+  }
+  </script>
 
 </div>
 {% endblock %}

@@ -627,14 +627,40 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
         story.append(Spacer(1, 10))
 
     # 7. EVIDENCE & ATTACHMENT VERIFICATION
-    photo_path = complaint["photo_path"] if "photo_path" in complaint.keys() and complaint["photo_path"] else ""
-    evidence_status = "Attached & Verified" if photo_path else "None Attached"
+    # 7. EVIDENCE & ATTACHMENT VERIFICATION
+    photo_path = complaint.get("photo_path", "")
+    
+    if photo_path:
+        import database
+        filename = os.path.basename(photo_path)
+        actual_path = os.path.join(database.UPLOADS_DIR, filename)
+        
+        file_exists = os.path.exists(actual_path)
+        if not file_exists:
+            legacy_dir = os.path.join(database.BASE_DIR, "uploads", "complaints")
+            legacy_path = os.path.join(legacy_dir, filename)
+            if os.path.exists(legacy_path):
+                file_exists = True
+                actual_path = legacy_path
+                
+        if file_exists:
+            evidence_status = "Attached & Verified"
+            evidence_html = f"<b>Evidence Attachment:</b> {evidence_status}<br/><b>File:</b> {filename}"
+            try:
+                from flask import url_for
+                if "complaint_id" in complaint:
+                    evidence_url = url_for("view_evidence", complaint_id=complaint["complaint_id"], _external=True)
+                    evidence_html += f"<br/><br/><a href=\"{evidence_url}\" color=\"blue\"><u>Open Evidence File</u></a>"
+                    print(f"DEBUG: Generated evidence URL: {evidence_url} for file: {actual_path}")
+            except Exception as e:
+                print(f"DEBUG: Failed to generate evidence URL: {e}")
+        else:
+            print(f"DEBUG: Evidence file unavailable. DB path: {photo_path}, Actual path: {actual_path}")
+            evidence_html = "<b>Evidence Attachment:</b> Evidence file unavailable"
+    else:
+        evidence_html = "<b>Evidence Attachment:</b> No evidence attached."
 
-    evidence_note = Paragraph(
-        f"<b>Evidence Attachment:</b> {evidence_status}" +
-        (f" (File: <i>{os.path.basename(photo_path)}</i>)" if photo_path else ""),
-        styles["FieldValue"]
-    )
+    evidence_note = Paragraph(evidence_html, styles["FieldValue"])
     story.append(evidence_note)
 
     # Build Document using NumberedCanvas

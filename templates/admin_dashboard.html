@@ -545,7 +545,7 @@
 
                   {% if c.has_photo %}
                     <div style="margin-bottom: 0.5rem;">
-                      <a href="{{ url_for('static', filename=c.photo_path.replace('static/', '')) if c.photo_path.startswith('static/') else ('/' + c.photo_path) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: #38bdf8; text-decoration: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 0.25rem 0.5rem;">
+                      <a href="{{ url_for('view_evidence', complaint_id=c.complaint_id) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: #38bdf8; text-decoration: none; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 0.25rem 0.5rem;">
                         <span>📷</span>
                         <span>Evidence Photo</span>
                       </a>
@@ -867,7 +867,7 @@
                   <!-- Evidence Photo / Document -->
                   <td>
                     {% if item.photo_path %}
-                      <a href="/{{ item.photo_path }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                      <a href="{{ url_for('view_evidence', complaint_id=item.complaint_id) }}" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">
                         <span>📸 View File</span>
                       </a>
                     {% else %}

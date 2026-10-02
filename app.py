@@ -1,5 +1,6 @@
 import os
 import sys
+import mimetypes
 from datetime import date, datetime
 from functools import wraps
 from flask import (
@@ -30,6 +31,24 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, "templates"),
     static_folder=os.path.join(BASE_DIR, "static")
 )
+
+import traceback
+import sys
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Log the full exception to the console
+    traceback.print_exc(file=sys.stderr)
+    
+    # Also log to file as before
+    with open(os.path.join(BASE_DIR, "500_traceback.log"), "a") as log_f:
+        log_f.write("\n\n" + "="*50 + "\n")
+        traceback.print_exc(file=log_f)
+        
+    # Return the exact exception string directly to the browser for debugging
+    error_str = traceback.format_exc()
+    return f"Internal Server Error\n\nEXACT EXCEPTION:\n{error_str}", 500
+
 
 # Configuration & Security
 app.secret_key = os.environ.get("SECRET_KEY", "campuscare_secure_secret_key_2026_cse_project")
@@ -70,9 +89,9 @@ def uploaded_file(filename):
     if not student_id and not admin_id:
         return "Unauthorized", 401
 
-    photo_rel_path = f"uploads/complaints/{filename}"
+    basename = os.path.basename(filename)
     conn = database.get_db_connection()
-    complaint = conn.execute("SELECT * FROM complaints WHERE photo_path = ?", (photo_rel_path,)).fetchone()
+    complaint = conn.execute("SELECT * FROM complaints WHERE photo_path LIKE ?", (f"%{basename}",)).fetchone()
     conn.close()
 
     if complaint:
@@ -82,7 +101,7 @@ def uploaded_file(filename):
             return "Access Denied", 403
 
     uploads_root = os.path.join(database.BASE_DIR, "uploads")
-    return send_from_directory(uploads_root, f"complaints/{filename}")
+    return send_from_directory(uploads_root, f"evidence/{basename}")
 
 
 # ---------------- AUTHENTICATION DECORATORS ----------------
@@ -325,7 +344,7 @@ def submit_complaint_view():
         # Save photo securely to uploads/complaints/
         photo_rel_path = database.save_complaint_image(photo_file)
         if not photo_rel_path:
-            flash("Invalid file format. Please upload a genuine JPG, PNG, WEBP, or PDF file (max 16MB).", "error")
+            flash("Invalid file format. Please upload a genuine JPG, PNG, or WEBP file (max 16MB).", "error")
             return render_template("submit_complaint.html", categories=categories, blocks=blocks, floors=floors, priorities=priorities, form_data=request.form)
 
         today_str = str(date.today())
@@ -358,6 +377,17 @@ def submit_complaint_view():
                 floors=floors,
                 priorities=priorities,
                 duplicate_info=sub_res,
+                form_data=request.form
+            )
+
+        if sub_res["status"] == "VALIDATION_FAILED":
+            flash(sub_res["message"], "error")
+            return render_template(
+                "submit_complaint.html",
+                categories=categories,
+                blocks=blocks,
+                floors=floors,
+                priorities=priorities,
                 form_data=request.form
             )
 
@@ -473,6 +503,24 @@ def complaint_detail_view(complaint_id):
     )
 
 
+@app.route("/student/complaint/<int:complaint_id>/delete", methods=["POST"])
+@student_required
+def delete_complaint_view(complaint_id):
+    student_id = session.get("student_id")
+    success, message, status_code = database.delete_student_complaint(complaint_id, student_id)
+    
+    if success:
+        flash(message, "success")
+        return redirect(url_for("my_complaints_view"))
+    else:
+        if status_code == 404:
+            # Maybe redirect or show error
+            flash(message, "error")
+        else:
+            flash(message, "error")
+        return redirect(url_for("complaint_detail_view", complaint_id=complaint_id))
+
+
 @app.route("/student/complaint/<int:complaint_id>/download-pdf")
 @app.route("/student/complaint/<int:complaint_id>/pdf")
 @student_required
@@ -555,6 +603,49 @@ def admin_dashboard():
         escalated_only=escalated_only,
         
     )
+
+
+@app.route("/complaints/<int:complaint_id>/evidence")
+def view_evidence(complaint_id):
+    # Verify authorization
+    is_admin = session.get("admin_id")
+    student_id = session.get("student_id")
+    
+    if not is_admin and not student_id:
+        return "Unauthorized", 401
+        
+    complaint = database.get_complaint_by_id(complaint_id)
+    if not complaint:
+        return "Complaint not found", 404
+        
+    if not is_admin:
+        if not database.is_student_associated_with_complaint(complaint_id, student_id):
+            return "Unauthorized access to this complaint", 403
+            
+    # Retrieve evidence path
+    photo_path = complaint.get("photo_path")
+    if not photo_path:
+        return "No evidence attached to this complaint", 404
+        
+    # Locate actual file
+    filename = os.path.basename(photo_path)
+    uploads_dir = os.path.join(database.BASE_DIR, "uploads", "evidence")
+    
+    # Check if exists
+    if not os.path.exists(os.path.join(uploads_dir, filename)):
+        # Fallback to legacy
+        legacy_dir = os.path.join(database.BASE_DIR, "uploads", "complaints")
+        if os.path.exists(os.path.join(legacy_dir, filename)):
+            uploads_dir = legacy_dir
+        else:
+            return "Evidence file not found on disk", 404
+            
+    # Determine mimetype safely
+    mimetype, _ = mimetypes.guess_type(filename)
+    if not mimetype:
+        mimetype = "application/octet-stream"
+        
+    return send_from_directory(uploads_dir, filename, mimetype=mimetype)
 
 
 @app.route("/admin/complaint/<int:complaint_id>")

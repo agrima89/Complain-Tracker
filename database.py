@@ -9,7 +9,7 @@ from PIL import Image
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("DATABASE_PATH") or os.path.join(BASE_DIR, "database.db")
-UPLOADS_DIR = os.path.join(BASE_DIR, "uploads", "complaints")
+UPLOADS_DIR = os.path.join(BASE_DIR, "uploads", "evidence")
 
 # Ensure upload directory exists
 os.makedirs(UPLOADS_DIR, exist_ok=True)
@@ -29,7 +29,7 @@ VALID_BLOCKS = [
     "Block A", "Block B", "Block C", "Block D", "Block E", "Block F", "Other"
 ]
 
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".pdf"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
 def allowed_file(filename):
@@ -105,43 +105,33 @@ def verify_and_migrate_password(stored_password, provided_password, update_fn=No
 
 def validate_and_inspect_file(file_path_or_storage, ext):
     """
-    Inspects uploaded file contents to verify genuine image or PDF integrity.
+    Inspects uploaded file contents to verify genuine image integrity.
     """
     ext_lower = ext.lower()
     if ext_lower not in ALLOWED_EXTENSIONS:
         return False
 
-    # Check image files using Pillow
-    if ext_lower in {".jpg", ".jpeg", ".png", ".webp"}:
-        try:
-            if hasattr(file_path_or_storage, "stream"):
-                file_path_or_storage.stream.seek(0)
-                img = Image.open(file_path_or_storage.stream)
-                img.verify()
-                if hasattr(img, 'close'):
-                    img.close()
-                file_path_or_storage.stream.seek(0)
-            elif isinstance(file_path_or_storage, str) and os.path.isfile(file_path_or_storage):
-                with Image.open(file_path_or_storage) as img:
-                    img.verify()
+    def check_magic(header):
+        if ext_lower in {".jpg", ".jpeg"} and header.startswith(b"\xff\xd8\xff"):
             return True
-        except Exception:
-            return False
+        if ext_lower == ".png" and header.startswith(b"\x89PNG\r\n\x1a\n"):
+            return True
+        if ext_lower == ".webp" and header.startswith(b"RIFF") and header[8:12] == b"WEBP":
+            return True
+        return False
 
-    # Check PDF magic bytes
-    if ext_lower == ".pdf":
-        try:
-            if hasattr(file_path_or_storage, "stream"):
-                file_path_or_storage.stream.seek(0)
-                header = file_path_or_storage.stream.read(10)
-                file_path_or_storage.stream.seek(0)
-                return header.startswith(b"%PDF-")
-            elif isinstance(file_path_or_storage, str) and os.path.isfile(file_path_or_storage):
-                with open(file_path_or_storage, "rb") as f:
-                    header = f.read(10)
-                return header.startswith(b"%PDF-")
-        except Exception:
-            return False
+    try:
+        if hasattr(file_path_or_storage, "stream"):
+            file_path_or_storage.stream.seek(0)
+            header = file_path_or_storage.stream.read(12)
+            file_path_or_storage.stream.seek(0)
+            return check_magic(header)
+        elif isinstance(file_path_or_storage, str) and os.path.isfile(file_path_or_storage):
+            with open(file_path_or_storage, "rb") as f:
+                header = f.read(12)
+            return check_magic(header)
+    except Exception:
+        return False
 
     return False
 
@@ -168,7 +158,7 @@ def save_complaint_image(source_file_path_or_storage, custom_filename=None):
         safe_filename = f"evidence_{unique_prefix}{ext}"
         destination = os.path.join(UPLOADS_DIR, safe_filename)
         source_file_path_or_storage.save(destination)
-        return f"uploads/complaints/{safe_filename}".replace("\\", "/")
+        return f"uploads/evidence/{safe_filename}".replace("\\", "/")
 
     # If it's a file path string (from Tkinter file dialog)
     elif isinstance(source_file_path_or_storage, str) and os.path.isfile(source_file_path_or_storage):
@@ -182,7 +172,7 @@ def save_complaint_image(source_file_path_or_storage, custom_filename=None):
         safe_filename = f"evidence_{unique_prefix}{ext}"
         destination = os.path.join(UPLOADS_DIR, safe_filename)
         shutil.copy2(source_file_path_or_storage, destination)
-        return f"uploads/complaints/{safe_filename}".replace("\\", "/")
+        return f"uploads/evidence/{safe_filename}".replace("\\", "/")
 
     return ""
 
@@ -1339,6 +1329,7 @@ def submit_or_attach_complaint(
             logger.info(f"[DEDUPLICATION ATTACH] Reporters List for Master: {[dict(r) for r in reporters_list]}")
             # ---------------------------
 
+            conn.close()
             return {
                 "status": "ATTACHED_TO_MASTER",
                 "complaint_id": new_complaint_id,
@@ -1349,36 +1340,25 @@ def submit_or_attach_complaint(
                 "location": location,
                 "message": f"Your complaint has been registered. You have been grouped with an existing active issue. Your Ticket ID is {new_ticket_id}."
             }
-            
-            # Fetch updated count
-            new_count = cursor.execute("SELECT affected_student_count FROM complaints WHERE complaint_id = ?", (master_id,)).fetchone()[0]
-            conn.close()
-            
-            return {
-                "status": "ATTACHED_TO_MASTER",
-                "complaint_id": master_id,
-                "ticket_id": master_ticket,
-                "affected_student_count": new_count,
-                "message": f"Your complaint has been successfully attached to an existing issue report. Ticket ID: {master_ticket}"
-            }
 
     # STEP 5: ONLY when no matching master complaint exists
     print("existing_master_complaint_id = None")
     print("existing_reporter = False")
     print("ACTION = CREATE_MASTER")
     
-    # Assign department (basic assignment logic based on category)
-    department = "General"
-    if category == "Electrical":
-        department = "Electrical"
-    elif category == "Cleaning":
-        department = "Cleaning"
-    elif category == "Plumbing":
-        department = "Plumbing"
-    elif category == "IT / Network":
-        department = "IT Support"
-    elif category == "Transport Complaint":
-        department = "Transport"
+    # Assign department based on category
+    category_dept_map = {
+        "Electrical": "Electrical",
+        "Cleaning": "Cleaning",
+        "Classroom": "Classroom",
+        "Hostel": "Hostel",
+        "Wi-Fi/Internet": "Wi-Fi/Internet",
+        "Library": "Library",
+        "Infrastructure": "Infrastructure",
+        "Transport Complaint": "Transport",
+        "Other": "Other"
+    }
+    department = category_dept_map.get(category, "General")
 
     cursor.execute("""
         INSERT INTO complaints
@@ -1876,6 +1856,15 @@ def get_complaint_by_id(complaint_id):
         return None
         
     c = dict(complaint)
+    
+    # Fallback to master's photo_path if this is a duplicate and missing its own photo
+    if not c.get('photo_path') and c.get('group_id'):
+        conn2 = get_db_connection()
+        master = conn2.execute("SELECT photo_path FROM complaints WHERE complaint_id = ?", (c['group_id'],)).fetchone()
+        if master and master['photo_path']:
+            c['photo_path'] = master['photo_path']
+        conn2.close()
+
     c['evidence_path'] = c.get('photo_path')
     c['evidence_file'] = c.get('photo_path')
     c['evidence_url'] = c.get('photo_path')
@@ -2754,3 +2743,80 @@ def get_related_complaints(complaint_id):
         'location': f"{target.get('block', '')} • {target.get('floor_no', '')} • {target.get('room_no', '')}" if not is_transport else f"Bus {target.get('bus_number', '')} • Route {target.get('route', '')}",
         'issue': target.get('description', '')
     }
+
+
+def delete_student_complaint(complaint_id, student_id):
+    """
+    Deletes or disassociates a student from a complaint.
+    Returns: (success, message, http_status_code)
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    # 1. Fetch the complaint
+    complaint = cursor.execute("SELECT * FROM complaints WHERE complaint_id = ?", (complaint_id,)).fetchone()
+    
+    if not complaint:
+        conn.close()
+        return False, "Complaint not found", 404
+        
+    # Check if student is associated
+    is_reporter = cursor.execute("SELECT 1 FROM complaint_reporters WHERE complaint_id = ? AND student_id = ?", (complaint_id, student_id)).fetchone()
+    is_main_submitter = complaint['student_id'] == student_id
+    
+    if not is_reporter and not is_main_submitter:
+        conn.close()
+        return False, "Unauthorized: You can only delete your own complaints.", 403
+        
+    if complaint['status'] != 'NEW':
+        conn.close()
+        return False, "This complaint can no longer be deleted because it is already being processed by the administration.", 403
+
+    try:
+        cursor.execute("BEGIN TRANSACTION")
+        
+        reporters_count = cursor.execute("SELECT COUNT(*) FROM complaint_reporters WHERE complaint_id = ?", (complaint_id,)).fetchone()[0]
+        
+        affected_count = 1
+        if 'affected_student_count' in complaint.keys():
+            affected_count = complaint['affected_student_count']
+        
+        if reporters_count <= 1 and affected_count <= 1:
+            # Safe to delete completely
+            cursor.execute("DELETE FROM complaint_reporters WHERE complaint_id = ?", (complaint_id,))
+            cursor.execute("DELETE FROM complaint_status_history WHERE complaint_id = ?", (complaint_id,))
+            
+            # Check if ticket_id exists before accessing
+            cursor.execute("DELETE FROM active_complaint_slots WHERE complaint_id = ?", (complaint_id,))
+            
+            photo_path = None
+            if 'photo_path' in complaint.keys():
+                photo_path = complaint['photo_path']
+                
+            if photo_path:
+                usage = cursor.execute("SELECT COUNT(*) FROM complaints WHERE photo_path = ?", (photo_path,)).fetchone()[0]
+                if usage <= 1:
+                    full_path = os.path.join(BASE_DIR, photo_path)
+                    if os.path.exists(full_path):
+                        os.remove(full_path)
+                        
+            cursor.execute("DELETE FROM complaints WHERE complaint_id = ?", (complaint_id,))
+            
+        else:
+            # Grouped complaint: disassociate this student
+            cursor.execute("DELETE FROM complaint_reporters WHERE complaint_id = ? AND student_id = ?", (complaint_id, student_id))
+            cursor.execute("UPDATE complaints SET affected_student_count = MAX(1, affected_student_count - 1) WHERE complaint_id = ?", (complaint_id,))
+            
+            if is_main_submitter:
+                next_reporter = cursor.execute("SELECT student_id FROM complaint_reporters WHERE complaint_id = ? LIMIT 1", (complaint_id,)).fetchone()
+                if next_reporter:
+                    cursor.execute("UPDATE complaints SET student_id = ? WHERE complaint_id = ?", (next_reporter['student_id'], complaint_id))
+        
+        conn.commit()
+        return True, "Complaint deleted successfully.", 200
+        
+    except Exception as e:
+        conn.rollback()
+        return False, f"Database error during deletion: {str(e)}", 500
+    finally:
+        conn.close()
