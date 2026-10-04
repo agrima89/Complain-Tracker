@@ -47,36 +47,7 @@ body:has(.landing-page-master) .main-content {
   --landing-headline-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
 }
 
-[data-theme="light"] {
-  /* Subtle, airy translucent gradient that preserves 85% of vibrant natural campus richness */
-  --landing-bg-overlay: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.06) 20%,
-    rgba(240, 246, 255, 0.18) 55%,
-    rgba(235, 243, 255, 0.28) 80%,
-    rgba(235, 243, 255, 0.40) 100%
-  );
-  /* Premium frosted translucent glass with white highlights */
-  --landing-card-bg: rgba(255, 255, 255, 0.78);
-  --landing-card-border: rgba(255, 255, 255, 0.85);
-  --landing-card-shadow: 0 16px 40px rgba(15, 23, 42, 0.08), 0 0 25px rgba(56, 189, 248, 0.05);
-  --landing-text-main: #0f172a;
-  --landing-text-sub: #334155;
-  --landing-text-muted: #64748b;
-  --landing-text-light: #475569;
-  --landing-section-border: rgba(15, 23, 42, 0.08);
-  --landing-chip-bg: rgba(255, 255, 255, 0.82);
-  --landing-chip-border: rgba(255, 255, 255, 0.9);
-  --landing-chip-text: #0f172a;
-  --landing-pill-bg: rgba(255, 255, 255, 0.80);
-  --landing-pill-border: rgba(15, 23, 42, 0.08);
-  --landing-btn-sec-bg: rgba(255, 255, 255, 0.80);
-  --landing-btn-sec-border: rgba(255, 255, 255, 0.90);
-  --landing-btn-sec-text: #0f172a;
-  --landing-subtle-glow: rgba(56, 189, 248, 0.08);
-  --landing-headline-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
-}
+
 
 .landing-page-master {
   position: relative;
@@ -204,11 +175,7 @@ body:has(.landing-page-master) .main-content {
   transition: all 0.35s ease;
 }
 
-[data-theme="light"] .hero-cell-tag {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
-}
+
 
 .tag-cyan-pulse {
   width: 8px;
@@ -227,9 +194,7 @@ body:has(.landing-page-master) .main-content {
   transition: color 0.35s ease;
 }
 
-[data-theme="light"] .tag-text {
-  color: #0284c7;
-}
+
 
 .hero-main-title {
   font-size: clamp(2.5rem, 5.2vw, 4.2rem);
@@ -260,10 +225,7 @@ body:has(.landing-page-master) .main-content {
   transition: color 0.35s ease;
 }
 
-[data-theme="light"] .hero-lead-description {
-  color: #334155;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
-}
+
 
 .hero-action-buttons {
   display: flex;
@@ -1574,11 +1536,7 @@ body:has(.landing-page-master) .main-content {
   transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
 
-[data-theme="light"] .final-cta-banner {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 249, 255, 0.82) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08), 0 0 40px rgba(56, 189, 248, 0.05);
-}
+
 
 .final-cta-badge {
   display: inline-block;

@@ -4,7 +4,7 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  initThemeToggle();
+
   initMobileNav();
   initPasswordToggles();
   initCharCounters();
@@ -25,69 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuthInteractions();
 });
 
-/* ---------------- 1. THEME TOGGLE SYSTEM ---------------- */
-function initThemeToggle() {
-  const toggleBtns = document.querySelectorAll('#themeToggle, #authThemeToggle');
-  const toggleIcons = document.querySelectorAll('#themeToggleIcon, #authThemeToggleIcon');
-
-  function getActiveTheme() {
-    return document.documentElement.getAttribute('data-theme') || localStorage.getItem('campuscare_theme') || 'dark';
-  }
-
-  function updateToggleUI(theme) {
-    const isDark = theme === 'dark';
-    toggleIcons.forEach((icon) => {
-      icon.textContent = isDark ? '☀️' : '🌙';
-    });
-    const label = isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode';
-    toggleBtns.forEach((btn) => {
-      btn.setAttribute('title', label);
-      btn.setAttribute('aria-label', label);
-      btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
-    });
-  }
-
-  function setTheme(theme, savePreference = true) {
-    document.documentElement.setAttribute('data-theme', theme);
-    if (document.body) {
-      document.body.setAttribute('data-theme', theme);
-    }
-    if (savePreference) {
-      try {
-        localStorage.setItem('campuscare_theme', theme);
-      } catch (e) {
-        console.warn('localStorage is unavailable', e);
-      }
-    }
-    updateToggleUI(theme);
-    // Dispatch custom event for theme-aware dynamic components
-    window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme } }));
-  }
-
-  // Initial UI sync
-  const currentTheme = getActiveTheme();
-  setTheme(currentTheme, false);
-
-  toggleBtns.forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const activeTheme = getActiveTheme();
-      const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
-      setTheme(newTheme, true);
-    });
-  });
-
-  // Listen to OS system color scheme changes when user hasn't explicitly set preference
-  try {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (e) => {
-      const saved = localStorage.getItem('campuscare_theme');
-      if (!saved) {
-        setTheme(e.matches ? 'dark' : 'light', false);
-      }
-    });
-  } catch (e) {}
-}
 
 /* ---------------- AUTH FORM SUBMIT & FORGOT PASSWORD ---------------- */
 const CU_EMAIL_REGEX = /^[A-Za-z0-9]+@culkomail\.in$/i;
@@ -448,9 +385,7 @@ function initHeroParticles() {
 
   animate();
 
-  window.addEventListener('themeChanged', () => {
-    // Redraw on next frame with updated theme colors
-  });
+
 }
 
 /* --------------------------------------------------------------------------
