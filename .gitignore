@@ -56,3 +56,17 @@ Desktop.ini
 uploads/complaints/*
 !uploads/complaints/.gitkeep
 
+# Explicit deployment ignores
+database.db
+database_backup.db
+uploads/evidence/*
+!uploads/evidence/.gitkeep
+500_traceback.log
+flask_stderr.log
+
+# Local old nested repository
+Complain-Tracker/
+
+# Local scratch files
+scratch_*.py
+white_colors.txt
