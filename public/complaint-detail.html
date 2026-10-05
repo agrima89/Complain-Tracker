@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CampusCare - Complaint Details & Live Tracking.">
+  <title>Complaint Details - CampusCare</title>
+
+  <script>
+    (function() {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/campus-world.css">
+</head>
+<body>
+
+  <!-- Universal Glassmorphic Navbar -->
+  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
+    <div class="container navbar-inner">
+      <a href="/" class="navbar-brand" title="CampusCare - Student Grievance Portal">
+        <div class="brand-icon"><span>🎓</span></div>
+        <div class="brand-text">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-tag">Student Grievance Portal</span>
+        </div>
+      </a>
+
+      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation"></nav>
+
+      <div class="navbar-actions">
+        <div class="navbar-notif-wrapper" style="position: relative;">
+          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
+            <span class="notif-btn-icon">🔔</span>
+            <span class="notification-badge-dot"></span>
+          </button>
+        </div>
+
+        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span id="mobileNavToggleIcon">☰</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true"></div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    <div class="container" style="max-width: 900px;">
+
+      <!-- Live Time & Greeting -->
+      <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+        <span class="time-headline-text">
+          <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+          <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+        </span>
+        <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
+        <a href="/" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
+        <a href="/student-dashboard" style="color: #38bdf8; text-decoration: none;">Dashboard</a> &nbsp;/&nbsp; 
+        <a href="/my-complaints" style="color: #38bdf8; text-decoration: none;">My Complaints</a> &nbsp;/&nbsp; 
+        <span id="breadcrumbTicket" style="color: #ffffff; font-weight: 600;">Loading...</span>
+      </div>
+
+      <!-- Page Header -->
+      <div class="page-header" style="margin-bottom: 1.5rem;">
+        <div class="page-header-title">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+            <h1 id="detailTicketId" style="font-family: monospace; letter-spacing: -0.02em;">Ticket</h1>
+            <span id="detailStatusBadge" class="badge"></span>
+            <span id="detailPriorityBadge" class="badge"></span>
+            <span id="detailAffectedBadge" class="badge" style="display: none; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 600;"></span>
+          </div>
+          <p class="page-header-subtitle" id="detailSubtitle"></p>
+        </div>
+
+        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+          <a id="downloadPdfBtn" href="#" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Official Complaint PDF Report">
+            <span>📄</span> Download PDF
+          </a>
+          <button type="button" id="deleteComplaintBtn" class="btn btn-danger btn-sm" style="display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.45rem 0.9rem;">
+            🗑️ Delete Complaint
+          </button>
+          <a href="/my-complaints" class="btn btn-secondary btn-sm">← Back to List</a>
+        </div>
+      </div>
+
+      <!-- Action Box for Awaiting Confirmation -->
+      <div id="studentResolutionActionCard" class="cinematic-card" style="display: none; border: 2px solid rgba(168, 85, 247, 0.6); margin-bottom: 2rem; padding: 1.75rem 2rem; background: rgba(30, 27, 75, 0.4);">
+        <div style="display: flex; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+          <div style="font-size: 2rem;">🔔</div>
+          <div style="flex: 1; min-width: 260px;">
+            <h3 style="color: #c084fc; margin: 0 0 0.5rem 0; font-size: 1.2rem;">Department Marked This Issue Resolved</h3>
+            <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0 0 1.25rem 0;">
+              Maintenance has submitted their resolution for this grievance. Please inspect the location and confirm whether the problem is fixed.
+            </p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <button type="button" id="confirmResolutionBtn" class="btn btn-primary btn-sm" style="background: #10b981; border-color: #10b981; color: white;">
+                ✓ Confirm Resolution & Close Ticket
+              </button>
+              <button type="button" id="openRegenerateModalBtn" class="btn btn-secondary btn-sm" style="color: #fb7185; border-color: rgba(244, 63, 94, 0.4);">
+                🔄 Reopen / Regenerate Issue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Journey Timeline Card -->
+      <div class="cinematic-card" style="margin-bottom: 2rem; padding: 2rem 1.75rem;">
+        <div class="timeline-ticket-header" style="margin-bottom: 1.25rem;">
+          <span class="ticket-mono-id" id="timelineTicketId"></span>
+          <span class="ticket-live-tag">● Live Resolution Tracker</span>
+        </div>
+
+        <div class="floating-vertical-timeline">
+          <div class="timeline-node-step is-done" id="stepSubmitted">
+            <div class="node-circular-marker">✓</div>
+            <span class="node-step-label">Submitted</span>
+            <span class="node-meta-badge" id="stepSubmittedDate"></span>
+          </div>
+
+          <div class="timeline-node-step" id="stepReview">
+            <div class="node-circular-marker">2</div>
+            <span class="node-step-label">Under Review</span>
+            <span class="node-meta-badge">Department HOD</span>
+          </div>
+
+          <div class="timeline-node-step" id="stepProgress">
+            <div class="node-circular-marker">3</div>
+            <span class="node-step-label">In Progress</span>
+            <span class="node-meta-badge">Technician Dispatched</span>
+          </div>
+
+          <div class="timeline-node-step" id="stepResolved">
+            <div class="node-circular-marker">4</div>
+            <span class="node-step-label">Final Resolved</span>
+            <span class="node-meta-badge" id="stepResolvedDate">Resolution</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Complaint Details Card -->
+      <div class="cinematic-card" style="margin-bottom: 2rem; overflow: hidden;">
+        <div class="card-header">
+          <div style="display: flex; align-items: center; gap: 0.6rem;">
+            <span>📋</span>
+            <h2 class="card-title">Grievance Overview</h2>
+          </div>
+          <span id="cardCategoryBadge" class="badge"></span>
+        </div>
+
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+            <div>
+              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Location / Block</div>
+              <div id="detailLocationText" style="font-size: 1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;"></div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
+              <div id="detailRoomText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Corridor / Side</div>
+              <div id="detailSideText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
+            </div>
+
+            <div>
+              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Date Lodged</div>
+              <div id="detailDateText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
+            </div>
+          </div>
+
+          <!-- Description Block -->
+          <div style="margin-bottom: 1.75rem;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+              Reported Issue Description
+            </div>
+            <div id="detailDescriptionText" style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;"></div>
+          </div>
+
+          <!-- Attached Photo Evidence Block -->
+          <div>
+            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+              📷 Attached Photo Evidence
+            </div>
+            <div id="evidenceDisplayContainer" style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1rem; max-width: 600px; width: 100%;">
+              <a id="evidenceImgLink" href="#" target="_blank" title="Click to view full image in high resolution">
+                <img id="evidenceImg" src="" alt="Complaint Evidence" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; display: block; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);">
+              </a>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; border-top: 1px solid rgba(56, 189, 248, 0.15); padding-top: 0.75rem;">
+                <span style="color: #4ade80; font-weight: 600;">✓ Verified in Digital Registry</span>
+                <a id="evidenceFullLink" href="#" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
+                  🔍 Open Full Viewer ↗
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity History Log -->
+        <div id="historySection" style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12);">
+          <h3 style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 0.75rem;">
+            📜 Resolution Activity Log
+          </h3>
+          <div id="historyList" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+        </div>
+      </div>
+
+      <!-- Regenerate Modal -->
+      <div id="regenerateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: #1e293b; padding: 2rem; border-radius: 14px; max-width: 500px; width: 90%; border: 1px solid rgba(244, 63, 94, 0.4); box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
+          <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1.25rem;">Reopen / Regenerate Grievance</h3>
+          <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.25rem;">
+            Explain what remains unresolved so technicians can return to fix the issue.
+          </p>
+          <form id="regenerateForm">
+            <div style="margin-bottom: 1.25rem;">
+              <label for="regenReasonInput" class="form-label">Reason for Reopening <span style="color: #f43f5e;">*</span></label>
+              <textarea id="regenReasonInput" class="form-textarea" rows="4" placeholder="Describe why this issue is not yet resolved..." required></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('regenerateModal').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="confirmRegenBtn" style="background: #f43f5e; border-color: #f43f5e; color: white;">Submit Reopening</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Universal Footer -->
+  <footer class="app-footer campus-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-section">
+          <a href="/" class="footer-brand-logo">
+            <span class="brand-icon-sm">🏫</span>
+            <div class="brand-text">
+              <span class="brand-name">CampusCare</span>
+              <span class="brand-tag">Student Grievance Portal</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">&copy; 2026 CampusCare. Student Grievance Portal.</div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/campus-world.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+
+  <script>
+    let currentComplaint = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CampusCareAuth.requireStudent();
+      if (!user) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      let id = urlParams.get('id') || urlParams.get('complaint_id');
+      if (!id) {
+        const pathSegments = window.location.pathname.split('/').filter(Boolean);
+        const lastSeg = pathSegments[pathSegments.length - 1];
+        if (/^\d+$/.test(lastSeg)) {
+          id = lastSeg;
+        }
+      }
+
+      if (!id) {
+        alert('Complaint ID missing.');
+        window.location.href = '/my-complaints';
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/complaints-get?id=${id}`);
+        const json = await res.json();
+
+        if (!res.ok || !json.success || !json.data?.complaint) {
+          alert(json.error || 'Failed to retrieve complaint.');
+          window.location.href = '/my-complaints';
+          return;
+        }
+
+        const c = json.data.complaint;
+        currentComplaint = c;
+        const history = json.data.history || [];
+
+        // Fill Header & Breadcrumbs
+        document.getElementById('breadcrumbTicket').textContent = c.ticket_id;
+        document.getElementById('detailTicketId').textContent = c.ticket_id;
+        document.getElementById('timelineTicketId').textContent = c.ticket_id;
+        document.getElementById('downloadPdfBtn').href = `/student/complaint/${c.complaint_id}/download-pdf`;
+
+        // Badges
+        const statusBadge = document.getElementById('detailStatusBadge');
+        if (['NEW', 'FORWARDED'].includes(c.status)) {
+          statusBadge.className = 'badge badge-pending';
+          statusBadge.textContent = `⏳ ${c.status.replace(/_/g, ' ')}`;
+        } else if (['IN_PROGRESS', 'REOPENED'].includes(c.status)) {
+          statusBadge.className = 'badge badge-progress';
+          statusBadge.textContent = `⚡ ${c.status.replace(/_/g, ' ')}`;
+        } else {
+          statusBadge.className = 'badge badge-resolved';
+          statusBadge.textContent = `✓ ${c.status.replace(/_/g, ' ')}`;
+        }
+
+        const prioBadge = document.getElementById('detailPriorityBadge');
+        prioBadge.className = c.priority === 'High' ? 'badge badge-priority-high' : (c.priority === 'Medium' ? 'badge badge-priority-medium' : 'badge badge-priority-low');
+        prioBadge.textContent = `● ${c.priority} Priority`;
+
+        if (c.affected_student_count > 1) {
+          const affBadge = document.getElementById('detailAffectedBadge');
+          affBadge.style.display = 'inline-flex';
+          affBadge.textContent = `👥 ${c.affected_student_count} Students Affected`;
+        }
+
+        document.getElementById('detailSubtitle').innerHTML = `Lodged on ${c.date} &bull; Category: <strong style="color: #38bdf8;">${c.category}</strong>`;
+        document.getElementById('cardCategoryBadge').textContent = c.category;
+
+        // Location text
+        document.getElementById('detailLocationText').textContent = c.block || c.location || 'Campus Premises';
+        document.getElementById('detailRoomText').textContent = c.floor_no ? `${c.floor_no} (Room ${c.room_no || 'N/A'})` : (c.room_no || 'N/A');
+        document.getElementById('detailSideText').textContent = c.corridor_side || c.nearby_area || 'N/A';
+        document.getElementById('detailDateText').textContent = c.date;
+        document.getElementById('detailDescriptionText').textContent = c.description;
+
+        // Photo Evidence
+        const evidenceUrl = `/complaints/${c.complaint_id}/evidence`;
+        document.getElementById('evidenceImg').src = evidenceUrl;
+        document.getElementById('evidenceImgLink').href = evidenceUrl;
+        document.getElementById('evidenceFullLink').href = evidenceUrl;
+
+        // Delete button for NEW complaints
+        if (c.status === 'NEW') {
+          const delBtn = document.getElementById('deleteComplaintBtn');
+          delBtn.style.display = 'inline-flex';
+          delBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete this complaint? This cannot be undone.')) return;
+            try {
+              const dRes = await fetch('/api/complaints-delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaint_id: c.complaint_id })
+              });
+              const dJson = await dRes.json();
+              if (dRes.ok && dJson.success) {
+                alert('Complaint deleted successfully.');
+                window.location.href = '/my-complaints';
+              } else {
+                alert(dJson.error || 'Failed to delete complaint.');
+              }
+            } catch (e) {
+              alert('Network error.');
+            }
+          });
+        }
+
+        // Timeline step statuses
+        document.getElementById('stepSubmittedDate').textContent = c.date;
+        if (['IN_PROGRESS', 'REOPENED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION', 'FINAL_RESOLVED'].includes(c.status)) {
+          document.getElementById('stepReview').classList.add('is-done');
+        }
+        if (['IN_PROGRESS', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION', 'FINAL_RESOLVED'].includes(c.status)) {
+          document.getElementById('stepProgress').classList.add('is-done');
+        }
+        if (c.status === 'FINAL_RESOLVED') {
+          document.getElementById('stepResolved').classList.add('is-done');
+          document.getElementById('stepResolvedDate').textContent = c.final_resolution_time?.slice(0, 10) || 'Resolved';
+        }
+
+        // Action card for awaiting student confirmation
+        if (['AWAITING_STUDENT_CONFIRMATION', 'RESOLUTION_SUBMITTED'].includes(c.status)) {
+          document.getElementById('studentResolutionActionCard').style.display = 'block';
+
+          // Confirm Resolution Button
+          document.getElementById('confirmResolutionBtn').addEventListener('click', async () => {
+            if (!confirm('Are you satisfied that this grievance has been properly resolved?')) return;
+            try {
+              const cRes = await fetch('/api/student-confirm-resolution', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ complaint_id: c.complaint_id })
+              });
+              const cJson = await cRes.json();
+              if (cRes.ok && cJson.success) {
+                alert('Resolution confirmed! Ticket closed.');
+                window.location.reload();
+              } else {
+                alert(cJson.error || 'Failed to confirm resolution.');
+              }
+            } catch (e) {
+              alert('Network error.');
+            }
+          });
+
+          // Open Regenerate Modal
+          document.getElementById('openRegenerateModalBtn').addEventListener('click', () => {
+            document.getElementById('regenerateModal').style.display = 'flex';
+          });
+        }
+
+        // Regenerate Form
+        document.getElementById('regenerateForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const reason = document.getElementById('regenReasonInput').value.trim();
+          const btn = document.getElementById('confirmRegenBtn');
+          btn.disabled = true;
+          btn.textContent = 'Submitting...';
+
+          try {
+            const rRes = await fetch('/api/student-regenerate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ complaint_id: c.complaint_id, reason })
+            });
+            const rJson = await rRes.json();
+            if (rRes.ok && rJson.success) {
+              alert(rJson.message);
+              window.location.reload();
+            } else {
+              alert(rJson.error || 'Failed to reopen complaint.');
+              btn.disabled = false;
+              btn.textContent = 'Submit Reopening';
+            }
+          } catch (e) {
+            alert('Network error.');
+            btn.disabled = false;
+            btn.textContent = 'Submit Reopening';
+          }
+        });
+
+        // History list
+        const histContainer = document.getElementById('historyList');
+        if (history.length === 0) {
+          histContainer.innerHTML = '<div style="color: #94a3b8; font-size: 0.85rem;">Ticket logged in registry. Awaiting admin review.</div>';
+        } else {
+          let hHtml = '';
+          for (const h of history) {
+            hHtml += `
+              <div style="background: rgba(3, 7, 18, 0.5); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.25rem;">
+                  <span style="color: #38bdf8; font-weight: 600;">Status: ${h.old_status ? h.old_status + ' → ' : ''}${h.new_status}</span>
+                  <span style="color: #64748b;">${h.changed_at}</span>
+                </div>
+                ${h.remarks ? `<div style="font-size: 0.85rem; color: #cbd5e1; font-style: italic;">"${h.remarks}"</div>` : ''}
+              </div>
+            `;
+          }
+          histContainer.innerHTML = hHtml;
+        }
+
+      } catch (err) {
+        console.error('Error fetching complaint detail:', err);
+      }
+    });
+  </script>
+</body>
+</html>

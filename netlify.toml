@@ -1,0 +1,216 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+  command = "node scripts/build.js"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# ------------------------------------------------------------------------------
+# API FUNCTION REWRITES
+# ------------------------------------------------------------------------------
+[[redirects]]
+  from = "/api/login"
+  to = "/.netlify/functions/auth-login"
+  status = 200
+
+[[redirects]]
+  from = "/api/register"
+  to = "/.netlify/functions/auth-register"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin-login"
+  to = "/.netlify/functions/auth-admin-login"
+  status = 200
+
+[[redirects]]
+  from = "/api/logout"
+  to = "/.netlify/functions/auth-logout"
+  status = 200
+
+[[redirects]]
+  from = "/api/stats"
+  to = "/.netlify/functions/public-stats"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/heatmap"
+  to = "/.netlify/functions/admin-zone"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/zone-telemetry"
+  to = "/.netlify/functions/admin-zone"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/pulse"
+  to = "/.netlify/functions/admin-zone"
+  status = 200
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# ------------------------------------------------------------------------------
+# DYNAMIC PDF & EVIDENCE STREAMING REWRITES
+# ------------------------------------------------------------------------------
+[[redirects]]
+  from = "/complaints/:id/evidence"
+  to = "/.netlify/functions/evidence-get?complaint_id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/student/complaint/:id/download-pdf"
+  to = "/.netlify/functions/pdf-generate?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/student/complaint/:id/pdf"
+  to = "/.netlify/functions/pdf-generate?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/admin/complaint/:id/download-pdf"
+  to = "/.netlify/functions/pdf-generate?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/admin/complaint/:id/pdf"
+  to = "/.netlify/functions/pdf-generate?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/admin/report/download-pdf"
+  to = "/.netlify/functions/pdf-generate?report=summary"
+  status = 200
+
+[[redirects]]
+  from = "/admin/report/pdf"
+  to = "/.netlify/functions/pdf-generate?report=summary"
+  status = 200
+
+# ------------------------------------------------------------------------------
+# APPLICATION CLEAN URL REWRITES
+# ------------------------------------------------------------------------------
+[[redirects]]
+  from = "/login"
+  to = "/login.html"
+  status = 200
+
+[[redirects]]
+  from = "/register"
+  to = "/register.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/login"
+  to = "/admin-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-login"
+  to = "/admin-login.html"
+  status = 200
+
+[[redirects]]
+  from = "/student/dashboard"
+  to = "/student-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/student-dashboard"
+  to = "/student-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/submit-complaint"
+  to = "/submit-complaint.html"
+  status = 200
+
+[[redirects]]
+  from = "/student/submit"
+  to = "/submit-complaint.html"
+  status = 200
+
+[[redirects]]
+  from = "/submit_complaint"
+  to = "/submit-complaint.html"
+  status = 200
+
+[[redirects]]
+  from = "/my-complaints"
+  to = "/my-complaints.html"
+  status = 200
+
+[[redirects]]
+  from = "/student/complaints"
+  to = "/my-complaints.html"
+  status = 200
+
+[[redirects]]
+  from = "/student/my-complaints"
+  to = "/my-complaints.html"
+  status = 200
+
+[[redirects]]
+  from = "/my_complaints"
+  to = "/my-complaints.html"
+  status = 200
+
+[[redirects]]
+  from = "/student/complaint/:id"
+  to = "/complaint-detail.html?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/admin/dashboard"
+  to = "/admin-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin-dashboard"
+  to = "/admin-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/complaint/:id"
+  to = "/admin-complaint-detail.html?id=:id"
+  status = 200
+
+[[redirects]]
+  from = "/student/profile"
+  to = "/profile.html"
+  status = 200
+
+[[redirects]]
+  from = "/profile"
+  to = "/profile.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/api/update-status"
+  to = "/.netlify/functions/admin-update-status"
+  status = 200
+
+[[redirects]]
+  from = "/api/update-status"
+  to = "/.netlify/functions/admin-update-status"
+  status = 200
+
+[[redirects]]
+  from = "/admin/soc"
+  to = "/soc-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/soc"
+  to = "/soc-dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/soc-dashboard"
+  to = "/soc-dashboard.html"
+  status = 200

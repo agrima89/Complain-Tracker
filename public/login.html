@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CampusCare - Student Login. Transparent university grievance redressal.">
+  <title>Student Login - CampusCare SaaS Portal</title>
+
+  <script>
+    (function() {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/campus-world.css">
+  <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-page-body">
+    <!-- Top Navigation -->
+    <header class="auth-top-navbar">
+      <a href="/" class="auth-nav-brand">
+        <div class="brand-logo-icon">🏫</div>
+        <div class="brand-title-group">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-sub">Student Grievance Portal</span>
+        </div>
+      </a>
+
+      <div class="auth-nav-actions">
+        <a href="/" class="auth-nav-link">Home</a>
+        <a href="/register" class="auth-nav-pill-btn">Register</a>
+      </div>
+    </header>
+
+    <!-- Split-Screen Login Layout -->
+    <div class="auth-split-wrapper">
+      
+      <!-- LEFT PANEL: Visuals & Metrics -->
+      <div class="auth-visual-panel">
+        <div class="auth-glow-layer">
+          <div class="auth-glow-orb auth-glow-1"></div>
+          <div class="auth-glow-orb auth-glow-2"></div>
+        </div>
+        <div class="auth-grid-pattern"></div>
+
+        <div class="auth-panel-content">
+          <div class="auth-badge">
+            <span class="auth-badge-dot"></span>
+            <span>STUDENT GRIEVANCE PORTAL</span>
+          </div>
+
+          <h1 class="auth-hero-title">
+            Your Campus.<br>
+            Your Voice.<br>
+            <span class="auth-hero-highlight">Your Resolution.</span>
+          </h1>
+
+          <p class="auth-hero-subtext">
+            Stay connected to every complaint, update and resolution happening across your campus.
+          </p>
+
+          <div class="auth-campus-visual-container">
+            <div class="auth-campus-map-box">
+              <div class="map-ambient-grid"></div>
+
+              <svg class="auth-map-svg" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 80 60 L 200 45 L 320 80" stroke="rgba(59, 130, 246, 0.3)" stroke-width="1.5" stroke-dasharray="4 4" />
+                <path d="M 200 45 L 200 185" stroke="rgba(59, 130, 246, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+                <path d="M 80 60 L 100 180 L 200 185 L 300 170" stroke="rgba(16, 185, 129, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
+              </svg>
+
+              <div class="auth-map-node" style="top: 25%; left: 20%;" title="Academic Block">
+                <div class="node-beacon">🏫</div>
+              </div>
+              <div class="auth-map-node" style="top: 18%; left: 50%;" title="Central Library">
+                <div class="node-beacon">📚</div>
+              </div>
+              <div class="auth-map-node" style="top: 32%; left: 80%;" title="Hostels">
+                <div class="node-beacon">🛏️</div>
+              </div>
+              <div class="auth-map-node" style="top: 75%; left: 50%;" title="Tech Center">
+                <div class="node-beacon">⚡</div>
+              </div>
+
+              <!-- Floating Stats -->
+              <div class="auth-floating-stat stat-pos-1">
+                <div class="auth-stat-icon stat-icon-green">✓</div>
+                <div class="auth-stat-text">
+                  <div class="stat-top-val" id="authResolvedStat">100%</div>
+                  <div class="stat-sub-lbl">Resolution SLA</div>
+                </div>
+              </div>
+
+              <div class="auth-floating-stat stat-pos-2">
+                <div class="auth-stat-icon stat-icon-cyan">⚡</div>
+                <div class="auth-stat-text">
+                  <div class="stat-top-val">&lt; 24h</div>
+                  <div class="stat-sub-lbl">Avg Response</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Ticket Widget -->
+          <div class="auth-live-ticket-widget">
+            <div>
+              <div class="ticket-mini-header">
+                <span class="ticket-live-pill">🔵 LIVE COMPLAINT</span>
+                <span style="font-family: monospace; font-weight: 700; font-size: 0.76rem; color: #38bdf8;">#CMP-2026-LIVE</span>
+              </div>
+              <div class="ticket-mini-title">Campus Facilities & Redressal</div>
+            </div>
+
+            <div class="ticket-pipeline-mini">
+              <div class="mini-step done"><span class="mini-dot"></span><span>Submitted</span></div>
+              <span style="color: #475569; font-size: 0.7rem;">→</span>
+              <div class="mini-step done"><span class="mini-dot"></span><span>Review</span></div>
+              <span style="color: #475569; font-size: 0.7rem;">→</span>
+              <div class="mini-step active"><span class="mini-dot"></span><span>Action</span></div>
+              <span style="color: #475569; font-size: 0.7rem;">→</span>
+              <div class="mini-step"><span class="mini-dot"></span><span>Resolve</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="font-size: 0.78rem; color: #64748b; position: relative; z-index: 2;">
+          CampusCare Student Portal • Secure 256-bit Encrypted
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL: Login Glass Card -->
+      <div class="auth-card-panel">
+        <div class="auth-form-glass-card">
+          <div class="login-card-header">
+            <div class="login-brand-icon-box"><span>🏫</span></div>
+            <span class="login-welcome-wave">Welcome back 👋</span>
+            <h2 class="login-card-title">Student Login</h2>
+            <p class="login-card-subtext">Sign in to track and manage your campus complaints.</p>
+          </div>
+
+          <div id="authAlert" class="auth-inline-alert" style="display: none;" role="alert">
+            <span class="alert-icon">⚠</span>
+            <span id="authAlertText"></span>
+          </div>
+
+          <form id="studentLoginForm" autocomplete="on">
+            <div class="auth-input-group">
+              <label for="email" class="auth-input-label">
+                Chandigarh University Email <span style="color: #f43f5e;">*</span>
+              </label>
+              <div class="auth-input-with-icon">
+                <span class="auth-input-icon">✉</span>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="auth-form-input"
+                  placeholder="e.g. 23mca10001@culkomail.in"
+                  required
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <div class="auth-input-group">
+              <label for="password" class="auth-input-label">
+                Password <span style="color: #f43f5e;">*</span>
+              </label>
+              <div class="auth-input-with-icon input-password-wrapper">
+                <span class="auth-input-icon">🔒</span>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="auth-form-input"
+                  placeholder="Enter your password"
+                  required
+                >
+                <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility">👁️</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-auth-submit" id="authSubmitBtn">
+              <span class="btn-auth-text">Sign In</span>
+              <span class="btn-auth-arrow">→</span>
+            </button>
+          </form>
+
+          <div class="auth-card-footer">
+            <p>New to CampusCare? <a href="/register" class="auth-switch-link">Create an Account</a></p>
+            <div class="auth-admin-access-row">
+              <a href="/admin/login" class="admin-portal-link">
+                <span>🛡️</span> Administrative Portal & HOD Access &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/campus-world.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('studentLoginForm');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const alertBox = document.getElementById('authAlert');
+      const alertText = document.getElementById('authAlertText');
+
+      function showAlert(msg, isError = true) {
+        alertBox.style.display = 'flex';
+        alertBox.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)';
+        alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
+        alertBox.style.color = isError ? '#f87171' : '#4ade80';
+        alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
+        alertText.textContent = msg;
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Signing in...</span>';
+
+        try {
+          const res = await fetch('/api/auth-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          const json = await res.json();
+
+          if (res.ok && json.success) {
+            showAlert('Login successful! Redirecting...', false);
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect') || json.data?.redirectUrl || '/student-dashboard';
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 600);
+          } else {
+            showAlert(json.error || 'Invalid email or password.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
+          }
+        } catch (err) {
+          showAlert('Network error. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

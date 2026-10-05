@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CampusCare - Student Dashboard. Transparent university grievance redressal.">
+  <title>Student Dashboard - CampusCare</title>
+
+  <script>
+    (function() {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/campus-world.css">
+</head>
+<body>
+
+  <!-- Universal Glassmorphic Navbar -->
+  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
+    <div class="container navbar-inner">
+      <a href="/" class="navbar-brand" title="CampusCare - Student Grievance Portal">
+        <div class="brand-icon"><span>🎓</span></div>
+        <div class="brand-text">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-tag">Student Grievance Portal</span>
+        </div>
+      </a>
+
+      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation"></nav>
+
+      <div class="navbar-actions">
+        <div class="navbar-notif-wrapper" style="position: relative;">
+          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
+            <span class="notif-btn-icon">🔔</span>
+            <span class="notification-badge-dot"></span>
+          </button>
+        </div>
+
+        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span id="mobileNavToggleIcon">☰</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true"></div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    <div class="container" style="max-width: 1260px;">
+
+      <!-- Live Time & Signature Greeting -->
+      <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+        <span class="time-headline-text">
+          <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+          <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+        </span>
+        <span class="time-signature-message" id="worldSignatureGreeting">"Campus is active and grievance desks are monitoring."</span>
+      </div>
+
+      <!-- Welcome Header Banner -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+        <div>
+          <div style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25); margin-bottom: 0.5rem;">
+            <span>🎓</span> STUDENT DASHBOARD
+          </div>
+          <h1 style="font-size: 1.85rem; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; margin-bottom: 0.35rem;">
+            Welcome back, <span id="studentWelcomeName">Student</span> 👋
+          </h1>
+          <p style="color: #94a3b8; font-size: 0.95rem; margin: 0; max-width: 650px;">
+            Manage your campus complaints and track live resolution progress in real time.
+          </p>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <a href="/" class="btn btn-secondary" style="padding: 0.65rem 1.15rem; font-size: 0.95rem;">
+            <span>🌐</span> Campus Home
+          </a>
+          <a href="/submit-complaint" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35); padding: 0.65rem 1.25rem; font-size: 0.95rem;">
+            <span>📝</span> Report an Issue
+          </a>
+        </div>
+      </div>
+
+      <!-- 1. COMPACT SAAS STATISTICS GRID -->
+      <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+        
+        <!-- Total Logged -->
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-label">TOTAL</span>
+            <div class="stat-icon">📊</div>
+          </div>
+          <div class="stat-value" id="statStudentTotal">0</div>
+          <div class="stat-subtext">Complaints</div>
+        </div>
+
+        <!-- Open / Pending -->
+        <div class="stat-card stat-pending">
+          <div class="stat-header">
+            <span class="stat-label" style="color: #fbbf24;">OPEN</span>
+            <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
+          </div>
+          <div class="stat-value" style="color: #fbbf24;" id="statStudentPending">0</div>
+          <div class="stat-subtext">New/Forwarded</div>
+        </div>
+
+        <!-- In Progress -->
+        <div class="stat-card stat-progress">
+          <div class="stat-header">
+            <span class="stat-label" style="color: #38bdf8;">IN PROGRESS</span>
+            <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
+          </div>
+          <div class="stat-value" style="color: #38bdf8;" id="statStudentInProgress">0</div>
+          <div class="stat-subtext">Working</div>
+        </div>
+        
+        <!-- Awaiting Confirmation -->
+        <div class="stat-card" style="border-top-color: #a855f7; background: linear-gradient(180deg, rgba(168, 85, 247, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+          <div class="stat-header">
+            <span class="stat-label" style="color: #c084fc;">CONFIRM</span>
+            <div class="stat-icon" style="color: #c084fc; background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.3);">⚠️</div>
+          </div>
+          <div class="stat-value" style="color: #c084fc;" id="statStudentAwaiting">0</div>
+          <div class="stat-subtext">Needs Action</div>
+        </div>
+
+        <!-- Regenerated -->
+        <div class="stat-card" style="border-top-color: #f43f5e; background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+          <div class="stat-header">
+            <span class="stat-label" style="color: #fb7185;">REGENERATED</span>
+            <div class="stat-icon" style="color: #fb7185; background: rgba(244, 63, 94, 0.12); border-color: rgba(244, 63, 94, 0.3);">🔄</div>
+          </div>
+          <div class="stat-value" style="color: #fb7185;" id="statStudentRegenerated">0</div>
+          <div class="stat-subtext">Sent Back</div>
+        </div>
+
+        <!-- Resolved -->
+        <div class="stat-card stat-resolved">
+          <div class="stat-header">
+            <span class="stat-label" style="color: #4ade80;">RESOLVED</span>
+            <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.3);">✓</div>
+          </div>
+          <div class="stat-value" style="color: #4ade80;" id="statStudentResolved">0</div>
+          <div class="stat-subtext">Closed</div>
+        </div>
+
+      </div>
+
+      <!-- 2. QUICK ACTIONS SECTION -->
+      <div style="margin-bottom: 2.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+          <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; letter-spacing: -0.01em; margin: 0;">
+            ⚡ Quick Actions
+          </h2>
+          <span style="color: #64748b; font-size: 0.8rem;">Fast Shortcuts</span>
+        </div>
+
+        <div class="quick-actions-grid">
+          <a href="/submit-complaint" class="action-card">
+            <div class="action-card-icon">📝</div>
+            <div class="action-card-content">
+              <h3>Report an Issue</h3>
+              <p>Submit a new complaint with mandatory photo evidence.</p>
+            </div>
+            <div class="action-card-arrow">→</div>
+          </a>
+
+          <a href="/my-complaints" class="action-card">
+            <div class="action-card-icon" style="background: rgba(34, 197, 94, 0.12); color: #4ade80; border-color: rgba(34, 197, 94, 0.25);">📋</div>
+            <div class="action-card-content">
+              <h3>Track My Complaints</h3>
+              <p>Check live milestone progress and history of all submitted tickets.</p>
+            </div>
+            <div class="action-card-arrow">→</div>
+          </a>
+
+          <a href="/profile" class="action-card">
+            <div class="action-card-icon" style="background: rgba(168, 85, 247, 0.12); color: #c084fc; border-color: rgba(168, 85, 247, 0.25);">👤</div>
+            <div class="action-card-content">
+              <h3>Account Profile</h3>
+              <p>View registered student details and grievance activity statistics.</p>
+            </div>
+            <div class="action-card-arrow">→</div>
+          </a>
+        </div>
+      </div>
+
+      <!-- 3. RECENT COMPLAINTS TABLE -->
+      <div class="cinematic-card" style="border-radius: 14px; overflow: hidden;">
+        <div class="card-header" style="padding: 1.2rem 1.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.1rem;">📋</span>
+            <h2 class="card-title" style="font-size: 1.05rem; font-weight: 700;">Recent Complaints</h2>
+          </div>
+          <a href="/my-complaints" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+            View All History &rarr;
+          </a>
+        </div>
+
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive" id="recentTableWrap">
+            <table class="data-table" id="recentTable">
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="recentTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; padding: 2.5rem; color: #94a3b8;">
+                    Loading your complaints...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delete Confirmation Modal -->
+      <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+        <div style="background: #1e293b; padding: 2rem; border-radius: 12px; max-width: 400px; text-align: center; border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+          <h3 style="color: #ffffff; margin-top: 0; font-size: 1.25rem;">Are you sure you want to delete this complaint?</h3>
+          <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem;">This action will permanently remove the complaint and its associated evidence from your account.</p>
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
+            <button type="button" class="btn btn-primary" id="confirmDeleteBtn" style="background: #ef4444; border-color: #ef4444; color: white;">Delete Complaint</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Universal Footer -->
+  <footer class="app-footer campus-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-section">
+          <a href="/" class="footer-brand-logo">
+            <span class="brand-icon-sm">🏫</span>
+            <div class="brand-text">
+              <span class="brand-name">CampusCare</span>
+              <span class="brand-tag">Student Grievance Portal</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
+        </div>
+        <div class="footer-links-section">
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/student-dashboard">Dashboard</a></li>
+            <li><a href="/submit-complaint">Submit Complaint</a></li>
+            <li><a href="/my-complaints">My Complaints</a></li>
+            <li><a href="/profile">Profile</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">&copy; 2026 CampusCare. Student Grievance Portal.</div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/campus-world.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+
+  <script>
+    let pendingDeleteId = null;
+
+    function showDeleteModal(complaintId) {
+      pendingDeleteId = complaintId;
+      document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CampusCareAuth.requireStudent();
+      if (!user) return;
+
+      const welcomeName = document.getElementById('studentWelcomeName');
+      if (welcomeName) welcomeName.textContent = user.student_name || 'Student';
+
+      // Load Complaints and Stats
+      try {
+        const res = await fetch('/api/complaints-list?page=1&per_page=5');
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          const stats = json.data.stats || {};
+          document.getElementById('statStudentTotal').textContent = stats.total || 0;
+          document.getElementById('statStudentPending').textContent = stats.pending || 0;
+          document.getElementById('statStudentInProgress').textContent = stats.in_progress || 0;
+          document.getElementById('statStudentAwaiting').textContent = stats.awaiting || 0;
+          document.getElementById('statStudentRegenerated').textContent = stats.regenerated || 0;
+          document.getElementById('statStudentResolved').textContent = stats.resolved || 0;
+
+          const tbody = document.getElementById('recentTableBody');
+          const complaints = json.data.complaints || [];
+
+          if (complaints.length === 0) {
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem 1.5rem;">
+                  <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📋</div>
+                  <h3 style="font-size: 1.1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.35rem;">No grievances lodged yet</h3>
+                  <p style="color: #94a3b8; max-width: 420px; margin: 0 auto 1.25rem; font-size: 0.875rem;">Notice any problem on campus? Report it right away.</p>
+                  <a href="/submit-complaint" class="btn btn-primary btn-sm">+ Submit Your First Issue</a>
+                </td>
+              </tr>
+            `;
+            return;
+          }
+
+          let html = '';
+          for (const item of complaints) {
+            const priorityBadge = item.priority === 'High'
+              ? '<span class="badge badge-priority-high">● High</span>'
+              : (item.priority === 'Medium' ? '<span class="badge badge-priority-medium">● Medium</span>' : '<span class="badge badge-priority-low">● Low</span>');
+
+            let statusBadge = `<span class="badge">${item.status}</span>`;
+            if (['NEW', 'FORWARDED'].includes(item.status)) {
+              statusBadge = `<span class="badge badge-pending">⏳ ${item.status.replace(/_/g, ' ')}</span>`;
+            } else if (['IN_PROGRESS', 'REOPENED'].includes(item.status)) {
+              statusBadge = `<span class="badge badge-progress">⚡ ${item.status.replace(/_/g, ' ')}</span>`;
+            } else if (['FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'].includes(item.status)) {
+              statusBadge = `<span class="badge badge-resolved">✓ ${item.status.replace(/_/g, ' ')}</span>`;
+            }
+
+            const deleteBtn = item.status === 'NEW'
+              ? `<button type="button" onclick="showDeleteModal(${item.complaint_id})" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.8rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); margin-left: 0.35rem;">🗑️ Delete</button>`
+              : `<button type="button" onclick="alert('This complaint can no longer be deleted because it is already being processed by the administration.')" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.8rem; opacity: 0.5; cursor: not-allowed; margin-left: 0.35rem;" title="Cannot delete processed complaint">🗑️ Delete</button>`;
+
+            html += `
+              <tr>
+                <td style="font-weight: 700; font-family: monospace;">
+                  <a href="/student/complaint/${item.complaint_id}" style="color: #38bdf8; text-decoration: none;">
+                    ${item.ticket_id}
+                  </a>
+                </td>
+                <td>
+                  <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; font-size: 0.78rem;">
+                    ${item.category}
+                  </span>
+                </td>
+                <td><span style="color: #cbd5e1; font-size: 0.875rem;">${item.block || item.location}</span></td>
+                <td>${priorityBadge}</td>
+                <td style="color: #94a3b8; font-size: 0.825rem;">${item.date}</td>
+                <td>${statusBadge}</td>
+                <td style="text-align: right;">
+                  <a href="/student/complaint/${item.complaint_id}" class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem; font-size: 0.8rem;">Details &rarr;</a>
+                  ${deleteBtn}
+                </td>
+              </tr>
+            `;
+          }
+          tbody.innerHTML = html;
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard complaints:', err);
+      }
+
+      // Confirm Delete Handler
+      const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+      if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', async () => {
+          if (!pendingDeleteId) return;
+          confirmDeleteBtn.disabled = true;
+          confirmDeleteBtn.textContent = 'Deleting...';
+
+          try {
+            const res = await fetch('/api/complaints-delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ complaint_id: pendingDeleteId })
+            });
+            const json = await res.json();
+            if (res.ok && json.success) {
+              window.location.reload();
+            } else {
+              alert(json.error || 'Failed to delete complaint.');
+              confirmDeleteBtn.disabled = false;
+              confirmDeleteBtn.textContent = 'Delete Complaint';
+            }
+          } catch (err) {
+            alert('Network error deleting complaint.');
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.textContent = 'Delete Complaint';
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

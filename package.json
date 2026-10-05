@@ -1,0 +1,28 @@
+{
+  "name": "campuscare",
+  "version": "2.0.0",
+  "description": "CampusCare - College Complaint & Solution Tracker (Netlify Serverless)",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "node scripts/build.js",
+    "migrate:pg": "node scripts/migrate_sqlite_to_pg.js",
+    "test": "node test/test_endpoints.js"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "@netlify/functions": "^2.8.2",
+    "better-sqlite3": "^11.8.1",
+    "busboy": "^1.6.0",
+    "cookie": "^1.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "pdfkit": "^0.16.0",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.38.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

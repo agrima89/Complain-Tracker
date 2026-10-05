@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Management & Analytics Dashboard - CampusCare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta name="csrf-token" content="netlify-serverless-jwt">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo-icon">🛡️</span>
+        <span class="nav-brand-text">Campus<span class="brand-accent">Care</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/admin-dashboard.html" class="nav-link active">Admin Dashboard</a>
+        <a href="/soc-dashboard.html" class="nav-link">SOC Logs</a>
+        <a href="/profile.html" class="nav-link">Profile</a>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 1320px; padding-top: 1.5rem; padding-bottom: 3rem;">
+    <!-- Live Time & Greeting -->
+    <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+      <span class="time-headline-text">
+        <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+        <span id="worldLiveTimeText">CAMPUS COMMAND</span>
+      </span>
+      <span class="time-signature-message" id="worldSignatureGreeting">"Precision grievance tracking & resolution management."</span>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-title">
+        <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+          <span class="tag-cyan-dot"></span>
+          <span id="adminDeptHeaderTag">ADMINISTRATIVE COMMAND CENTER</span>
+        </div>
+        <h1 id="adminDeptTitle">Admin Management & Analytics Dashboard</h1>
+        <p class="page-header-subtitle" id="adminDeptSubtitle">
+          Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints across all university blocks.
+        </p>
+      </div>
+      <div class="page-header-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="/api/pdf-generate?report=true" target="_blank" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Comprehensive Complaint Analytics PDF Report">
+          <span>📄</span> Generate Complaint Report
+        </a>
+        <a href="/" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+          <span>🌐</span> Campus Home
+        </a>
+        <a href="/profile.html" class="btn btn-secondary btn-sm">
+          🛡️ Admin Profile
+        </a>
+      </div>
+    </div>
+
+    <!-- Live Statistics Cards Grid -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-label">Unique Grievances</span>
+          <div class="stat-icon">📊</div>
+        </div>
+        <div id="stat-total" class="stat-value">0</div>
+        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Distinct master issues</div>
+      </div>
+
+      <div class="stat-card" style="border-top-color: #38bdf8; background: linear-gradient(180deg, rgba(56, 189, 248, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%);">
+        <div class="stat-header">
+          <span class="stat-label" style="color: #38bdf8;">Student Reports</span>
+          <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">👥</div>
+        </div>
+        <div id="stat-reports" class="stat-value" style="color: #38bdf8;">0</div>
+        <div id="stat-affected-sub" style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">0 students affected</div>
+      </div>
+
+      <div class="stat-card stat-pending">
+        <div class="stat-header">
+          <span class="stat-label">Pending Action</span>
+          <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
+        </div>
+        <div id="stat-pending" class="stat-value" style="color: #fbbf24;">0</div>
+      </div>
+
+      <div class="stat-card stat-progress">
+        <div class="stat-header">
+          <span class="stat-label">In Progress</span>
+          <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
+        </div>
+        <div id="stat-progress" class="stat-value" style="color: #38bdf8;">0</div>
+      </div>
+
+      <div class="stat-card stat-resolved">
+        <div class="stat-header">
+          <span class="stat-label">Resolved</span>
+          <div class="stat-icon" style="color: #4ade80; background: rgba(34, 197, 94, 0.15); border-color: rgba(34, 197, 94, 0.3);">✓</div>
+        </div>
+        <div id="stat-resolved" class="stat-value" style="color: #4ade80;">0</div>
+      </div>
+
+      <a href="javascript:void(0)" id="escalatedCardLink" class="stat-card" style="text-decoration: none; border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08);">
+        <div class="stat-header">
+          <span class="stat-label" style="color: #f87171;">Attention Required</span>
+          <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4);">⚠</div>
+        </div>
+        <div id="stat-escalated" class="stat-value" style="color: #f87171;">0</div>
+      </a>
+    </div>
+
+    <!-- Campus Pulse Telemetry -->
+    <div class="campus-pulse-section cinematic-card" style="margin-bottom: 2rem; padding: 1.5rem; position: relative; overflow: hidden;">
+      <div class="pulse-glow-ambient"></div>
+      
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-bottom: 0.85rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span class="pulse-live-indicator">
+            <span class="pulse-ping-dot"></span>
+            <span class="pulse-core-dot"></span>
+          </span>
+          <div>
+            <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+              <span>⚡</span> Campus Pulse & Health Telemetry
+            </h2>
+            <p style="font-size: 0.8rem; color: #94a3b8; margin: 0.15rem 0 0 0;">
+              Live operational metrics, resolution velocity, and university infrastructure status
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); color: #34d399; font-size: 0.75rem;">
+            ● Systems Operational
+          </span>
+          <span id="turnaroundBadge" class="badge" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8; font-size: 0.75rem;">
+            Avg Turnaround: ~1.5d
+          </span>
+        </div>
+      </div>
+
+      <div class="pulse-metrics-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+        <div class="pulse-card pulse-card-critical">
+          <div class="pulse-card-header">
+            <span class="pulse-card-title">Critical & Escalated</span>
+            <span class="pulse-card-icon" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">🚨</span>
+          </div>
+          <div id="pulseCritical" class="pulse-card-value pulse-counter" data-target="0" style="color: #f87171;">0</div>
+          <div class="pulse-card-subtext">
+            <span id="pulseEscalatedSub">No complaints currently escalated.</span>
+          </div>
+        </div>
+
+        <div class="pulse-card pulse-card-hotspot">
+          <div class="pulse-card-header">
+            <span class="pulse-card-title">Top Hotspot Zone</span>
+            <span class="pulse-card-icon" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">📍</span>
+          </div>
+          <div id="pulseHotspot" class="pulse-card-value" style="font-size: 1.35rem; color: #fbbf24; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="All Zones Normal">All Zones Normal</div>
+          <div class="pulse-card-subtext"><span>Highest grievance concentration</span></div>
+        </div>
+
+        <div class="pulse-card pulse-card-resolution">
+          <div class="pulse-card-header">
+            <span class="pulse-card-title">Campus Resolution Rate</span>
+            <span class="pulse-card-icon" style="background: rgba(52, 211, 153, 0.2); color: #34d399;">⚡</span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 0.35rem;">
+            <div id="pulseResolutionRate" class="pulse-card-value pulse-counter" data-target="0" style="color: #34d399;">0</div>
+            <span style="font-size: 1.25rem; font-weight: 700; color: #34d399;">%</span>
+          </div>
+          <div class="pulse-progress-bar-bg" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.08); border-radius: 999px; margin: 0.5rem 0 0.25rem; overflow: hidden;">
+            <div id="pulseProgressBar" class="pulse-progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 999px; transition: width 1s ease;"></div>
+          </div>
+          <div class="pulse-card-subtext"><span id="pulseSolvedSub">0 of 0 issues solved</span></div>
+        </div>
+
+        <div class="pulse-card pulse-card-workload">
+          <div class="pulse-card-header">
+            <span class="pulse-card-title">Active Workload</span>
+            <span class="pulse-card-icon" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">🔄</span>
+          </div>
+          <div id="pulseWorkload" class="pulse-card-value pulse-counter" data-target="0" style="color: #38bdf8;">0</div>
+          <div class="pulse-card-subtext"><span id="pulseWorkloadSub">0 pending · 0 in progress</span></div>
+        </div>
+      </div>
+
+      <!-- 7-Day Velocity Strip -->
+      <div class="pulse-velocity-strip" style="background: rgba(3, 7, 18, 0.45); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 0.85rem 1.15rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: #e2e8f0;">📊 7-Day Grievance Velocity:</span>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Daily incoming ticket trajectory</span>
+        </div>
+        <div id="velocityBarsContainer" class="velocity-bars-container" style="display: flex; align-items: flex-end; gap: 0.65rem; height: 38px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Campus Problem Heatmap & Zone Telemetry -->
+    <div class="campus-heatmap-section cinematic-card" style="margin-bottom: 2rem; padding: 1.75rem 1.5rem;">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <h2 style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🗺️</span> Campus Problem Heatmap & Zone Telemetry
+          </h2>
+          <p style="font-size: 0.85rem; color: #94a3b8; margin: 0.2rem 0 0 0;">
+            Interactive architectural floorplan with real-time complaint intensity, hotspot radar, and zone diagnostics
+          </p>
+        </div>
+      </div>
+
+      <div class="heatmap-layout-grid" style="display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; align-items: start;">
+        <div class="heatmap-canvas-container" style="background: radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.8), rgba(3, 7, 18, 0.95)); border: 1px solid rgba(56, 189, 248, 0.18); border-radius: 16px; padding: 1.25rem; position: relative; overflow: hidden; min-height: 480px; box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);">
+          <div class="heatmap-legend" style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; margin-bottom: 0.75rem; font-size: 0.75rem; color: #94a3b8; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);"></span> Critical (&ge;5 active)
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);"></span> High (3-4)
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 8px rgba(6, 182, 212, 0.7);"></span> Moderate (1-2)
+            </span>
+            <span style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span> Calm / Cleared (0)
+            </span>
+          </div>
+
+          <svg id="campusHeatmapSvg" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: 100%; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));">
+            <defs>
+              <linearGradient id="grad-critical" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(239, 68, 68, 0.45)" />
+                <stop offset="100%" stop-color="rgba(185, 28, 28, 0.7)" />
+              </linearGradient>
+              <linearGradient id="grad-high" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(245, 158, 11, 0.4)" />
+                <stop offset="100%" stop-color="rgba(180, 83, 9, 0.65)" />
+              </linearGradient>
+              <linearGradient id="grad-moderate" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(6, 182, 212, 0.3)" />
+                <stop offset="100%" stop-color="rgba(14, 116, 144, 0.55)" />
+              </linearGradient>
+              <linearGradient id="grad-low" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(16, 185, 129, 0.25)" />
+                <stop offset="100%" stop-color="rgba(5, 150, 105, 0.45)" />
+              </linearGradient>
+              <linearGradient id="grad-neutral" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="rgba(30, 41, 59, 0.5)" />
+                <stop offset="100%" stop-color="rgba(15, 23, 42, 0.7)" />
+              </linearGradient>
+            </defs>
+
+            <g class="campus-pathways" opacity="0.35">
+              <line x1="40" y1="215" x2="760" y2="215" stroke="#38bdf8" stroke-width="6" stroke-dasharray="10,6" />
+              <line x1="40" y1="345" x2="760" y2="345" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+              <line x1="265" y1="40" x2="265" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+              <line x1="435" y1="40" x2="435" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+              <line x1="605" y1="40" x2="605" y2="490" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8,6" />
+              <rect x="25" y="25" width="750" height="470" rx="16" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5" stroke-dasharray="5,5" />
+              <circle cx="435" cy="215" r="24" fill="rgba(56, 189, 248, 0.08)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,3" />
+              <text x="435" y="219" text-anchor="middle" fill="#64748b" font-size="8" font-family="sans-serif">CAMPUS CIRCLE</text>
+            </g>
+
+            <g id="heatmapZonesGroup">
+              <!-- Dynamically populated from heatmap_data -->
+            </g>
+          </svg>
+
+          <div style="position: absolute; bottom: 0.85rem; left: 1.25rem; font-size: 0.75rem; color: #64748b; display: flex; align-items: center; gap: 0.35rem;">
+            <span>💡</span> Click on any campus zone for instant diagnostics & complaints inspection.
+          </div>
+        </div>
+
+        <!-- Telemetry Inspector Drawer -->
+        <div id="zoneInspectorDrawer" class="zone-inspector-card" style="background: rgba(6, 11, 24, 0.85); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(14px); box-shadow: 0 10px 30px rgba(0,0,0,0.55); display: flex; flex-direction: column;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
+            <div>
+              <div style="font-size: 0.725rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.08em; text-transform: uppercase;">ZONE DIAGNOSTICS</div>
+              <h3 id="inspectorZoneName" style="font-size: 1.2rem; font-weight: 700; color: #ffffff; margin: 0.25rem 0 0 0;">Select a Zone</h3>
+              <div id="inspectorZoneType" style="font-size: 0.8rem; color: #94a3b8; margin-top: 0.15rem;">Campus Infrastructure</div>
+            </div>
+            <span id="inspectorIntensityBadge" class="badge" style="background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 700; font-size: 0.75rem;">Low</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.2rem;">Total Logged</div>
+              <div id="inspectorTotalCount" style="font-size: 1.4rem; font-weight: 700; color: #ffffff;">0</div>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 10px; padding: 0.75rem; text-align: center;">
+              <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 0.2rem;">Unresolved</div>
+              <div id="inspectorUnresolvedCount" style="font-size: 1.4rem; font-weight: 700; color: #f87171;">0</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 1.25rem;">
+            <div style="font-size: 0.775rem; font-weight: 600; color: #cbd5e1; margin-bottom: 0.5rem;">Urgency Distribution:</div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <span class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; font-size: 0.75rem;">
+                High: <strong id="inspectorHighCount" style="margin-left: 0.25rem;">0</strong>
+              </span>
+              <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fcd34d; font-size: 0.75rem;">
+                Medium: <strong id="inspectorMediumCount" style="margin-left: 0.25rem;">0</strong>
+              </span>
+              <span class="badge" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac; font-size: 0.75rem;">
+                Low: <strong id="inspectorLowCount" style="margin-left: 0.25rem;">0</strong>
+              </span>
+            </div>
+          </div>
+
+          <div style="background: rgba(15, 23, 42, 0.4); border-radius: 8px; padding: 0.75rem; margin-bottom: 1.25rem; border: 1px solid rgba(255, 255, 255, 0.05);">
+            <div style="font-size: 0.725rem; color: #94a3b8; text-transform: uppercase;">Dominant Category</div>
+            <div id="inspectorTopCategory" style="font-size: 0.9rem; font-weight: 600; color: #38bdf8; margin-top: 0.2rem;">None Recorded</div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1rem; margin-bottom: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="font-size: 0.775rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.4rem;">
+                <span>📋</span>
+                <span id="zoneComplaintsHeader">ZONE COMPLAINTS</span>
+              </div>
+              <span id="zoneComplaintsBadge" class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.7rem; font-weight: 700;">0 issues</span>
+            </div>
+            <div id="zoneComplaintsContainer" class="zone-complaints-scroll-list" style="max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="text-align: center; padding: 1.5rem; color: #64748b; font-size: 0.85rem;">Select a zone to view associated grievances.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Charts Grid -->
+    <div class="cinematic-card" style="margin-bottom: 2rem; padding: 1.75rem 1.5rem;">
+      <div class="card-header" style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h2 class="card-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem;">
+            <span>📈</span> Real-Time Grievance Analytics & Resolution Trends
+          </h2>
+          <p id="resolutionRateSummary" style="font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem;">
+            Overall Resolution Rate: <strong style="color: #4ade80;">0%</strong> across 0 logged issues
+          </p>
+        </div>
+        <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Live Telemetry</span>
+      </div>
+
+      <div class="card-body" style="padding: 0;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+          <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📁</span> Complaints by Category
+            </h3>
+            <div style="position: relative; height: 210px;">
+              <canvas id="categoryChart"></canvas>
+            </div>
+          </div>
+
+          <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>⚡</span> Priority Breakdown
+            </h3>
+            <div style="position: relative; height: 210px;">
+              <canvas id="priorityChart"></canvas>
+            </div>
+          </div>
+
+          <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.25rem;">
+            <h3 style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📅</span> 6-Month Volume Trend
+            </h3>
+            <div style="position: relative; height: 210px;">
+              <canvas id="monthlyTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 2rem; background: rgba(6, 11, 24, 0.65); border: 1px solid rgba(56, 189, 248, 0.16); border-radius: 16px; padding: 1rem 1.25rem; backdrop-filter: blur(12px);">
+      <div style="display: flex; gap: 1rem; align-items: center; flex: 1; min-width: 280px; flex-wrap: wrap;">
+        <div style="position: relative; flex: 1; min-width: 220px;">
+          <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;">🔍</span>
+          <input type="text" id="searchInput" class="form-input" style="padding-left: 2.75rem;" placeholder="Search ticket ID (CMP-2026-0001), student, email, block, category...">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; white-space: nowrap;">Status:</label>
+          <select id="statusFilter" class="form-select" style="width: auto; min-width: 140px;">
+            <option value="All">All Statuses</option>
+            <option value="NEW">NEW</option>
+            <option value="FORWARDED">FORWARDED</option>
+            <option value="IN_PROGRESS">IN PROGRESS</option>
+            <option value="REOPENED">REOPENED</option>
+            <option value="RESOLUTION_SUBMITTED">RESOLUTION SUBMITTED</option>
+            <option value="AWAITING_STUDENT_CONFIRMATION">AWAITING CONFIRMATION</option>
+            <option value="FINAL_RESOLVED">FINAL RESOLVED</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: #94a3b8; white-space: nowrap;">Priority:</label>
+          <select id="priorityFilter" class="form-select" style="width: auto; min-width: 120px;">
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center;">
+          <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.85rem; color: #f87171; font-weight: 600; background: rgba(239, 68, 68, 0.12); padding: 0.4rem 0.85rem; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+            <input type="checkbox" id="escalatedCheckbox">
+            <span>⚠ Escalated</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <button id="applyFilterBtn" class="btn btn-primary btn-sm">Apply Filters</button>
+        <button id="resetFilterBtn" class="btn btn-secondary btn-sm">Reset</button>
+      </div>
+    </div>
+
+    <!-- Complaints Management Table -->
+    <div class="cinematic-card">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <div id="tableHeaderCount" style="font-weight: 700; color: #ffffff; font-size: 1.05rem;">
+          Campus Complaints Registry
+        </div>
+        <div id="tableHeaderBadge"></div>
+      </div>
+
+      <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Ticket ID</th>
+                <th>Students Affected</th>
+                <th>Student</th>
+                <th>Category</th>
+                <th>Block & Location</th>
+                <th>Evidence</th>
+                <th>Priority</th>
+                <th>Date / Updated</th>
+                <th>Status</th>
+                <th>Quick Status Update</th>
+                <th style="text-align: right;">Review</th>
+              </tr>
+            </thead>
+            <tbody id="complaintsTableBody">
+              <tr>
+                <td colspan="11" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                  Loading complaints...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="paginationControls" style="display: none; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-wrap: wrap; gap: 1rem;">
+          <div id="paginationInfo" style="font-size: 0.875rem; color: #94a3b8;"></div>
+          <div id="paginationButtons" style="display: flex; gap: 0.5rem; align-items: center;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Complaints Dynamic Modal -->
+  <div id="relatedModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1050; align-items: center; justify-content: center; padding: 2rem;">
+    <div style="background: #0f172a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 100%; max-width: 600px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin: 0 0 0.5rem 0;">Same Complaint Reports</h3>
+          <div id="relatedStudentCount" style="font-size: 0.95rem; color: #38bdf8; font-weight: 600;"></div>
+        </div>
+        <button onclick="document.getElementById('relatedModal').style.display='none'" style="background: none; border: none; color: #94a3b8; font-size: 1.75rem; cursor: pointer; line-height: 1; padding: 0;">&times;</button>
+      </div>
+      <div id="relatedListContainer" style="padding: 1.5rem; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 0.75rem;"></div>
+    </div>
+  </div>
+
+  <!-- Data Embeds for Chart.js and admin.js -->
+  <script id="analyticsData" type="application/json">{}</script>
+  <script id="heatmapData" type="application/json">[]</script>
+  <script id="pulseData" type="application/json">{}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+  <script src="/static/js/admin.js"></script>
+
+  <script>
+    let currentPage = 1;
+    let currentComplaints = [];
+
+    async function loadAdminDashboard() {
+      try {
+        const session = await checkAuthSession();
+        if (!session || !session.authenticated || session.role !== 'admin') {
+          window.location.href = '/admin-login.html';
+          return;
+        }
+
+        if (session.admin_department) {
+          const dept = session.admin_department.toUpperCase();
+          document.getElementById('adminDeptHeaderTag').textContent = `${dept} DEPARTMENT COMMAND CENTER`;
+          document.getElementById('adminDeptTitle').textContent = `${session.admin_department} Department Dashboard`;
+          document.getElementById('adminDeptSubtitle').innerHTML = `Isolated department portal: Monitor grievance trends, audit lifecycle history, inspect evidence photos, and resolve student complaints strictly assigned to the <strong>${session.admin_department}</strong> department.`;
+        }
+
+        // Fetch stats & telemetry
+        const statsRes = await fetch('/api/admin-stats');
+        const statsJson = await statsRes.json();
+        if (statsJson.success && statsJson.data) {
+          const { stats, analytics, pulse_data, heatmap_data } = statsJson.data;
+
+          // Update KPI cards
+          document.getElementById('stat-total').textContent = stats.total || 0;
+          document.getElementById('stat-reports').textContent = stats.total_reports || stats.total || 0;
+          document.getElementById('stat-affected-sub').textContent = `${stats.students_affected || stats.total || 0} students affected`;
+          document.getElementById('stat-pending').textContent = stats.pending || 0;
+          document.getElementById('stat-progress').textContent = stats.in_progress || 0;
+          document.getElementById('stat-resolved').textContent = stats.resolved || 0;
+          document.getElementById('stat-escalated').textContent = stats.escalated || 0;
+
+          // Update Pulse Telemetry
+          if (pulse_data) {
+            document.getElementById('turnaroundBadge').textContent = `Avg Turnaround: ~${pulse_data.avg_resolution_days || 1.5}d`;
+            const pCrit = document.getElementById('pulseCritical');
+            pCrit.setAttribute('data-target', pulse_data.critical_issues || 0);
+            pCrit.textContent = pulse_data.critical_issues || 0;
+            document.getElementById('pulseEscalatedSub').textContent = `${pulse_data.escalated_count || 0} flagged for escalation`;
+
+            document.getElementById('pulseHotspot').textContent = pulse_data.top_problem_area || 'All Zones Normal';
+            
+            const pRes = document.getElementById('pulseResolutionRate');
+            pRes.setAttribute('data-target', pulse_data.resolution_rate || 0);
+            pRes.textContent = pulse_data.resolution_rate || 0;
+            document.getElementById('pulseProgressBar').style.width = `${pulse_data.resolution_rate || 0}%`;
+            document.getElementById('pulseSolvedSub').textContent = `${stats.resolved} of ${stats.total} issues solved`;
+
+            const pWork = document.getElementById('pulseWorkload');
+            pWork.setAttribute('data-target', pulse_data.active_complaints || 0);
+            pWork.textContent = pulse_data.active_complaints || 0;
+            document.getElementById('pulseWorkloadSub').textContent = `${pulse_data.status_breakdown?.Pending || 0} pending · ${pulse_data.status_breakdown?.['In Progress'] || 0} in progress`;
+
+            // Velocity sparkline
+            if (pulse_data.velocity_7d) {
+              const velContainer = document.getElementById('velocityBarsContainer');
+              velContainer.innerHTML = pulse_data.velocity_7d.map(d => {
+                const max = 10;
+                let h = Math.round((d.count / max) * 28);
+                if (h < 4) h = 4;
+                if (h > 28) h = 28;
+                const bg = d.count > 3 ? '#f87171' : d.count > 0 ? '#38bdf8' : 'rgba(255,255,255,0.1)';
+                return `
+                  <div class="velocity-bar-col" style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;" title="${d.date}: ${d.count} tickets">
+                    <div style="width: 14px; height: ${h}px; background: ${bg}; border-radius: 3px;"></div>
+                    <span style="font-size: 0.65rem; color: #64748b; font-family: monospace;">${d.day_name}</span>
+                  </div>
+                `;
+              }).join('');
+            }
+          }
+
+          // Populate JSON scripts for Chart.js & Heatmap
+          document.getElementById('analyticsData').textContent = JSON.stringify(analytics || {});
+          document.getElementById('heatmapData').textContent = JSON.stringify(heatmap_data || []);
+          document.getElementById('pulseData').textContent = JSON.stringify(pulse_data || {});
+
+          if (analytics) {
+            document.getElementById('resolutionRateSummary').innerHTML = `Overall Resolution Rate: <strong style="color: #4ade80;">${analytics.resolved_percentage}%</strong> across ${analytics.total_complaints} logged issues`;
+          }
+
+          // Initialize charts and heatmap
+          if (window.initAnalyticsCharts) initAnalyticsCharts();
+          if (window.initCampusHeatmap) initCampusHeatmap();
+          if (window.initCampusPulseCounters) initCampusPulseCounters();
+        }
+
+        // Fetch complaints table
+        await loadComplaintsTable();
+
+      } catch (err) {
+        console.error('Error loading admin dashboard:', err);
+      }
+    }
+
+    async function loadComplaintsTable(page = 1) {
+      currentPage = page;
+      const q = document.getElementById('searchInput').value.trim();
+      const status = document.getElementById('statusFilter').value;
+      const priority = document.getElementById('priorityFilter').value;
+      const escalated = document.getElementById('escalatedCheckbox').checked;
+
+      const params = new URLSearchParams({
+        page,
+        per_page: 10,
+        status,
+        priority,
+        q,
+        escalated: escalated ? 'true' : 'false'
+      });
+
+      const res = await fetch(`/api/admin-complaints?${params.toString()}`);
+      const json = await res.json();
+
+      const tbody = document.getElementById('complaintsTableBody');
+      if (!json.success || !json.data || !json.data.complaints || json.data.complaints.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" style="text-align: center; padding: 3.5rem 1.5rem;">
+              <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🔍</div>
+              <h3 style="font-size: 1.2rem; font-weight: 600; color: #ffffff; margin-bottom: 0.5rem;">No matching complaints found</h3>
+              <p style="color: #94a3b8; max-width: 440px; margin: 0 auto; font-size: 0.9rem;">
+                No complaints match your active filter criteria. Try resetting filters to view all records.
+              </p>
+            </td>
+          </tr>
+        `;
+        document.getElementById('paginationControls').style.display = 'none';
+        document.getElementById('tableHeaderCount').textContent = 'Campus Complaints Registry (0 issues)';
+        return;
+      }
+
+      currentComplaints = json.data.complaints;
+      const pag = json.data.pagination;
+      document.getElementById('tableHeaderCount').textContent = `Showing ${currentComplaints.length} of ${pag.total} Grievance Ticket${pag.total > 1 ? 's' : ''}`;
+
+      tbody.innerHTML = currentComplaints.map(item => {
+        const ticketId = item.ticket_id || `CMP-2026-${String(item.complaint_id).padStart(4, '0')}`;
+        const isEscalated = item.priority === 'High' && item.status !== 'FINAL_RESOLVED';
+        const affectedBadge = item.affected_student_count > 1
+          ? `<button type="button" onclick="showRelatedModal(${item.complaint_id})" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-weight: 700; font-size: 0.85rem; padding: 0.4rem 0.75rem; border-radius: 8px; cursor: pointer;">👥 ${item.affected_student_count} Students</button>`
+          : `<span class="badge" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); color: #94a3b8; font-size: 0.8rem; padding: 0.35rem 0.65rem; border-radius: 8px;">👤 1 Reporter</span>`;
+
+        const evidenceBtn = item.photo_path
+          ? `<a href="/complaints/${item.complaint_id}/evidence" target="_blank" style="display: inline-flex; align-items: center; gap: 0.35rem; color: #38bdf8; text-decoration: none; font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); padding: 0.25rem 0.5rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.25);">📸 View File</a>`
+          : `<span style="color: #64748b; font-size: 0.8rem;">No File</span>`;
+
+        const priorityBadge = item.priority === 'High'
+          ? '<span class="badge badge-priority-high">● High</span>'
+          : item.priority === 'Medium'
+            ? '<span class="badge badge-priority-medium">● Medium</span>'
+            : '<span class="badge badge-priority-low">● Low</span>';
+
+        const statusClass = ['NEW', 'FORWARDED'].includes(item.status)
+          ? 'badge-pending'
+          : ['IN_PROGRESS', 'REOPENED'].includes(item.status)
+            ? 'badge-progress'
+            : 'badge-resolved';
+
+        return `
+          <tr style="${isEscalated ? 'background: rgba(239, 68, 68, 0.05);' : ''}">
+            <td style="font-weight: 700; font-family: monospace; white-space: nowrap;">
+              <a href="/admin-complaint-detail.html?id=${item.complaint_id}" style="color: #38bdf8; text-decoration: none;">
+                ${ticketId}
+              </a>
+              ${isEscalated ? '<div style="margin-top: 0.25rem;"><span class="badge" style="background: rgba(239, 68, 68, 0.25); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; font-size: 0.7rem; font-weight: 700;">⚠ Escalated</span></div>' : ''}
+            </td>
+            <td>${affectedBadge}</td>
+            <td>
+              <div style="font-weight: 600; color: #ffffff;">${item.student_name || 'Student'}</div>
+              <div style="font-size: 0.775rem; color: #94a3b8;">${item.student_email || ''}</div>
+            </td>
+            <td>
+              <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1;">
+                ${item.category}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: #ffffff;">${item.block || 'Campus'}</div>
+              <div style="font-size: 0.775rem; color: #94a3b8;">
+                ${item.floor_no ? item.floor_no : ''} ${item.room_no ? ', Room ' + item.room_no : ''} ${item.corridor_side ? '(' + item.corridor_side + ')' : ''}
+              </div>
+            </td>
+            <td>${evidenceBtn}</td>
+            <td>${priorityBadge}</td>
+            <td>
+              <div style="color: #cbd5e1; font-size: 0.825rem;">${item.date}</div>
+              ${item.last_updated && item.last_updated !== item.date ? `<div style="font-size: 0.725rem; color: #38bdf8;">🕒 ${item.last_updated.slice(0, 16)}</div>` : ''}
+            </td>
+            <td>
+              <span id="statusBadge-${item.complaint_id}" class="badge ${statusClass}">
+                ${item.status}
+              </span>
+            </td>
+            <td>
+              <form class="admin-status-form" data-complaint-id="${item.complaint_id}" style="display: flex; align-items: center; gap: 0.4rem;">
+                <select class="form-select status-select" style="padding: 0.35rem 0.5rem; font-size: 0.825rem; width: auto;">
+                  <option value="NEW" ${item.status === 'NEW' ? 'selected' : ''}>NEW</option>
+                  <option value="IN_PROGRESS" ${item.status === 'IN_PROGRESS' ? 'selected' : ''}>IN PROGRESS</option>
+                  <option value="FINAL_RESOLVED" ${item.status === 'FINAL_RESOLVED' ? 'selected' : ''}>RESOLVED</option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                  Save
+                </button>
+              </form>
+            </td>
+            <td style="text-align: right; white-space: nowrap;">
+              <a href="/api/pdf-generate?id=${item.complaint_id}" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.35rem 0.6rem; font-size: 0.8rem; margin-right: 0.35rem;" title="Download Official PDF Dossier">
+                📄 PDF
+              </a>
+              <a href="/admin-complaint-detail.html?id=${item.complaint_id}" class="btn btn-secondary btn-sm" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                Inspect &rarr;
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Setup quick status form handlers
+      if (window.initAdminStatusUpdaters) initAdminStatusUpdaters();
+
+      // Pagination
+      if (pag.total_pages > 1) {
+        document.getElementById('paginationControls').style.display = 'flex';
+        document.getElementById('paginationInfo').innerHTML = `Page <strong style="color: #fff;">${pag.page}</strong> of <strong style="color: #fff;">${pag.total_pages}</strong> (${pag.total} total items)`;
+        
+        let btns = '';
+        if (pag.has_prev) {
+          btns += `<button class="btn btn-secondary btn-sm" onclick="loadComplaintsTable(${pag.page - 1})">&larr; Previous</button>`;
+        }
+        for (let p = 1; p <= pag.total_pages; p++) {
+          if (p === pag.page) {
+            btns += `<span class="btn btn-primary btn-sm" style="padding: 0.3rem 0.65rem; font-weight: 700;">${p}</span>`;
+          } else if (p <= 3 || p >= pag.total_pages - 1 || Math.abs(p - pag.page) <= 1) {
+            btns += `<button class="btn btn-secondary btn-sm" style="padding: 0.3rem 0.65rem;" onclick="loadComplaintsTable(${p})">${p}</button>`;
+          }
+        }
+        if (pag.has_next) {
+          btns += `<button class="btn btn-secondary btn-sm" onclick="loadComplaintsTable(${pag.page + 1})">Next &rarr;</button>`;
+        }
+        document.getElementById('paginationButtons').innerHTML = btns;
+      } else {
+        document.getElementById('paginationControls').style.display = 'none';
+      }
+    }
+
+    function showRelatedModal(complaintId) {
+      const comp = currentComplaints.find(c => c.complaint_id == complaintId);
+      if (!comp) return;
+      document.getElementById('relatedStudentCount').textContent = `${comp.affected_student_count || 1} students reported this issue`;
+      const container = document.getElementById('relatedListContainer');
+      const reporters = comp.reporters || [{ student_name: comp.student_name, ticket_id: comp.ticket_id }];
+      container.innerHTML = reporters.map(r => `
+        <div style="padding: 1rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <span style="font-size: 1.1rem;">👤</span>
+              <span style="font-size: 1rem; color: #ffffff; font-weight: 600;">${r.student_name || 'Student'}</span>
+            </div>
+            <div style="font-family: monospace; font-size: 0.9rem; font-weight: 700; color: #94a3b8; margin-left: 1.6rem;">${r.ticket_id || comp.ticket_id}</div>
+          </div>
+        </div>
+      `).join('');
+      document.getElementById('relatedModal').style.display = 'flex';
+    }
+
+    document.getElementById('applyFilterBtn').addEventListener('click', () => loadComplaintsTable(1));
+    document.getElementById('resetFilterBtn').addEventListener('click', () => {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('statusFilter').value = 'All';
+      document.getElementById('priorityFilter').value = 'All';
+      document.getElementById('escalatedCheckbox').checked = false;
+      loadComplaintsTable(1);
+    });
+
+    document.getElementById('escalatedCardLink').addEventListener('click', () => {
+      document.getElementById('escalatedCheckbox').checked = true;
+      loadComplaintsTable(1);
+    });
+
+    document.addEventListener('DOMContentLoaded', loadAdminDashboard);
+  </script>
+</body>
+</html>

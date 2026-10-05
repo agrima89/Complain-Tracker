@@ -1,0 +1,1037 @@
+/* ==========================================================================
+   CAMPUSCARE — A LIVING WINDOW INTO THE CAMPUS
+   Architectural Campus Environment + Apple-Grade SaaS Glass Interface
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. NATURAL TIME-OF-DAY CSS VARIABLES
+   -------------------------------------------------------------------------- */
+:root {
+  /* Default Environment: Morning Active */
+  --sky-gradient: linear-gradient(180deg, #38bdf8 0%, #bae6fd 60%, #e0f2fe 100%);
+  --sun-opacity: 1;
+  --sun-top: 18%;
+  --sun-left: 28%;
+  --sun-color: #fef08a;
+  --sun-glow: rgba(253, 224, 71, 0.45);
+  --moon-opacity: 0;
+  --moon-top: 20%;
+  --moon-left: 78%;
+  --star-opacity: 0;
+  --cloud-opacity: 0.9;
+  --cloud-tint: rgba(255, 255, 255, 0.92);
+  --bird-opacity: 0.65;
+  
+  --building-base: #cbd5e1;
+  --building-trim: #94a3b8;
+  --building-shadow: rgba(15, 23, 42, 0.12);
+  --building-distant: #94a3b8;
+  
+  --window-illumination: rgba(147, 197, 253, 0.35);
+  --window-glow-color: rgba(147, 197, 253, 0.2);
+  --window-opacity: 0.2;
+  
+  --tree-color-1: #15803d;
+  --tree-color-2: #16a34a;
+  
+  --path-fill: #e2e8f0;
+  --path-border: #cbd5e1;
+  
+  --lamp-glow-opacity: 0;
+  --lamp-glow-color: rgba(251, 191, 36, 0.85);
+  
+  --student-silhouette-color: #1e293b;
+  --student-opacity: 0.85;
+  
+  --ui-scrim: rgba(255, 255, 255, 0.2);
+  --card-glass-bg: rgba(255, 255, 255, 0.82);
+  --card-glass-border: rgba(255, 255, 255, 0.9);
+  --card-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   TIME PHASE 1: SUNRISE (05:00 – 07:00)
+   Soft dark blue -> peach -> warm sunrise glow
+   -------------------------------------------------------------------------- */
+[data-env="sunrise"] {
+  --sky-gradient: linear-gradient(180deg, #1e293b 0%, #475569 35%, #fb7185 70%, #fdba74 100%);
+  --sun-opacity: 0.95;
+  --sun-top: 50%;
+  --sun-left: 22%;
+  --sun-color: #fde047;
+  --sun-glow: rgba(251, 146, 60, 0.65);
+  --moon-opacity: 0;
+  --star-opacity: 0.25;
+  --cloud-opacity: 0.75;
+  --cloud-tint: rgba(253, 186, 116, 0.6);
+  --bird-opacity: 0.8;
+  
+  --building-base: #334155;
+  --building-trim: #1e293b;
+  --building-shadow: rgba(0, 0, 0, 0.4);
+  --building-distant: #1e293b;
+  
+  --window-illumination: #fbbf24;
+  --window-glow-color: rgba(251, 191, 36, 0.5);
+  --window-opacity: 0.4;
+  
+  --tree-color-1: #14532d;
+  --tree-color-2: #166534;
+  
+  --path-fill: #374151;
+  --path-border: #4b5563;
+  
+  --lamp-glow-opacity: 0.65;
+  --lamp-glow-color: rgba(251, 191, 36, 0.75);
+  
+  --student-silhouette-color: #0f172a;
+  --student-opacity: 0.5;
+  
+  --ui-scrim: rgba(15, 23, 42, 0.45);
+  --card-glass-bg: rgba(30, 41, 59, 0.85);
+  --card-glass-border: rgba(255, 255, 255, 0.15);
+  --card-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.5), 0 0 25px rgba(251, 146, 60, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   TIME PHASE 2: MORNING (07:00 – 12:00)
+   Sky blue, white clouds, soft greens, crisp university atmosphere
+   -------------------------------------------------------------------------- */
+[data-env="morning"] {
+  --sky-gradient: linear-gradient(180deg, #38bdf8 0%, #bae6fd 60%, #e0f2fe 100%);
+  --sun-opacity: 1;
+  --sun-top: 20%;
+  --sun-left: 30%;
+  --sun-color: #fef08a;
+  --sun-glow: rgba(253, 224, 71, 0.5);
+  --moon-opacity: 0;
+  --star-opacity: 0;
+  --cloud-opacity: 0.9;
+  --cloud-tint: rgba(255, 255, 255, 0.95);
+  --bird-opacity: 0.7;
+  
+  --building-base: #cbd5e1;
+  --building-trim: #94a3b8;
+  --building-shadow: rgba(15, 23, 42, 0.14);
+  --building-distant: #94a3b8;
+  
+  --window-illumination: #bae6fd;
+  --window-glow-color: rgba(186, 230, 253, 0.3);
+  --window-opacity: 0.15;
+  
+  --tree-color-1: #15803d;
+  --tree-color-2: #16a34a;
+  
+  --path-fill: #e2e8f0;
+  --path-border: #cbd5e1;
+  
+  --lamp-glow-opacity: 0;
+  --lamp-glow-color: rgba(251, 191, 36, 0);
+  
+  --student-silhouette-color: #1e293b;
+  --student-opacity: 0.85;
+  
+  --ui-scrim: rgba(255, 255, 255, 0.18);
+  --card-glass-bg: rgba(255, 255, 255, 0.85);
+  --card-glass-border: rgba(255, 255, 255, 0.9);
+  --card-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   TIME PHASE 3: AFTERNOON (12:00 – 17:00)
+   Bright clear blue, white clouds, strong sunlight, active campus
+   -------------------------------------------------------------------------- */
+[data-env="afternoon"] {
+  --sky-gradient: linear-gradient(180deg, #0284c7 0%, #7dd3fc 60%, #f0f9ff 100%);
+  --sun-opacity: 1;
+  --sun-top: 12%;
+  --sun-left: 50%;
+  --sun-color: #ffffff;
+  --sun-glow: rgba(254, 240, 138, 0.65);
+  --moon-opacity: 0;
+  --star-opacity: 0;
+  --cloud-opacity: 0.85;
+  --cloud-tint: rgba(255, 255, 255, 0.98);
+  --bird-opacity: 0.6;
+  
+  --building-base: #e2e8f0;
+  --building-trim: #cbd5e1;
+  --building-shadow: rgba(15, 23, 42, 0.18);
+  --building-distant: #64748b;
+  
+  --window-illumination: #e0f2fe;
+  --window-glow-color: rgba(224, 242, 254, 0.3);
+  --window-opacity: 0.15;
+  
+  --tree-color-1: #166534;
+  --tree-color-2: #15803d;
+  
+  --path-fill: #f1f5f9;
+  --path-border: #cbd5e1;
+  
+  --lamp-glow-opacity: 0;
+  --lamp-glow-color: rgba(251, 191, 36, 0);
+  
+  --student-silhouette-color: #0f172a;
+  --student-opacity: 1;
+  
+  --ui-scrim: rgba(255, 255, 255, 0.15);
+  --card-glass-bg: rgba(255, 255, 255, 0.88);
+  --card-glass-border: rgba(255, 255, 255, 0.95);
+  --card-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   TIME PHASE 4: SUNSET / EVENING (17:00 – 19:00)
+   Blue apex -> purple horizon -> warm orange/peach near sun, glowing windows
+   -------------------------------------------------------------------------- */
+[data-env="sunset"] {
+  --sky-gradient: linear-gradient(180deg, #1e1b4b 0%, #312e81 30%, #a855f7 65%, #ea580c 88%, #fed7aa 100%);
+  --sun-opacity: 0.95;
+  --sun-top: 52%;
+  --sun-left: 25%;
+  --sun-color: #f97316;
+  --sun-glow: rgba(234, 88, 12, 0.75);
+  --moon-opacity: 0.15;
+  --star-opacity: 0.3;
+  --cloud-opacity: 0.85;
+  --cloud-tint: rgba(253, 186, 116, 0.55);
+  --bird-opacity: 0.85;
+  
+  --building-base: #2e1065;
+  --building-trim: #1e1b4b;
+  --building-shadow: rgba(0, 0, 0, 0.45);
+  --building-distant: #1e1b4b;
+  
+  --window-illumination: #fde047;
+  --window-glow-color: rgba(253, 224, 71, 0.65);
+  --window-opacity: 0.45;
+  
+  --tree-color-1: #1e293b;
+  --tree-color-2: #0f172a;
+  
+  --path-fill: #1e1b4b;
+  --path-border: #312e81;
+  
+  --lamp-glow-opacity: 0.85;
+  --lamp-glow-color: rgba(251, 191, 36, 0.9);
+  
+  --student-silhouette-color: #0f172a;
+  --student-opacity: 0.65;
+  
+  --ui-scrim: rgba(15, 23, 42, 0.5);
+  --card-glass-bg: rgba(30, 41, 59, 0.85);
+  --card-glass-border: rgba(255, 255, 255, 0.18);
+  --card-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(234, 88, 12, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   TIME PHASE 5: NIGHT (19:00 – 05:00)
+   Deep navy midnight, crescent moon, stars, warm window lights, glowing lamps
+   -------------------------------------------------------------------------- */
+[data-env="night"] {
+  --sky-gradient: linear-gradient(180deg, #030712 0%, #0b1329 50%, #0f172a 100%);
+  --sun-opacity: 0;
+  --moon-opacity: 1;
+  --moon-top: 18%;
+  --moon-left: 76%;
+  --star-opacity: 0.9;
+  --cloud-opacity: 0.35;
+  --cloud-tint: rgba(30, 41, 59, 0.6);
+  --bird-opacity: 0;
+  
+  --building-base: #090e1a;
+  --building-trim: #111827;
+  --building-shadow: rgba(0, 0, 0, 0.7);
+  --building-distant: #050811;
+  
+  --window-illumination: #fde047;
+  --window-glow-color: rgba(253, 224, 71, 0.85);
+  --window-opacity: 0.85;
+  
+  --tree-color-1: #090e1a;
+  --tree-color-2: #0f172a;
+  
+  --path-fill: #090e1a;
+  --path-border: #1e293b;
+  
+  --lamp-glow-opacity: 1;
+  --lamp-glow-color: rgba(251, 191, 36, 0.95);
+  
+  --student-silhouette-color: #030712;
+  --student-opacity: 0.25;
+  
+  --ui-scrim: rgba(3, 7, 18, 0.55);
+  --card-glass-bg: rgba(15, 23, 42, 0.86);
+  --card-glass-border: rgba(56, 189, 248, 0.25);
+  --card-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 35px rgba(56, 189, 248, 0.15);
+}
+
+/* --------------------------------------------------------------------------
+   2. LIVING WINDOW HERO STAGE ARCHITECTURE
+   -------------------------------------------------------------------------- */
+.campus-window-hero {
+  position: relative;
+  min-height: calc(100vh - var(--navbar-height));
+  display: flex;
+  align-items: center;
+  padding: 3.5rem 1.5rem 4.5rem;
+  overflow: hidden;
+  perspective: 1200px;
+  background-color: var(--color-bg-app);
+  transition: background-color 1.2s ease;
+}
+
+/* Multi-Depth Parallax Stage */
+.campus-scenic-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* LAYER 1: Sky (Upper 60% prominent) */
+.scenic-layer-sky {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--sky-gradient);
+  transition: background 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+/* LAYER 2: Celestial Bodies & Drifting Clouds */
+.scenic-layer-celestial {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
+/* Sun */
+.window-sun {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--sun-color) 0%, rgba(254, 240, 138, 0.8) 55%, transparent 100%);
+  top: var(--sun-top);
+  left: var(--sun-left);
+  opacity: var(--sun-opacity);
+  box-shadow: 0 0 60px var(--sun-glow);
+  transform: translate(-50%, -50%);
+  transition: all 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Moon */
+.window-moon {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffffff 0%, #cbd5e1 75%, #94a3b8 100%);
+  top: var(--moon-top);
+  left: var(--moon-left);
+  opacity: var(--moon-opacity);
+  box-shadow: 0 0 35px rgba(255, 255, 255, 0.8), 0 0 60px rgba(56, 189, 248, 0.35);
+  transform: translate(-50%, -50%);
+  transition: all 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Starfield */
+.window-stars {
+  position: absolute;
+  inset: 0;
+  opacity: var(--star-opacity);
+  transition: opacity 1.5s ease;
+}
+
+.window-star-dot {
+  position: absolute;
+  background-color: #ffffff;
+  border-radius: 50%;
+  animation: starBlink 3.2s infinite ease-in-out alternate;
+}
+
+@keyframes starBlink {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.25); box-shadow: 0 0 5px #ffffff; }
+  100% { opacity: 0.4; transform: scale(0.9); }
+}
+
+/* Drifting Clouds */
+.window-cloud-layer {
+  position: absolute;
+  inset: 0;
+  opacity: var(--cloud-opacity);
+  transition: opacity 1.5s ease;
+}
+
+.window-cloud {
+  position: absolute;
+  background: var(--cloud-tint);
+  border-radius: 100px;
+  filter: blur(10px);
+  transition: background 1.5s ease;
+  animation: cloudPass 70s linear infinite;
+}
+
+.cloud-a { width: 320px; height: 70px; top: 15%; left: -5%; animation-duration: 80s; }
+.cloud-b { width: 400px; height: 85px; top: 28%; left: 45%; animation-duration: 95s; animation-delay: -30s; }
+.cloud-c { width: 260px; height: 55px; top: 10%; left: 75%; animation-duration: 65s; animation-delay: -15s; }
+
+@keyframes cloudPass {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(100vw + 450px)); }
+}
+
+/* LAYER 3: Distant University Skyline */
+.scenic-layer-distant-campus {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 52%;
+  will-change: transform;
+}
+
+.distant-skyline-svg {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.distant-building-fill {
+  fill: var(--building-distant);
+  transition: fill 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* LAYER 4: Main Academic Hall, Portico & Library */
+.scenic-layer-main-hall {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 60%;
+  will-change: transform;
+}
+
+.main-hall-svg {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  max-width: 100%;
+  height: 100%;
+}
+
+.hall-facade {
+  fill: var(--building-base);
+  transition: fill 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hall-trim {
+  fill: var(--building-trim);
+  transition: fill 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hall-shadow {
+  fill: var(--building-shadow);
+  transition: fill 1.5s ease;
+}
+
+.window-cell {
+  fill: var(--window-illumination);
+  opacity: var(--window-opacity);
+  filter: drop-shadow(0 0 8px var(--window-glow-color));
+  transition: fill 1.2s ease, opacity 1.2s ease, filter 1.2s ease;
+}
+
+/* LAYER 5: Campus Greenery Trees */
+.scenic-layer-trees {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 44%;
+  will-change: transform;
+}
+
+.tree-canopy-1 {
+  fill: var(--tree-color-1);
+  transition: fill 1.5s ease;
+  transform-origin: bottom center;
+  animation: treeBreeze 7s ease-in-out infinite alternate;
+}
+
+.tree-canopy-2 {
+  fill: var(--tree-color-2);
+  transition: fill 1.5s ease;
+  transform-origin: bottom center;
+  animation: treeBreeze 9s 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes treeBreeze {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(1deg); }
+}
+
+/* LAYER 6: Perspective Promenade Pathway */
+.scenic-layer-path {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 35%;
+  will-change: transform;
+}
+
+.promenade-fill {
+  fill: var(--path-fill);
+  transition: fill 1.5s ease;
+}
+
+.promenade-curb {
+  fill: var(--path-border);
+  transition: fill 1.5s ease;
+}
+
+/* LAYER 7: Lamp Posts & Glowing Lanterns */
+.scenic-layer-lamps {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 38%;
+  will-change: transform;
+}
+
+.lamp-halo {
+  opacity: var(--lamp-glow-opacity);
+  fill: var(--lamp-glow-color);
+  filter: drop-shadow(0 0 16px var(--lamp-glow-color));
+  transition: opacity 1.2s ease, fill 1.2s ease;
+}
+
+/* LAYER 8: Distant Student Silhouettes */
+.scenic-layer-students {
+  position: absolute;
+  bottom: 4%;
+  left: 0;
+  width: 100%;
+  height: 22%;
+  opacity: var(--student-opacity);
+  transition: opacity 1.5s ease;
+  will-change: transform;
+}
+
+.student-silhouette-shape {
+  fill: var(--student-silhouette-color);
+  transition: fill 1.5s ease;
+}
+
+/* LAYER 9: Atmospheric Scrim Overlay */
+.scenic-layer-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    rgba(255, 255, 255, 0.02) 0%, 
+    var(--ui-scrim) 45%, 
+    var(--ui-scrim) 100%
+  );
+  backdrop-filter: blur(0.5px);
+  -webkit-backdrop-filter: blur(0.5px);
+  transition: background 1.5s ease;
+}
+
+/* --------------------------------------------------------------------------
+   3. FOREGROUND CAMPUSCARE CONTROL INTERFACE
+   -------------------------------------------------------------------------- */
+.campus-window-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 3.5rem;
+  align-items: center;
+  position: relative;
+  z-index: 5;
+  width: 100%;
+}
+
+.window-hero-left {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Unified Compact Glass Time & Status Chip */
+.campus-window-time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.1rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.35rem;
+  width: fit-content;
+  transition: var(--transition-theme);
+}
+
+[data-env="night"] .campus-window-time-chip,
+[data-theme="dark"] .campus-window-time-chip {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5), 0 0 12px rgba(56, 189, 248, 0.15);
+}
+
+.chip-time-headline {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.chip-phase-dot {
+  font-size: 0.95rem;
+}
+
+.chip-greeting-subtext {
+  font-size: 0.76rem;
+  color: var(--color-primary-600);
+  font-weight: 600;
+  border-left: 1px solid var(--color-border-strong);
+  padding-left: 0.75rem;
+}
+
+[data-env="night"] .chip-greeting-subtext,
+[data-theme="dark"] .chip-greeting-subtext {
+  color: #38bdf8;
+  border-left-color: rgba(56, 189, 248, 0.3);
+}
+
+/* Hero Badge */
+.window-cell-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 0.9rem;
+}
+
+.badge-core-ping {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-primary-600);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+  animation: corePing 2s infinite;
+}
+
+[data-theme="dark"] .badge-core-ping,
+[data-env="night"] .badge-core-ping {
+  background-color: #38bdf8;
+  box-shadow: 0 0 8px #38bdf8;
+}
+
+@keyframes corePing {
+  0% { transform: scale(0.85); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.4; }
+  100% { transform: scale(0.85); opacity: 1; }
+}
+
+/* Clean Hero Heading */
+.window-hero-title {
+  font-size: 3.65rem;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.hero-gradient-text {
+  display: inline-block;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #06b6d4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-env="night"] .hero-gradient-text,
+[data-theme="dark"] .hero-gradient-text {
+  background: linear-gradient(135deg, #67e8f9 0%, #38bdf8 45%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.35));
+}
+
+.window-hero-desc {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 1.85rem;
+  max-width: 520px;
+}
+
+/* --------------------------------------------------------------------------
+   4. REDESIGNED COMPACT GLASS COMPLAINT DASHBOARD (RIGHT COLUMN)
+   -------------------------------------------------------------------------- */
+.window-hero-right {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.dashboard-window-perspective {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Compact Glass Panel */
+.complaint-window-card {
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+  padding: 1.35rem 1.45rem;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+.complaint-window-card:hover {
+  transform: translateY(-3px);
+}
+
+.card-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+[data-env="night"] .card-top-row,
+[data-theme="dark"] .card-top-row {
+  border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
+.top-ticket-id {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary-600);
+}
+
+[data-env="night"] .top-ticket-id,
+[data-theme="dark"] .top-ticket-id {
+  color: #38bdf8;
+}
+
+.top-live-chip {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 0.18rem 0.55rem;
+  border-radius: var(--radius-full);
+}
+
+[data-env="night"] .top-live-chip,
+[data-theme="dark"] .top-live-chip {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.ticket-issue-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.ticket-issue-loc {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-bottom: 1.25rem;
+}
+
+/* Compact Clean Timeline */
+.window-timeline-flow {
+  position: relative;
+  padding-left: 1.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.window-timeline-flow::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, #10b981 0%, #10b981 60%, var(--color-border-strong) 100%);
+}
+
+.flow-step-item {
+  position: relative;
+  padding-bottom: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flow-step-item:last-child {
+  padding-bottom: 0;
+}
+
+.flow-step-bullet {
+  position: absolute;
+  left: -1.85rem;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-surface-card);
+  border: 2px solid var(--color-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  z-index: 2;
+}
+
+.flow-step-item.is-done .flow-step-bullet {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.flow-step-item.is-active .flow-step-bullet {
+  border-color: var(--color-primary-600);
+  background: var(--color-surface-card);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+[data-env="night"] .flow-step-item.is-active .flow-step-bullet,
+[data-theme="dark"] .flow-step-item.is-active .flow-step-bullet {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.3);
+}
+
+.active-pulse-inner {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-primary-600);
+}
+
+[data-env="night"] .active-pulse-inner,
+[data-theme="dark"] .active-pulse-inner {
+  background-color: #38bdf8;
+}
+
+.flow-step-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.flow-step-item.is-done .flow-step-title {
+  color: var(--color-text-primary);
+}
+
+.flow-step-item.is-active .flow-step-title {
+  color: var(--color-primary-600);
+  font-weight: 700;
+}
+
+[data-env="night"] .flow-step-item.is-active .flow-step-title,
+[data-theme="dark"] .flow-step-item.is-active .flow-step-title {
+  color: #38bdf8;
+}
+
+.flow-step-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.1rem 0.45rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-hover);
+  color: var(--color-text-muted);
+}
+
+.flow-step-badge.active-badge {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--color-primary-600);
+}
+
+[data-env="night"] .flow-step-badge.active-badge,
+[data-theme="dark"] .flow-step-badge.active-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+/* Compact Progress Footer */
+.window-card-status-bar {
+  background: rgba(241, 245, 249, 0.8);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+[data-env="night"] .window-card-status-bar,
+[data-theme="dark"] .window-card-status-bar {
+  background: rgba(11, 19, 39, 0.8);
+  border-color: rgba(51, 65, 85, 0.6);
+}
+
+.bar-status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.track-line-3d {
+  width: 100%;
+  height: 6px;
+  background: rgba(203, 213, 225, 0.7);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+[data-env="night"] .track-line-3d,
+[data-theme="dark"] .track-line-3d {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.fill-line-3d {
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 60%, #10b981 100%);
+  border-radius: var(--radius-full);
+}
+
+/* --------------------------------------------------------------------------
+   5. TWO COMPACT FLOATING STAT CHIPS
+   -------------------------------------------------------------------------- */
+.compact-stat-chip {
+  position: absolute;
+  z-index: 4;
+  background: var(--card-glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--card-glass-border);
+  border-radius: 14px;
+  padding: 0.65rem 0.95rem;
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  pointer-events: auto;
+  transition: transform 0.25s ease;
+}
+
+.compact-stat-chip:hover {
+  transform: translateY(-3px) scale(1.03);
+}
+
+.chip-stat-icon {
+  font-size: 1.15rem;
+}
+
+.chip-stat-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.15;
+}
+
+.chip-stat-sub {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Unobtrusive Positions */
+.chip-pos-top-right {
+  top: -14px;
+  right: -16px;
+  animation: floatSubtle1 6s ease-in-out infinite;
+}
+
+.chip-pos-bottom-left {
+  bottom: -14px;
+  left: -16px;
+  animation: floatSubtle2 6.5s 1.5s ease-in-out infinite;
+}
+
+@keyframes floatSubtle1 {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes floatSubtle2 {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+/* --------------------------------------------------------------------------
+   6. RESPONSIVE REFINEMENTS
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .campus-window-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .window-hero-title {
+    font-size: 3rem;
+  }
+
+  .window-hero-right {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .campus-window-hero {
+    padding: 2.5rem 1rem 3.5rem;
+  }
+
+  .window-hero-title {
+    font-size: 2.35rem;
+  }
+
+  .chip-pos-top-right {
+    top: -10px;
+    right: 0;
+  }
+
+  .chip-pos-bottom-left {
+    bottom: -10px;
+    left: 0;
+  }
+}

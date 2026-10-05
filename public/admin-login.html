@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CampusCare - Administrative Portal Login. Authorized Staff Only.">
+  <title>Admin Portal Login - CampusCare</title>
+
+  <script>
+    (function() {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/campus-world.css">
+  <link rel="stylesheet" href="/static/css/auth.css">
+</head>
+<body class="auth-page">
+
+  <div class="auth-page-body" style="align-items: center; justify-content: center; padding: 2rem 1.5rem;">
+    
+    <!-- Top Navigation -->
+    <header class="auth-top-navbar" style="position: relative; width: 100%; max-width: 540px; padding: 0 0 1.5rem; justify-content: space-between;">
+      <a href="/" class="auth-nav-brand">
+        <div class="brand-logo-icon" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">🛡️</div>
+        <div class="brand-title-group">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-sub">Admin Portal</span>
+        </div>
+      </a>
+
+      <div class="auth-nav-actions">
+        <a href="/" class="auth-nav-link">Home</a>
+        <a href="/login" class="auth-nav-pill-btn">Student Login</a>
+      </div>
+    </header>
+
+    <!-- Centered Admin Card -->
+    <div class="auth-form-glass-card" style="width: 100%; max-width: 520px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.15);">
+      
+      <div class="login-card-header" style="text-align: center;">
+        <div class="login-brand-icon-box" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); margin: 0 auto 0.75rem;">
+          <span>🛡️</span>
+        </div>
+        
+        <div class="badge badge-priority-high" style="margin-bottom: 0.5rem; font-size: 0.75rem; display: inline-flex;">
+          Authorized Staff Only
+        </div>
+        
+        <h2 class="login-card-title">Administrative Access</h2>
+        <p class="login-card-subtext">Sign in to manage complaints, update statuses, and monitor resolutions.</p>
+      </div>
+
+      <div id="adminAlert" class="auth-inline-alert" style="display: none;" role="alert">
+        <span class="alert-icon">⚠</span>
+        <span id="adminAlertText"></span>
+      </div>
+
+      <form id="adminLoginForm" autocomplete="on">
+        <div class="auth-input-group">
+          <label for="username" class="auth-input-label">
+            Admin Username <span style="color: #f43f5e;">*</span>
+          </label>
+          <div class="auth-input-with-icon">
+            <span class="auth-input-icon">👤</span>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              class="auth-form-input"
+              placeholder="e.g. admin or electrical_admin"
+              required
+              autofocus
+            >
+          </div>
+        </div>
+
+        <div class="auth-input-group">
+          <label for="password" class="auth-input-label">
+            Admin Password <span style="color: #f43f5e;">*</span>
+          </label>
+          <div class="auth-input-with-icon input-password-wrapper">
+            <span class="auth-input-icon">🔒</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              class="auth-form-input"
+              placeholder="Enter administrative password"
+              required
+            >
+            <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-auth-submit" id="adminSubmitBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);">
+          <span class="btn-auth-text">Access Admin Command Center</span>
+          <span class="btn-auth-arrow">→</span>
+        </button>
+      </form>
+
+      <div class="auth-card-footer" style="text-align: center; margin-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem;">
+        <span style="font-size: 0.85rem; color: #94a3b8;">
+          Looking for Student Portal? <a href="/login" class="auth-switch-link">Student Login</a>
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/campus-world.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const adminForm = document.getElementById('adminLoginForm');
+      const submitBtn = document.getElementById('adminSubmitBtn');
+      const alertBox = document.getElementById('adminAlert');
+      const alertText = document.getElementById('adminAlertText');
+
+      function showAlert(msg, isError = true) {
+        alertBox.style.display = 'flex';
+        alertBox.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)';
+        alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
+        alertBox.style.color = isError ? '#f87171' : '#4ade80';
+        alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
+        alertText.textContent = msg;
+      }
+
+      adminForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Verifying...</span>';
+
+        try {
+          const res = await fetch('/api/auth-admin-login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          const json = await res.json();
+
+          if (res.ok && json.success) {
+            showAlert('Authorization granted! Redirecting to command center...', false);
+            setTimeout(() => {
+              window.location.href = '/admin-dashboard';
+            }, 600);
+          } else {
+            showAlert(json.error || 'Invalid administrator username or password.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span class="btn-auth-text">Access Admin Command Center</span> <span class="btn-auth-arrow">→</span>';
+          }
+        } catch (err) {
+          showAlert('Network error. Please try again.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span class="btn-auth-text">Access Admin Command Center</span> <span class="btn-auth-arrow">→</span>';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="CampusCare - Submit a Complaint with Mandatory Evidence.">
+  <title>Submit a Complaint - CampusCare</title>
+
+  <script>
+    (function() {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    })();
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+  <link rel="stylesheet" href="/static/css/campus-world.css">
+</head>
+<body>
+
+  <!-- Universal Glassmorphic Navbar -->
+  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
+    <div class="container navbar-inner">
+      <a href="/" class="navbar-brand" title="CampusCare - Student Grievance Portal">
+        <div class="brand-icon"><span>🎓</span></div>
+        <div class="brand-text">
+          <span class="brand-name">CampusCare</span>
+          <span class="brand-tag">Student Grievance Portal</span>
+        </div>
+      </a>
+
+      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation"></nav>
+
+      <div class="navbar-actions">
+        <div class="navbar-notif-wrapper" style="position: relative;">
+          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
+            <span class="notif-btn-icon">🔔</span>
+            <span class="notification-badge-dot"></span>
+          </button>
+        </div>
+
+        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span id="mobileNavToggleIcon">☰</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true"></div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="main-content">
+    <div class="submit-page-container" style="max-width: 960px; margin: 0 auto; padding: 0 1rem 3rem;">
+
+      <!-- Live Time & Environment Bar -->
+      <div class="floating-time-display" style="margin-bottom: 1.25rem;">
+        <span class="time-headline-text">
+          <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+          <span id="worldLiveTimeText">NIGHT CAMPUS</span>
+        </span>
+        <span class="time-signature-message" id="worldSignatureGreeting">"Campus is active and grievance desks are monitoring."</span>
+      </div>
+
+      <!-- Success / Duplicate Outcome State Card -->
+      <div id="submissionOutcomeCard" class="guided-section-card" style="display: none; text-align: center; padding: 3.5rem 2rem; margin-bottom: 2rem;">
+        <div id="outcomeIcon" style="width: 72px; height: 72px; border-radius: 50%; font-size: 2.2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;"></div>
+        <div id="outcomeBadge" class="badge" style="margin-bottom: 0.85rem; font-size: 0.85rem; padding: 0.35rem 1rem;"></div>
+        <h1 id="outcomeTitle" style="font-size: 2rem; margin-bottom: 0.65rem; color: #ffffff; font-weight: 700;"></h1>
+        <p id="outcomeMessage" style="color: #94a3b8; max-width: 580px; margin: 0 auto 2rem; font-size: 0.95rem; line-height: 1.6;"></p>
+
+        <!-- Ticket Reference Box -->
+        <div style="background: rgba(3, 7, 18, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1.5rem 1.75rem; max-width: 480px; margin: 0 auto 2.25rem; text-align: left;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
+            <span style="color: #94a3b8; font-size: 0.85rem;">Ticket ID</span>
+            <span id="outcomeTicketId" style="font-weight: 700; color: #38bdf8; font-family: monospace; font-size: 1.1rem; background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3);"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+            <span style="color: #94a3b8; font-size: 0.85rem;">Status</span>
+            <span id="outcomeStatus" class="badge badge-pending">⏳ NEW</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #94a3b8; font-size: 0.85rem;">Date Lodged</span>
+            <span id="outcomeDate" style="font-weight: 600; font-size: 0.85rem; color: #e2e8f0;"></span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+          <a id="outcomeTrackLink" href="#" class="btn btn-primary" style="box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); padding: 0.7rem 1.5rem;">
+            📋 Track This Complaint
+          </a>
+          <a href="/my-complaints" class="btn btn-secondary" style="padding: 0.7rem 1.5rem;">
+            All My Complaints
+          </a>
+          <button type="button" onclick="resetSubmissionForm()" class="btn btn-secondary" style="padding: 0.7rem 1.5rem;">
+            + Report Another Issue
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN FORM CONTAINER -->
+      <div id="submitFormContainer">
+        
+        <div class="page-header" style="margin-bottom: 1.75rem;">
+          <div class="page-header-title">
+            <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
+              <span class="tag-cyan-dot"></span>
+              <span>LODGE OFFICIAL GRIEVANCE</span>
+            </div>
+            <h1>Report Campus Problem</h1>
+            <p class="page-header-subtitle">Provide exact location, description, and photo evidence to initiate fast resolution.</p>
+          </div>
+          <div>
+            <a href="/student-dashboard" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
+          </div>
+        </div>
+
+        <!-- Form Alert Box -->
+        <div id="formAlert" class="auth-inline-alert" style="display: none; margin-bottom: 1.5rem;" role="alert">
+          <span class="alert-icon">⚠</span>
+          <span id="formAlertText"></span>
+        </div>
+
+        <form id="complaintSubmitForm">
+          
+          <!-- STEP 1: CATEGORY SELECTION -->
+          <div class="guided-section-card" style="margin-bottom: 1.75rem;">
+            <div class="section-badge-step">
+              <span class="step-num">1</span>
+              <span>Category Selection</span>
+            </div>
+            <label class="form-label" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.85rem; display: block;">
+              Select Category <span style="color: #f43f5e;">*</span>
+            </label>
+
+            <div class="category-selection-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 0.75rem;">
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Wi-Fi/Internet" required>
+                <div class="card-inner">
+                  <span class="icon">📶</span>
+                  <span class="title">Wi-Fi / Internet</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Electrical">
+                <div class="card-inner">
+                  <span class="icon">⚡</span>
+                  <span class="title">Electrical</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Infrastructure">
+                <div class="card-inner">
+                  <span class="icon">💧</span>
+                  <span class="title">Infrastructure</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Cleaning">
+                <div class="card-inner">
+                  <span class="icon">🧹</span>
+                  <span class="title">Cleaning</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Classroom">
+                <div class="card-inner">
+                  <span class="icon">🏫</span>
+                  <span class="title">Classroom</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Hostel">
+                <div class="card-inner">
+                  <span class="icon">🛏️</span>
+                  <span class="title">Hostel</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Library">
+                <div class="card-inner">
+                  <span class="icon">📚</span>
+                  <span class="title">Library</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Transport Complaint">
+                <div class="card-inner">
+                  <span class="icon">🚌</span>
+                  <span class="title">Transport</span>
+                </div>
+              </label>
+              <label class="category-radio-card">
+                <input type="radio" name="category" value="Other">
+                <div class="card-inner">
+                  <span class="icon">📦</span>
+                  <span class="title">Other</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 2: LOCATION DETAILS -->
+          <div class="guided-section-card" style="margin-bottom: 1.75rem;">
+            <div class="section-badge-step">
+              <span class="step-num">2</span>
+              <span>Location Details</span>
+            </div>
+
+            <!-- Campus Block Fields (shown for non-transport) -->
+            <div id="campusLocationFields">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                  <label for="blockSelect" class="form-label">
+                    Campus Block <span style="color: #f43f5e;">*</span>
+                  </label>
+                  <select id="blockSelect" name="block" class="form-select">
+                    <option value="">Select Block</option>
+                    <option value="Block A">Block A</option>
+                    <option value="Block B">Block B</option>
+                    <option value="Block C">Block C</option>
+                    <option value="Block D">Block D</option>
+                    <option value="Block E">Block E</option>
+                    <option value="Block F">Block F</option>
+                    <option value="Academic Block">Academic Block</option>
+                    <option value="Hostel">Hostel</option>
+                    <option value="Library">Central Library</option>
+                    <option value="Campus">Campus Grounds</option>
+                    <option value="Sports">Sports Arena</option>
+                    <option value="Other">Other Campus Area</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="floorSelect" class="form-label">Floor Number</label>
+                  <select id="floorSelect" name="floor_no" class="form-select">
+                    <option value="">Select Floor (Optional)</option>
+                    <option value="Ground Floor">Ground Floor</option>
+                    <option value="1st Floor">1st Floor</option>
+                    <option value="2nd Floor">2nd Floor</option>
+                    <option value="3rd Floor">3rd Floor</option>
+                    <option value="4th Floor">4th Floor</option>
+                    <option value="5th Floor">5th Floor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="roomInput" class="form-label">Room / Lab Number</label>
+                  <input type="text" id="roomInput" name="room_no" class="form-input" placeholder="e.g. 204 or E-329">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                <div>
+                  <label for="corridorInput" class="form-label">Corridor / Wing Side</label>
+                  <input type="text" id="corridorInput" name="corridor_side" class="form-input" placeholder="e.g. Left Wing / RHS">
+                </div>
+                <div>
+                  <label for="nearbyInput" class="form-label">Nearby Landmark</label>
+                  <input type="text" id="nearbyInput" name="nearby_area" class="form-input" placeholder="e.g. Near Water Cooler, Opposite Elevator">
+                </div>
+              </div>
+            </div>
+
+            <!-- Transport Specific Fields (shown for transport complaint) -->
+            <div id="transportLocationFields" style="display: none;">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                  <label for="transportType" class="form-label">Transport Mode <span style="color: #f43f5e;">*</span></label>
+                  <select id="transportType" name="transport_type" class="form-select">
+                    <option value="College Bus">College Bus</option>
+                    <option value="Shuttle">Campus Shuttle</option>
+                    <option value="Van">Faculty / Student Van</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="busNumber" class="form-label">Bus / Vehicle Number <span style="color: #f43f5e;">*</span></label>
+                  <input type="text" id="busNumber" name="bus_number" class="form-input" placeholder="e.g. 42 or PB-65-1234">
+                </div>
+                <div>
+                  <label for="routeInput" class="form-label">Route / Direction <span style="color: #f43f5e;">*</span></label>
+                  <input type="text" id="routeInput" name="route" class="form-input" placeholder="e.g. Chandigarh to Campus">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                <div>
+                  <label for="pickupInput" class="form-label">Pickup / Drop Point <span style="color: #f43f5e;">*</span></label>
+                  <input type="text" id="pickupInput" name="pickup_drop_point" class="form-input" placeholder="e.g. Sector 17 Stand">
+                </div>
+                <div>
+                  <label for="transportComplaintType" class="form-label">Issue Type <span style="color: #f43f5e;">*</span></label>
+                  <select id="transportComplaintType" name="transport_complaint_type" class="form-select">
+                    <option value="Late Arrival">Late Arrival / Irregular Schedule</option>
+                    <option value="Overcrowding">Severe Overcrowding</option>
+                    <option value="Driver Behavior">Rash Driving / Conduct</option>
+                    <option value="AC / Electrical">AC / Fan / Lighting Issue</option>
+                    <option value="Route Deviation">Unannounced Route Change</option>
+                    <option value="Other">Other Transport Issue</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- STEP 3: PRIORITY SELECTION -->
+          <div class="guided-section-card" style="margin-bottom: 1.75rem;">
+            <div class="section-badge-step">
+              <span class="step-num">3</span>
+              <span>Urgency Level</span>
+            </div>
+            <label class="form-label" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.85rem; display: block;">
+              Select Priority
+            </label>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+              <label class="category-radio-card" style="border-color: rgba(56, 189, 248, 0.3);">
+                <input type="radio" name="priority" value="Low">
+                <div class="card-inner">
+                  <span class="icon">🔹</span>
+                  <span class="title">Low Priority</span>
+                  <span style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Routine cosmetic or minor request</span>
+                </div>
+              </label>
+
+              <label class="category-radio-card" style="border-color: rgba(245, 158, 11, 0.3);">
+                <input type="radio" name="priority" value="Medium" checked>
+                <div class="card-inner">
+                  <span class="icon">🔸</span>
+                  <span class="title">Medium Priority</span>
+                  <span style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;">Functional hindrance / daily usage impacted</span>
+                </div>
+              </label>
+
+              <label class="category-radio-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <input type="radio" name="priority" value="High">
+                <div class="card-inner">
+                  <span class="icon">🚨</span>
+                  <span class="title">High Priority</span>
+                  <span style="font-size: 0.75rem; color: #f87171; margin-top: 0.25rem;">Safety hazard, electric shock, fire, flood</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- STEP 4: DESCRIPTION & SMART NLP ASSIST -->
+          <div class="guided-section-card" style="margin-bottom: 1.75rem;">
+            <div class="section-badge-step">
+              <span class="step-num">4</span>
+              <span>Issue Description</span>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <label for="descriptionInput" class="form-label" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin: 0;">
+                Detailed Description <span style="color: #f43f5e;">*</span>
+              </label>
+              <span id="descCharCount" style="font-size: 0.8rem; color: #94a3b8;">0 / 2000</span>
+            </div>
+
+            <textarea
+              id="descriptionInput"
+              name="description"
+              class="form-textarea"
+              rows="5"
+              placeholder="Describe the exact problem in detail (what is broken, when did it happen, impact on students)..."
+              required
+              minlength="5"
+              maxlength="2000"
+            ></textarea>
+
+            <!-- Smart NLP Suggestion Pill -->
+            <div id="smartSuggestionBox" style="display: none; margin-top: 0.85rem; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #cbd5e1;">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 0.4rem; color: #38bdf8; font-weight: 600;">
+                  <span>🤖</span> AI Assistant Suggestion:
+                </span>
+                <button type="button" id="applySmartBtn" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 0.2rem 0.6rem;">
+                  Apply Suggestions
+                </button>
+              </div>
+              <div id="smartSuggestionText" style="margin-top: 0.4rem;"></div>
+            </div>
+
+            <!-- Real-time Duplicate / Similar Complaints Detection Banner -->
+            <div id="similarAlertBox" style="display: none; margin-top: 1rem; background: rgba(234, 179, 8, 0.12); border: 1px solid rgba(234, 179, 8, 0.4); border-radius: 12px; padding: 1rem 1.25rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #facc15; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;">
+                <span>⚠️</span> Existing Active Issue Detected at This Location
+              </div>
+              <p style="color: #cbd5e1; font-size: 0.85rem; margin: 0 0 0.75rem 0;">
+                Other students have reported a similar issue. If you submit, your report will be securely grouped to increase priority!
+              </p>
+              <div id="similarItemsList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+            </div>
+
+          </div>
+
+          <!-- STEP 5: MANDATORY PHOTO EVIDENCE -->
+          <div class="guided-section-card" style="margin-bottom: 2rem;">
+            <div class="section-badge-step">
+              <span class="step-num">5</span>
+              <span>Mandatory Photo Evidence</span>
+            </div>
+
+            <label class="form-label" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-bottom: 0.35rem; display: block;">
+              Attach Photo of the Issue <span style="color: #f43f5e;">*</span>
+            </label>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin: 0 0 1rem 0;">
+              Clear evidence is required by university administration for authenticity and immediate technician dispatch (JPG, PNG, WEBP, max 16MB).
+            </p>
+
+            <div class="evidence-dropzone" id="evidenceDropzone" style="border: 2px dashed rgba(56, 189, 248, 0.35); border-radius: 14px; padding: 2.5rem 1.5rem; text-align: center; background: rgba(15, 23, 42, 0.5); cursor: pointer; transition: all 0.2s;">
+              <input type="file" id="evidenceFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+              <div id="dropzoneEmpty">
+                <div style="font-size: 2.8rem; margin-bottom: 0.5rem;">📷</div>
+                <div style="font-size: 1rem; font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">
+                  Click to browse or drag and drop image here
+                </div>
+                <div style="font-size: 0.8rem; color: #64748b;">Supported: JPG, JPEG, PNG, WEBP (Max 16MB)</div>
+              </div>
+
+              <!-- Preview State -->
+              <div id="dropzonePreview" style="display: none; align-items: center; justify-content: center; flex-direction: column; gap: 0.75rem;">
+                <img id="evidencePreviewImg" src="" alt="Evidence Preview" style="max-height: 220px; max-width: 100%; object-fit: contain; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                  <span id="evidenceFileName" style="font-size: 0.85rem; color: #38bdf8; font-weight: 600;"></span>
+                  <button type="button" id="removePhotoBtn" class="btn btn-secondary btn-sm" style="color: #f87171; border-color: rgba(239, 68, 68, 0.3);">
+                    ✕ Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SUBMIT BUTTON -->
+          <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+            <a href="/student-dashboard" class="btn btn-secondary" style="padding: 0.8rem 1.75rem;">Cancel</a>
+            <button type="submit" class="btn btn-primary" id="submitComplaintBtn" style="padding: 0.8rem 2.25rem; font-weight: 700; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35);">
+              🚀 Submit Grievance Ticket
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Universal Footer -->
+  <footer class="app-footer campus-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand-section">
+          <a href="/" class="footer-brand-logo">
+            <span class="brand-icon-sm">🏫</span>
+            <div class="brand-text">
+              <span class="brand-name">CampusCare</span>
+              <span class="brand-tag">Student Grievance Portal</span>
+            </div>
+          </a>
+          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
+        </div>
+        <div class="footer-links-section">
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/student-dashboard">Dashboard</a></li>
+            <li><a href="/submit-complaint">Submit Complaint</a></li>
+            <li><a href="/my-complaints">My Complaints</a></li>
+            <li><a href="/profile">Profile</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">&copy; 2026 CampusCare. Student Grievance Portal.</div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/campus-world.js"></script>
+  <script src="/static/js/auth-state.js"></script>
+
+  <script>
+    let selectedFile = null;
+    let smartSuggestionData = null;
+
+    function resetSubmissionForm() {
+      document.getElementById('complaintSubmitForm').reset();
+      selectedFile = null;
+      document.getElementById('dropzoneEmpty').style.display = 'block';
+      document.getElementById('dropzonePreview').style.display = 'none';
+      document.getElementById('evidencePreviewImg').src = '';
+      document.getElementById('submitFormContainer').style.display = 'block';
+      document.getElementById('submissionOutcomeCard').style.display = 'none';
+      document.getElementById('smartSuggestionBox').style.display = 'none';
+      document.getElementById('similarAlertBox').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CampusCareAuth.requireStudent();
+      if (!user) return;
+
+      // Handle category radio switch between campus and transport
+      const categoryRadios = document.querySelectorAll('input[name="category"]');
+      const campusFields = document.getElementById('campusLocationFields');
+      const transportFields = document.getElementById('transportLocationFields');
+      const blockSelect = document.getElementById('blockSelect');
+
+      // Pre-select category if passed in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const preCat = urlParams.get('category');
+      if (preCat) {
+        const matchingRadio = Array.from(categoryRadios).find(r => r.value.toLowerCase() === preCat.toLowerCase());
+        if (matchingRadio) matchingRadio.checked = true;
+      }
+
+      function updateCategoryView() {
+        const checkedRadio = document.querySelector('input[name="category"]:checked');
+        const val = checkedRadio ? checkedRadio.value : '';
+        if (val === 'Transport Complaint') {
+          campusFields.style.display = 'none';
+          transportFields.style.display = 'block';
+          blockSelect.removeAttribute('required');
+        } else {
+          campusFields.style.display = 'block';
+          transportFields.style.display = 'none';
+          blockSelect.setAttribute('required', 'required');
+        }
+      }
+
+      categoryRadios.forEach(r => r.addEventListener('change', updateCategoryView));
+      updateCategoryView();
+
+      // Description Character Count & AI Assist Debounce
+      const descInput = document.getElementById('descriptionInput');
+      const charCount = document.getElementById('descCharCount');
+      let smartTimer = null;
+
+      descInput.addEventListener('input', () => {
+        charCount.textContent = `${descInput.value.length} / 2000`;
+
+        clearTimeout(smartTimer);
+        smartTimer = setTimeout(runSmartAnalysis, 800);
+      });
+
+      async function runSmartAnalysis() {
+        const text = descInput.value.trim();
+        if (text.length < 10) return;
+
+        try {
+          const res = await fetch('/api/smart-detect', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: text })
+          });
+          const json = await res.json();
+          if (json.success) {
+            smartSuggestionData = json;
+            const box = document.getElementById('smartSuggestionBox');
+            const txt = document.getElementById('smartSuggestionText');
+            box.style.display = 'block';
+            txt.innerHTML = `Category: <strong>${json.category}</strong> &bull; Priority: <strong>${json.priority}</strong> &bull; Reason: <em>${json.reason}</em>`;
+          }
+        } catch (e) {
+          console.warn('Smart detect failed:', e);
+        }
+
+        // Check for similar active complaints
+        try {
+          const cat = document.querySelector('input[name="category"]:checked')?.value || '';
+          const blk = blockSelect.value || '';
+          const res = await fetch('/api/check-similar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ description: text, category: cat, block: blk })
+          });
+          const json = await res.json();
+          const simBox = document.getElementById('similarAlertBox');
+          const simList = document.getElementById('similarItemsList');
+
+          if (json.found && json.matches.length > 0) {
+            simBox.style.display = 'block';
+            let listHtml = '';
+            for (const m of json.matches) {
+              listHtml += `
+                <div style="background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;">
+                  <div>
+                    <span style="font-weight: 700; color: #38bdf8; font-family: monospace;">${m.ticket_id}</span>
+                    <span style="color: #94a3b8; margin-left: 0.5rem;">${m.category} &bull; ${m.location}</span>
+                  </div>
+                  <span class="badge" style="background: rgba(234, 179, 8, 0.2); color: #facc15;">${m.similarity_pct}% Match</span>
+                </div>
+              `;
+            }
+            simList.innerHTML = listHtml;
+          } else {
+            simBox.style.display = 'none';
+          }
+        } catch (e) {
+          console.warn('Similar complaints check error:', e);
+        }
+      }
+
+      // Apply smart suggestion button
+      const applySmartBtn = document.getElementById('applySmartBtn');
+      applySmartBtn.addEventListener('click', () => {
+        if (!smartSuggestionData) return;
+        const matchingRadio = Array.from(categoryRadios).find(r => r.value === smartSuggestionData.category);
+        if (matchingRadio) {
+          matchingRadio.checked = true;
+          updateCategoryView();
+        }
+
+        const prioRadio = document.querySelector(`input[name="priority"][value="${smartSuggestionData.priority}"]`);
+        if (prioRadio) prioRadio.checked = true;
+
+        if (smartSuggestionData.block) {
+          blockSelect.value = smartSuggestionData.block;
+        }
+
+        document.getElementById('smartSuggestionBox').style.display = 'none';
+      });
+
+      // Photo Dropzone and File handling
+      const dropzone = document.getElementById('evidenceDropzone');
+      const fileInput = document.getElementById('evidenceFileInput');
+      const dropEmpty = document.getElementById('dropzoneEmpty');
+      const dropPreview = document.getElementById('dropzonePreview');
+      const previewImg = document.getElementById('evidencePreviewImg');
+      const fileNameEl = document.getElementById('evidenceFileName');
+      const removePhotoBtn = document.getElementById('removePhotoBtn');
+
+      dropzone.addEventListener('click', (e) => {
+        if (e.target !== removePhotoBtn) {
+          fileInput.click();
+        }
+      });
+
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files && fileInput.files[0]) {
+          handleFile(fileInput.files[0]);
+        }
+      });
+
+      dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '#38bdf8';
+        dropzone.style.background = 'rgba(56, 189, 248, 0.08)';
+      });
+
+      dropzone.addEventListener('dragleave', () => {
+        dropzone.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+        dropzone.style.background = 'rgba(15, 23, 42, 0.5)';
+      });
+
+      dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+        dropzone.style.background = 'rgba(15, 23, 42, 0.5)';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleFile(e.dataTransfer.files[0]);
+        }
+      });
+
+      function handleFile(file) {
+        if (!file.type.match(/image\/(jpeg|jpg|png|webp)/)) {
+          alert('Please select a valid image file (JPG, PNG, WEBP).');
+          return;
+        }
+        if (file.size > 16 * 1024 * 1024) {
+          alert('File size exceeds maximum allowed limit of 16MB.');
+          return;
+        }
+
+        selectedFile = file;
+        fileNameEl.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+          dropEmpty.style.display = 'none';
+          dropPreview.style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+      }
+
+      removePhotoBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedFile = null;
+        fileInput.value = '';
+        dropEmpty.style.display = 'block';
+        dropPreview.style.display = 'none';
+        previewImg.src = '';
+      });
+
+      // Form Submission
+      const form = document.getElementById('complaintSubmitForm');
+      const submitBtn = document.getElementById('submitComplaintBtn');
+      const formAlert = document.getElementById('formAlert');
+      const formAlertText = document.getElementById('formAlertText');
+
+      function showFormAlert(msg) {
+        formAlert.style.display = 'flex';
+        formAlertText.textContent = msg;
+        window.scrollTo({ top: form.offsetTop - 80, behavior: 'smooth' });
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        formAlert.style.display = 'none';
+
+        if (!selectedFile) {
+          showFormAlert('Photo evidence is required to submit this complaint. Please attach a photo.');
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Uploading Evidence...</span>';
+
+        try {
+          // 1. Upload photo to Netlify Blobs
+          const formData = new FormData();
+          formData.append('photo', selectedFile);
+
+          const uploadRes = await fetch('/api/evidence-upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const uploadJson = await uploadRes.json();
+          if (!uploadRes.ok || !uploadJson.success) {
+            throw new Error(uploadJson.error || 'Failed to upload photo evidence.');
+          }
+
+          const photoPath = uploadJson.photo_path;
+          submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Registering Grievance...</span>';
+
+          // 2. Submit complaint
+          const checkedCat = document.querySelector('input[name="category"]:checked')?.value || '';
+          const checkedPrio = document.querySelector('input[name="priority"]:checked')?.value || 'Medium';
+
+          const payload = {
+            category: checkedCat,
+            priority: checkedPrio,
+            description: descInput.value.trim(),
+            photo_path: photoPath,
+            block: blockSelect.value || '',
+            floor_no: document.getElementById('floorSelect').value || '',
+            room_no: document.getElementById('roomInput').value.trim(),
+            corridor_side: document.getElementById('corridorInput').value.trim(),
+            nearby_area: document.getElementById('nearbyInput').value.trim(),
+            transport_type: document.getElementById('transportType').value || '',
+            bus_number: document.getElementById('busNumber').value.trim(),
+            route: document.getElementById('routeInput').value.trim(),
+            pickup_drop_point: document.getElementById('pickupInput').value.trim(),
+            transport_complaint_type: document.getElementById('transportComplaintType').value || ''
+          };
+
+          const createRes = await fetch('/api/complaints-create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const createJson = await createRes.json();
+
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '🚀 Submit Grievance Ticket';
+
+          if (createJson.status === 'DUPLICATE_REJECTED') {
+            renderOutcome(createJson, 'duplicate');
+          } else if (createJson.success) {
+            renderOutcome(createJson, createJson.is_grouped ? 'grouped' : 'new');
+          } else {
+            showFormAlert(createJson.error || createJson.message || 'Error creating complaint.');
+          }
+
+        } catch (err) {
+          showFormAlert(err.message || 'An error occurred during submission.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '🚀 Submit Grievance Ticket';
+        }
+      });
+
+      function renderOutcome(data, type) {
+        document.getElementById('submitFormContainer').style.display = 'none';
+        const card = document.getElementById('submissionOutcomeCard');
+        card.style.display = 'block';
+
+        const icon = document.getElementById('outcomeIcon');
+        const badge = document.getElementById('outcomeBadge');
+        const title = document.getElementById('outcomeTitle');
+        const msg = document.getElementById('outcomeMessage');
+        const ticketId = document.getElementById('outcomeTicketId');
+        const status = document.getElementById('outcomeStatus');
+        const dateEl = document.getElementById('outcomeDate');
+        const trackLink = document.getElementById('outcomeTrackLink');
+
+        ticketId.textContent = data.ticket_id || data.complaint_id;
+        status.textContent = data.current_status || 'NEW';
+        dateEl.textContent = data.submitted_date || new Date().toISOString().slice(0, 10);
+        trackLink.href = `/student/complaint/${data.complaint_id}`;
+
+        if (type === 'duplicate') {
+          icon.textContent = '⚠️';
+          icon.style.background = 'rgba(234, 179, 8, 0.2)';
+          icon.style.border = '2px solid rgba(234, 179, 8, 0.5)';
+          icon.style.color = '#facc15';
+          badge.className = 'badge badge-pending';
+          badge.textContent = 'Duplicate Issue Detected';
+          title.textContent = 'Active Grievance Already Registered';
+          msg.textContent = data.message;
+        } else if (type === 'grouped') {
+          icon.textContent = '👥';
+          icon.style.background = 'rgba(56, 189, 248, 0.2)';
+          icon.style.border = '2px solid rgba(56, 189, 248, 0.5)';
+          icon.style.color = '#38bdf8';
+          badge.className = 'badge badge-progress';
+          badge.textContent = `Attached to Grouped Master Ticket (${data.affected_student_count} Students)`;
+          title.textContent = 'Report Linked to Existing Issue';
+          msg.textContent = data.message;
+        } else {
+          icon.textContent = '✓';
+          icon.style.background = 'rgba(34, 197, 94, 0.2)';
+          icon.style.border = '2px solid rgba(34, 197, 94, 0.5)';
+          icon.style.color = '#4ade80';
+          badge.className = 'badge badge-resolved';
+          badge.textContent = 'Ticket Logged Successfully';
+          title.textContent = 'Grievance Ticket Submitted';
+          msg.textContent = data.message;
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>

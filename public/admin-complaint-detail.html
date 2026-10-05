@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Review: Complaint Details - CampusCare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <meta name="csrf-token" content="netlify-serverless-jwt">
+</head>
+<body>
+  <!-- Global Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">
+        <span class="nav-logo-icon">🛡️</span>
+        <span class="nav-brand-text">Campus<span class="brand-accent">Care</span></span>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/admin-dashboard.html" class="nav-link">Admin Dashboard</a>
+        <a href="/soc-dashboard.html" class="nav-link">SOC Logs</a>
+        <a href="/profile.html" class="nav-link">Profile</a>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 980px; padding-top: 1.5rem; padding-bottom: 3rem;">
+    <!-- Live Time & Greeting -->
+    <div class="floating-time-display" style="margin-bottom: 1.5rem;">
+      <span class="time-headline-text">
+        <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
+        <span id="worldLiveTimeText">CAMPUS COMMAND</span>
+      </span>
+      <span class="time-signature-message" id="worldSignatureGreeting">"Precision grievance tracking & resolution management."</span>
+    </div>
+
+    <!-- Breadcrumb Navigation -->
+    <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
+      <a href="/" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
+      <a href="/admin-dashboard.html" style="color: #38bdf8; text-decoration: none;">Admin Dashboard</a> &nbsp;/&nbsp; 
+      <span id="breadcrumbTicket" style="color: #ffffff; font-weight: 600;">Inspect Ticket</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header" style="margin-bottom: 1.5rem;">
+      <div class="page-header-title">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <h1 id="ticketHeading" style="font-family: monospace; letter-spacing: -0.02em;">Loading...</h1>
+          <span id="detailStatusBadge" class="badge badge-pending">Loading</span>
+          <span id="detailPriorityBadge" class="badge">Priority</span>
+          <span id="detailAffectedBadge" class="badge" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.45); color: #38bdf8; font-weight: 700;">
+            1 Reporter
+          </span>
+          <span id="detailEscalatedBadge" class="badge" style="display: none; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5); color: #f87171; font-weight: 700;">
+            ⚠️ Escalated (> 48h Overdue)
+          </span>
+        </div>
+        <p class="page-header-subtitle" id="submitterSubtitle">
+          Loading submitter info...
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+        <a id="downloadPdfBtn" href="#" target="_blank" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Official PDF Dossier">
+          <span>📄</span> Generate PDF
+        </a>
+        <a href="/admin-dashboard.html" class="btn btn-secondary btn-sm">
+          ← Back to Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Administrative Redressal Actions Card -->
+    <div class="cinematic-card" style="margin-bottom: 2rem; border-color: rgba(56, 189, 248, 0.4) !important;">
+      <div class="card-header">
+        <h2 class="card-title" style="color: #38bdf8;">
+          🛡️ Administrative Redressal Actions
+        </h2>
+        <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Admin Control</span>
+      </div>
+
+      <div class="card-body">
+        <form id="updateStatusForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; align-items: flex-end;">
+          <div>
+            <label for="statusSelect" class="form-label" style="margin-bottom: 0.35rem;">
+              Update Lifecycle Status:
+            </label>
+            <select id="statusSelect" name="status" class="form-select">
+              <option value="NEW">Pending (NEW)</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="FINAL_RESOLVED">Resolved (FINAL_RESOLVED)</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="statusRemarks" class="form-label" style="margin-bottom: 0.35rem;">
+              Audit Trail Note / Action Log:
+            </label>
+            <input type="text" id="statusRemarks" name="remarks" class="form-input" placeholder="e.g. Electrician dispatched, parts ordered...">
+          </div>
+
+          <div>
+            <button type="submit" id="saveStatusBtn" class="btn btn-primary btn-lg" style="width: 100%;">
+              Save Status & Log Action
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Ticket Overview, Exact Location & Photo Evidence -->
+    <div class="cinematic-card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h2 class="card-title">Full Grievance Report & Exact Location</h2>
+        <span id="categoryBadge" class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0;">Category</span>
+      </div>
+
+      <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(56, 189, 248, 0.12); margin-bottom: 1.5rem;">
+          <div>
+            <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submitting Student</div>
+            <div id="studentNameText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">-</div>
+            <div id="studentEmailText" style="font-size: 0.8rem; color: #38bdf8;">-</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Campus Block</div>
+            <div id="blockText" style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;">Campus</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
+            <div id="floorRoomText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">-</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Corridor Side</div>
+            <div id="corridorText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">-</div>
+          </div>
+        </div>
+
+        <div id="additionalLocationBlock" style="display: none; background: rgba(3, 7, 18, 0.5); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 0.85rem 1.15rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #cbd5e1;"></div>
+
+        <!-- Description Block -->
+        <div style="margin-bottom: 1.75rem;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            Reported Problem Details
+          </div>
+          <div id="descriptionText" style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">-</div>
+        </div>
+
+        <!-- Evidence File Block -->
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
+            📷 ATTACHED EVIDENCE
+          </div>
+          <div id="evidenceContainer">
+            <div style="color: #94a3b8; font-style: italic; font-size: 0.95rem; background: rgba(3, 7, 18, 0.4); padding: 1.25rem; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.1);">
+              No evidence file attached for this complaint.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Students Reporting This Issue Card -->
+    <div class="cinematic-card" style="margin-bottom: 2rem;">
+      <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h2 class="card-title" style="margin-bottom: 0.25rem;">👥 Students Reporting This Issue</h2>
+          <div style="font-size: 0.85rem; color: #94a3b8;">
+            Total Students Reporting: <strong id="reportersCountText" style="color: #38bdf8; font-size: 1rem;">1</strong>
+          </div>
+        </div>
+        <span id="reportersCountBadge" class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 0.825rem; font-weight: 700;">
+          1 Affected
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div id="reportersListContainer" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
+      </div>
+    </div>
+
+    <!-- Status Lifecycle History Audit Trail -->
+    <div class="cinematic-card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h2 class="card-title">📜 Lifecycle Audit Trail & Status History</h2>
+        <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Audit Log</span>
+      </div>
+
+      <div class="card-body">
+        <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 1rem;">
+          <p style="color: #94a3b8; font-size: 0.9rem; margin: 0;">No status changes recorded yet for this ticket.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Internal Admin Notes (Staff Only) -->
+    <div class="cinematic-card" style="margin-bottom: 2rem;">
+      <div class="card-header">
+        <h2 class="card-title">🔒 Internal Admin Remarks (Staff Only)</h2>
+        <span class="badge" style="background: rgba(234, 179, 8, 0.15); border: 1px solid rgba(234, 179, 8, 0.35); color: #facc15;">Confidential</span>
+      </div>
+
+      <div class="card-body">
+        <form id="addNoteForm" style="margin-bottom: 1.5rem;">
+          <div style="margin-bottom: 0.75rem;">
+            <textarea id="noteInput" rows="3" class="form-input" placeholder="Add an internal note or communication for other administrators (visible only to admins)..." required></textarea>
+          </div>
+          <div style="text-align: right;">
+            <button type="submit" id="addNoteBtn" class="btn btn-secondary btn-sm">
+              ➕ Add Internal Remark
+            </button>
+          </div>
+        </form>
+
+        <div id="notesContainer" style="display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="color: #64748b; font-size: 0.85rem; font-style: italic;">No internal admin notes added yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/auth-state.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const complaintId = urlParams.get('id');
+
+    async function loadComplaintDetails() {
+      if (!complaintId) {
+        window.location.href = '/admin-dashboard.html';
+        return;
+      }
+
+      try {
+        const session = await checkAuthSession();
+        if (!session || !session.authenticated || session.role !== 'admin') {
+          window.location.href = '/admin-login.html';
+          return;
+        }
+
+        const res = await fetch(`/api/complaints-get?id=${complaintId}`);
+        const json = await res.json();
+        if (!json.success || !json.data) {
+          alert(json.error || 'Complaint not found.');
+          window.location.href = '/admin-dashboard.html';
+          return;
+        }
+
+        const comp = json.data.complaint;
+        const history = json.data.history || [];
+        const notes = json.data.notes || [];
+        const reporters = json.data.reporters || [];
+
+        const ticketId = comp.ticket_id || `CMP-2026-${String(comp.complaint_id).padStart(4, '0')}`;
+        document.title = `Admin Review: ${ticketId} - CampusCare`;
+        document.getElementById('breadcrumbTicket').textContent = `Inspect ${ticketId}`;
+        document.getElementById('ticketHeading').textContent = ticketId;
+        document.getElementById('downloadPdfBtn').href = `/api/pdf-generate?id=${comp.complaint_id}`;
+
+        // Status Badge
+        const statusBadge = document.getElementById('detailStatusBadge');
+        statusBadge.textContent = comp.status;
+        if (['NEW', 'FORWARDED'].includes(comp.status)) {
+          statusBadge.className = 'badge badge-pending';
+        } else if (['IN_PROGRESS', 'REOPENED'].includes(comp.status)) {
+          statusBadge.className = 'badge badge-progress';
+        } else {
+          statusBadge.className = 'badge badge-resolved';
+        }
+
+        // Select initial status
+        document.getElementById('statusSelect').value = comp.status;
+
+        // Priority Badge
+        const prioBadge = document.getElementById('detailPriorityBadge');
+        prioBadge.textContent = `● ${comp.priority || 'Low'} Priority`;
+        prioBadge.className = comp.priority === 'High' ? 'badge badge-priority-high' : comp.priority === 'Medium' ? 'badge badge-priority-medium' : 'badge badge-priority-low';
+
+        // Affected Badge
+        const count = reporters.length || comp.affected_student_count || 1;
+        document.getElementById('detailAffectedBadge').textContent = `👥 ${count} Students Affected`;
+        document.getElementById('reportersCountText').textContent = count;
+        document.getElementById('reportersCountBadge').textContent = `${count} Affected`;
+
+        // Escalated
+        if (comp.priority === 'High' && comp.status !== 'FINAL_RESOLVED') {
+          document.getElementById('detailEscalatedBadge').style.display = 'inline-block';
+        }
+
+        // Subtitle
+        document.getElementById('submitterSubtitle').innerHTML = `
+          Submitted by <strong style="color: #ffffff;">${comp.student_name || 'Student'}</strong> (${comp.student_email || ''}) on ${comp.date || ''}
+          ${count > 1 ? `&bull; <strong style="color: #38bdf8;">${count} total students have reported this problem</strong>` : ''}
+          ${comp.last_updated && comp.last_updated !== comp.date ? `&bull; <span style="color: #94a3b8;">Last updated: ${comp.last_updated}</span>` : ''}
+        `;
+
+        document.getElementById('categoryBadge').textContent = comp.category;
+        document.getElementById('studentNameText').textContent = `👤 ${comp.student_name || 'Student'}`;
+        document.getElementById('studentEmailText').textContent = comp.student_email || '';
+        document.getElementById('blockText').textContent = `🏢 ${comp.block || 'Campus'}`;
+        document.getElementById('floorRoomText').textContent = `🚪 ${comp.floor_no || 'N/A'} ${comp.room_no ? '(Room ' + comp.room_no + ')' : ''}`;
+        document.getElementById('corridorText').textContent = `🧭 ${comp.corridor_side || 'N/A'}`;
+        document.getElementById('descriptionText').textContent = comp.description || '';
+
+        if (comp.nearby_area || comp.additional_location) {
+          const locBlock = document.getElementById('additionalLocationBlock');
+          locBlock.style.display = 'block';
+          locBlock.innerHTML = `
+            ${comp.nearby_area ? `<div>📍 <strong>Landmark / Nearby Area:</strong> ${comp.nearby_area}</div>` : ''}
+            ${comp.additional_location ? `<div style="margin-top: 0.35rem;">ℹ️ <strong>Additional Location Details:</strong> ${comp.additional_location}</div>` : ''}
+          `;
+        }
+
+        // Evidence
+        const evContainer = document.getElementById('evidenceContainer');
+        if (comp.photo_path) {
+          const isPdf = comp.photo_path.toLowerCase().endsWith('.pdf');
+          const evidenceUrl = `/complaints/${comp.complaint_id}/evidence`;
+          evContainer.innerHTML = `
+            <div style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1rem; max-width: 600px; width: 100%;">
+              <div style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #e2e8f0; font-weight: 500;">
+                📄 File: <a href="${evidenceUrl}" target="_blank" style="color: #38bdf8; text-decoration: underline;">Evidence Attachment</a>
+              </div>
+              ${isPdf 
+                ? `<div style="width: 100%; height: 350px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; overflow: hidden; margin-bottom: 1rem;"><embed src="${evidenceUrl}" type="application/pdf" width="100%" height="100%"></div>`
+                : `<a href="${evidenceUrl}" target="_blank"><img src="${evidenceUrl}" alt="Evidence Photo" style="width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; display: block; background: rgba(15, 23, 42, 0.5);"></a>`
+              }
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; border-top: 1px solid rgba(56, 189, 248, 0.15); padding-top: 0.75rem;">
+                <span style="color: #4ade80; font-weight: 600;">✓ Evidence Verified</span>
+                <a href="${evidenceUrl}" target="_blank" class="btn btn-primary btn-sm">🔍 Open Proper Viewer ↗</a>
+              </div>
+            </div>
+          `;
+        }
+
+        // Reporters List
+        const repContainer = document.getElementById('reportersListContainer');
+        if (reporters.length > 0) {
+          repContainer.innerHTML = reporters.map((r, idx) => `
+            <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 0.9rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #38bdf8; font-size: 0.875rem;">
+                  ${idx + 1}
+                </div>
+                <div>
+                  <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff;">
+                    ${r.student_name || 'Student #' + r.student_id}
+                    <span class="badge" style="${idx === 0 ? 'background: rgba(74, 222, 128, 0.15); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80;' : 'background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8;'} font-size: 0.7rem; padding: 0.1rem 0.45rem; margin-left: 0.4rem;">
+                      ${idx === 0 ? 'Primary Submitter' : 'Co-Reporter'}
+                    </span>
+                  </div>
+                  <div style="font-size: 0.825rem; color: #38bdf8;">${r.student_email || ''}</div>
+                </div>
+              </div>
+              <div style="font-size: 0.8rem; color: #94a3b8; background: rgba(15, 23, 42, 0.5); padding: 0.35rem 0.75rem; border-radius: 6px;">
+                🕒 Reported on: <span style="color: #e2e8f0;">${r.reported_at || comp.date}</span>
+              </div>
+            </div>
+          `).join('');
+        } else {
+          repContainer.innerHTML = `
+            <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-weight: 700; color: #38bdf8;">1.</span>
+                <span style="font-weight: 600; color: #ffffff;">${comp.student_name || 'Student'} &mdash; <span style="color: #38bdf8; font-size: 0.85rem;">${comp.student_email || ''}</span></span>
+              </div>
+              <span style="font-size: 0.8rem; color: #94a3b8;">Reported on: ${comp.date}</span>
+            </div>
+          `;
+        }
+
+        // History
+        const histContainer = document.getElementById('historyListContainer');
+        if (history.length > 0) {
+          histContainer.innerHTML = history.map(h => `
+            <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+                  <span style="font-weight: 600; color: #94a3b8; font-size: 0.85rem;">${h.old_status || 'Created'}</span>
+                  <span style="color: #38bdf8;">&rarr;</span>
+                  <span class="badge ${h.new_status === 'FINAL_RESOLVED' ? 'badge-resolved' : h.new_status === 'IN_PROGRESS' ? 'badge-progress' : 'badge-pending'}" style="font-size: 0.75rem;">
+                    ${h.new_status}
+                  </span>
+                  <span style="font-size: 0.8rem; color: #cbd5e1; margin-left: 0.5rem;">by <strong>${h.changed_by || h.admin_name || 'Admin'}</strong></span>
+                </div>
+                ${h.remarks ? `<div style="font-size: 0.875rem; color: #e2e8f0; margin-top: 0.25rem; font-style: italic;">"${h.remarks}"</div>` : ''}
+              </div>
+              <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
+                🕒 ${h.timestamp || h.changed_at || ''}
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Notes
+        const notesContainer = document.getElementById('notesContainer');
+        if (notes.length > 0) {
+          notesContainer.innerHTML = notes.map(n => `
+            <div style="background: rgba(3, 7, 18, 0.5); border-left: 3px solid #facc15; border-radius: 0 8px 8px 0; padding: 0.85rem 1rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem; font-size: 0.8rem;">
+                <span style="font-weight: 700; color: #facc15;">🛡️ ${n.admin_name || 'Admin'}</span>
+                <span style="color: #64748b;">${n.timestamp || n.created_at || ''}</span>
+              </div>
+              <div style="font-size: 0.9rem; color: #e2e8f0; white-space: pre-wrap;">${n.note}</div>
+            </div>
+          `).join('');
+        }
+
+      } catch (err) {
+        console.error('Error loading complaint details:', err);
+      }
+    }
+
+    // Handle Status Update
+    document.getElementById('updateStatusForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const status = document.getElementById('statusSelect').value;
+      const remarks = document.getElementById('statusRemarks').value.trim();
+      const btn = document.getElementById('saveStatusBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await fetch('/api/admin-update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ complaint_id: complaintId, status, remarks })
+        });
+        const json = await res.json();
+        if (json.success) {
+          alert('Status updated successfully!');
+          window.location.reload();
+        } else {
+          alert(json.error || 'Failed to update status.');
+        }
+      } catch (err) {
+        alert('Network error updating status.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Status & Log Action';
+      }
+    });
+
+    // Handle Note Add
+    document.getElementById('addNoteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const note = document.getElementById('noteInput').value.trim();
+      if (!note) return;
+      const btn = document.getElementById('addNoteBtn');
+      btn.disabled = true;
+      btn.textContent = 'Adding...';
+
+      try {
+        const res = await fetch('/api/admin-notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ complaint_id: complaintId, note })
+        });
+        const json = await res.json();
+        if (json.success) {
+          document.getElementById('noteInput').value = '';
+          await loadComplaintDetails();
+        } else {
+          alert(json.error || 'Failed to add note.');
+        }
+      } catch (err) {
+        alert('Network error adding note.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '➕ Add Internal Remark';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadComplaintDetails);
+  </script>
+</body>
+</html>

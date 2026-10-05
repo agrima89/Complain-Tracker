@@ -70,3 +70,5 @@ Complain-Tracker/
 # Local scratch files
 scratch_*.py
 white_colors.txt
+node_modules
+.netlify
