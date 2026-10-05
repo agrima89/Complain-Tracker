@@ -92,19 +92,19 @@
                 <div class="node-beacon">⚡</div>
               </div>
 
-              <!-- Floating Stats -->
+              <!-- Floating Stats (Populated dynamically) -->
               <div class="auth-floating-stat stat-pos-1">
                 <div class="auth-stat-icon stat-icon-green">✓</div>
                 <div class="auth-stat-text">
-                  <div class="stat-top-val" id="authResolvedStat">100%</div>
-                  <div class="stat-sub-lbl">Resolution SLA</div>
+                  <div class="stat-top-val" id="authResolvedStat">--</div>
+                  <div class="stat-sub-lbl">Issues Resolved</div>
                 </div>
               </div>
 
               <div class="auth-floating-stat stat-pos-2">
                 <div class="auth-stat-icon stat-icon-cyan">⚡</div>
                 <div class="auth-stat-text">
-                  <div class="stat-top-val">&lt; 24h</div>
+                  <div class="stat-top-val" id="authAvgResponseStat">--</div>
                   <div class="stat-sub-lbl">Avg Response</div>
                 </div>
               </div>
@@ -116,9 +116,9 @@
             <div>
               <div class="ticket-mini-header">
                 <span class="ticket-live-pill">🔵 LIVE COMPLAINT</span>
-                <span style="font-family: monospace; font-weight: 700; font-size: 0.76rem; color: #38bdf8;">#CMP-2026-LIVE</span>
+                <span style="font-family: monospace; font-weight: 700; font-size: 0.76rem; color: #38bdf8;">#CC-1042</span>
               </div>
-              <div class="ticket-mini-title">Campus Facilities & Redressal</div>
+              <div class="ticket-mini-title">Library Wi-Fi Connectivity</div>
             </div>
 
             <div class="ticket-pipeline-mini">
@@ -218,6 +218,21 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // 1. Fetch live public stats for visual panel
+      fetch('/api/public-stats')
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data) {
+            const s = json.data;
+            const resEl = document.getElementById('authResolvedStat');
+            const avgEl = document.getElementById('authAvgResponseStat');
+            if (resEl) resEl.textContent = s.resolved_complaints;
+            if (avgEl) avgEl.textContent = s.average_response_display || '--';
+          }
+        })
+        .catch(err => console.warn('Could not load live login stats:', err));
+
+      // 2. Login Form Handler
       const loginForm = document.getElementById('studentLoginForm');
       const submitBtn = document.getElementById('authSubmitBtn');
       const alertBox = document.getElementById('authAlert');
@@ -243,28 +258,47 @@
         submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Signing in...</span>';
 
         try {
-          const res = await fetch('/api/auth-login', {
+          let res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
           });
 
-          const json = await res.json();
+          if (res.status === 404) {
+            res = await fetch('/.netlify/functions/auth-login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, password })
+            });
+          }
+
+          let json;
+          try {
+            json = await res.json();
+          } catch (pe) {
+            throw new Error('Authentication response was not valid JSON (Status: ' + res.status + ')');
+          }
 
           if (res.ok && json.success) {
+            if (json.data?.token) {
+              localStorage.setItem('campuscare_token', json.data.token);
+              if (json.data.student) {
+                localStorage.setItem('campuscare_user', JSON.stringify(json.data.student));
+              }
+            }
             showAlert('Login successful! Redirecting...', false);
             const urlParams = new URLSearchParams(window.location.search);
             const redirectUrl = urlParams.get('redirect') || json.data?.redirectUrl || '/student-dashboard';
             setTimeout(() => {
               window.location.href = redirectUrl;
-            }, 600);
+            }, 400);
           } else {
-            showAlert(json.error || 'Invalid email or password.');
+            showAlert(json.error || 'Invalid email or password. Please check your credentials.');
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
           }
         } catch (err) {
-          showAlert('Network error. Please try again.');
+          showAlert(err.message || 'Network error. Please try again.');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
         }

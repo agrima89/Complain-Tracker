@@ -10,8 +10,8 @@ import { parse as parseCookie, serialize as serializeCookie } from 'cookie';
 const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'campuscare_secure_jwt_secret_key_2026_change_in_production';
 export const SESSION_COOKIE_NAME = 'campuscare_session';
 
-export const CU_EMAIL_REGEX = /^[A-Za-z0-9]+@culkomail\.in$/i;
-export const CU_EMAIL_ERROR_MSG = "Please use your official university email (e.g. 23mca10001@culkomail.in)";
+export const CU_EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i;
+export const CU_EMAIL_ERROR_MSG = "Please enter a valid email address.";
 
 export function isValidCollegeEmail(email) {
   if (!email || typeof email !== 'string') return { valid: false, message: CU_EMAIL_ERROR_MSG };
@@ -87,13 +87,14 @@ export function verifySessionToken(token) {
 }
 
 export function getSessionFromEvent(event) {
-  const cookieHeader = event.headers?.cookie || event.headers?.Cookie || '';
+  const headers = event?.headers || {};
+  const cookieHeader = headers.cookie || headers.Cookie || headers.COOKIE || '';
   const cookies = parseCookie(cookieHeader);
   let token = cookies[SESSION_COOKIE_NAME];
 
-  if (!token && event.headers?.authorization) {
-    const authHeader = event.headers.authorization;
-    if (authHeader.startsWith('Bearer ')) {
+  if (!token) {
+    const authHeader = headers.authorization || headers.Authorization || headers.AUTHORIZATION;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
       token = authHeader.slice(7).trim();
     }
   }
@@ -109,7 +110,6 @@ export function getSessionFromEvent(event) {
 export function createSessionCookie(token) {
   return serializeCookie(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 7 * 24 * 60 * 60 // 7 days
@@ -119,7 +119,6 @@ export function createSessionCookie(token) {
 export function createLogoutCookie() {
   return serializeCookie(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
     maxAge: 0

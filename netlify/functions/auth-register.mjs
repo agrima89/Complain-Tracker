@@ -44,11 +44,11 @@ export const handler = async (event, context) => {
       };
     }
 
-    if (!password || password.length < 6) {
+    if (!password || password.length < 4) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: 'Password must be at least 6 characters long.' })
+        body: JSON.stringify({ success: false, error: 'Password must be at least 4 characters long.' })
       };
     }
 

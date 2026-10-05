@@ -12,7 +12,12 @@
 
   async function fetchSession() {
     if (sessionPromise) return sessionPromise;
-    sessionPromise = fetch('/api/auth-session')
+    const token = localStorage.getItem('campuscare_token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = 'Bearer ' + token;
+    }
+    sessionPromise = fetch('/api/auth-session', { headers })
       .then(res => res.json())
       .then(json => {
         currentSession = json.data || { authenticated: false };
@@ -258,6 +263,8 @@
     } catch (e) {
       console.warn('Logout request failed:', e);
     }
+    localStorage.removeItem('campuscare_token');
+    localStorage.removeItem('campuscare_user');
     window.location.href = '/login';
   }
 

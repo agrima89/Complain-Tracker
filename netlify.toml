@@ -15,7 +15,17 @@
   status = 200
 
 [[redirects]]
+  from = "/api/auth-login"
+  to = "/.netlify/functions/auth-login"
+  status = 200
+
+[[redirects]]
   from = "/api/register"
+  to = "/.netlify/functions/auth-register"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth-register"
   to = "/.netlify/functions/auth-register"
   status = 200
 
@@ -25,7 +35,27 @@
   status = 200
 
 [[redirects]]
+  from = "/api/auth-admin-login"
+  to = "/.netlify/functions/auth-admin-login"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth-session"
+  to = "/.netlify/functions/auth-session"
+  status = 200
+
+[[redirects]]
+  from = "/api/session"
+  to = "/.netlify/functions/auth-session"
+  status = 200
+
+[[redirects]]
   from = "/api/logout"
+  to = "/.netlify/functions/auth-logout"
+  status = 200
+
+[[redirects]]
+  from = "/api/auth-logout"
   to = "/.netlify/functions/auth-logout"
   status = 200
 

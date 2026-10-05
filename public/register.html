@@ -152,9 +152,9 @@
                   id="password"
                   name="password"
                   class="auth-form-input"
-                  placeholder="At least 6 characters"
+                  placeholder="Minimum 4 characters"
                   required
-                  minlength="6"
+                  minlength="4"
                 >
                 <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility">👁️</button>
               </div>
@@ -205,19 +205,43 @@
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
+        if (password.length < 4) {
+          showAlert('Password must be at least 4 characters long.');
+          return;
+        }
+
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Registering...</span>';
 
         try {
-          const res = await fetch('/api/auth-register', {
+          let res = await fetch('/api/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, email, password })
           });
 
-          const json = await res.json();
+          if (res.status === 404) {
+            res = await fetch('/.netlify/functions/auth-register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, password })
+            });
+          }
+
+          let json;
+          try {
+            json = await res.json();
+          } catch (pe) {
+            throw new Error('Registration response was not valid JSON (Status: ' + res.status + ')');
+          }
 
           if (res.ok && json.success) {
+            if (json.data?.token) {
+              localStorage.setItem('campuscare_token', json.data.token);
+              if (json.data.student) {
+                localStorage.setItem('campuscare_user', JSON.stringify(json.data.student));
+              }
+            }
             showAlert('Registration successful! Redirecting to dashboard...', false);
             setTimeout(() => {
               window.location.href = '/student-dashboard';
@@ -228,7 +252,7 @@
             submitBtn.innerHTML = '<span class="btn-auth-text">Register Account</span> <span class="btn-auth-arrow">→</span>';
           }
         } catch (err) {
-          showAlert('Network error. Please try again.');
+          showAlert(err.message || 'Network error. Please try again.');
           submitBtn.disabled = false;
           submitBtn.innerHTML = '<span class="btn-auth-text">Register Account</span> <span class="btn-auth-arrow">→</span>';
         }
