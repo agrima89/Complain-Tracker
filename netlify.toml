@@ -35,6 +35,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/public-stats"
+  to = "/.netlify/functions/public-stats"
+  status = 200
+
+[[redirects]]
   from = "/api/admin/heatmap"
   to = "/.netlify/functions/admin-zone"
   status = 200
@@ -214,3 +219,17 @@
   from = "/soc-dashboard"
   to = "/soc-dashboard.html"
   status = 200
+
+# ------------------------------------------------------------------------------
+# CACHE-CONTROL HEADERS (Force revalidation of HTML to prevent stale deploys)
+# ------------------------------------------------------------------------------
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
