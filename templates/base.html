@@ -9,13 +9,8 @@
   <!-- Theme Initialization Script (Prevents White Flash) -->
   <script>
     (function() {
-      try {
-        const savedTheme = localStorage.getItem('campuscare_theme');
-        const theme = savedTheme ? savedTheme : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-        document.documentElement.setAttribute('data-theme', theme);
-      } catch (e) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      }
+      // Unconditionally enforce dark theme as per project requirements
+      document.documentElement.setAttribute('data-theme', 'dark');
     })();
   </script>
 

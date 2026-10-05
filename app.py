@@ -1071,4 +1071,17 @@ def soc_dashboard():
     return render_template("soc_dashboard.html", logs=logs, total=total, failed_logins=failed_logins, unauthorized=unauthorized, high_severity=high_severity)
 
 if __name__ == "__main__":
+    import threading
+    import webbrowser
+    import time
+
+    def open_browser():
+        time.sleep(1.5) # Wait for server to be ready
+        webbrowser.open_new("http://127.0.0.1:5000")
+
+    # When debug=True, Flask runs two processes (main and worker reloader).
+    # We only want to open the browser from the worker process so it doesn't open twice.
+    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+        threading.Thread(target=open_browser, daemon=True).start()
+
     app.run(debug=True, port=5000)
