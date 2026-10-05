@@ -31,7 +31,7 @@ export const handler = async (event, context) => {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: 'Please enter your full legal name.' })
+        body: JSON.stringify({ success: false, error: 'Please enter your full legal name.', message: 'Please enter your full legal name.' })
       };
     }
 
@@ -40,7 +40,7 @@ export const handler = async (event, context) => {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: emailCheck.message })
+        body: JSON.stringify({ success: false, error: emailCheck.message, message: emailCheck.message })
       };
     }
 
@@ -48,7 +48,7 @@ export const handler = async (event, context) => {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: 'Password must be at least 4 characters long.' })
+        body: JSON.stringify({ success: false, error: 'Password must be at least 4 characters long.', message: 'Password must be at least 4 characters long.' })
       };
     }
 
@@ -58,7 +58,11 @@ export const handler = async (event, context) => {
       return {
         statusCode: 409,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: 'This university email is already registered. Please sign in.' })
+        body: JSON.stringify({
+          success: false,
+          error: 'An account with this email already exists. Please sign in.',
+          message: 'An account with this email already exists. Please sign in.'
+        })
       };
     }
 
@@ -101,10 +105,14 @@ export const handler = async (event, context) => {
     };
   } catch (err) {
     console.error('[auth-register] Error:', err);
+    const isDuplicate = err && (err.code === '23505' || err.message?.includes('UNIQUE') || err.message?.includes('duplicate'));
+    const msg = isDuplicate
+      ? 'An account with this email already exists. Please sign in.'
+      : (err.message || 'An error occurred during registration.');
     return {
-      statusCode: 500,
+      statusCode: isDuplicate ? 409 : 500,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ success: false, error: 'An error occurred during registration.' })
+      body: JSON.stringify({ success: false, error: msg, message: msg })
     };
   }
 };

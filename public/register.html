@@ -194,7 +194,7 @@
         alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
         alertBox.style.color = isError ? '#f87171' : '#4ade80';
         alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
-        alertText.textContent = msg;
+        alertText.innerHTML = msg;
       }
 
       regForm.addEventListener('submit', async (e) => {
@@ -205,6 +205,11 @@
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
+        if (!name || name.length < 2) {
+          showAlert('Please enter your full legal name (at least 2 characters).');
+          return;
+        }
+
         if (password.length < 4) {
           showAlert('Password must be at least 4 characters long.');
           return;
@@ -214,25 +219,35 @@
         submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Registering...</span>';
 
         try {
-          let res = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
-          });
-
-          if (res.status === 404) {
+          // Direct serverless invocation first with API fallback
+          let res;
+          try {
             res = await fetch('/.netlify/functions/auth-register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, password })
+            });
+          } catch (netErr) {
+            res = await fetch('/api/register', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ name, email, password })
             });
           }
 
-          let json;
+          if (!res || res.status === 404) {
+            res = await fetch('/api/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name, email, password })
+            });
+          }
+
+          let json = {};
           try {
             json = await res.json();
           } catch (pe) {
-            throw new Error('Registration response was not valid JSON (Status: ' + res.status + ')');
+            console.warn('Response was not JSON:', pe);
           }
 
           if (res.ok && json.success) {
@@ -247,7 +262,19 @@
               window.location.href = '/student-dashboard';
             }, 600);
           } else {
-            showAlert(json.error || 'Registration failed. Please check your details.');
+            let errorMsg = json.error || json.message || json.errorMessage;
+            if (!errorMsg) {
+              if (res.status === 409) {
+                errorMsg = 'An account with this email already exists. <a href="/login" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">Sign In &rarr;</a>';
+              } else if (res.status === 400) {
+                errorMsg = 'Please verify your details: Name (min 2 chars), valid email, and password (min 4 characters).';
+              } else {
+                errorMsg = 'Registration failed (Status ' + res.status + '). Please check your details.';
+              }
+            } else if (errorMsg.includes('already exists') || errorMsg.includes('registered')) {
+              errorMsg += ' <a href="/login" style="color: #38bdf8; text-decoration: underline; font-weight: 600; margin-left: 4px;">Sign In &rarr;</a>';
+            }
+            showAlert(errorMsg);
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span class="btn-auth-text">Register Account</span> <span class="btn-auth-arrow">→</span>';
           }
