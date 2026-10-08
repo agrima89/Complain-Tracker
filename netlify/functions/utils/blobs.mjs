@@ -46,7 +46,8 @@ export async function saveEvidenceBlob(buffer, filename, mimeType) {
     throw new Error(validation.error);
   }
 
-  const cleanFilename = path.basename(filename).replace(/[^a-zA-Z0-9._-]/g, '_');
+  const rawName = typeof filename === 'string' && filename.trim() ? filename : 'evidence.jpg';
+  const cleanFilename = path.basename(rawName).replace(/[^a-zA-Z0-9._-]/g, '_');
   const timestamp = Date.now();
   const randomSuffix = Math.random().toString(36).substring(2, 8);
   const blobKey = `evidence_${timestamp}_${randomSuffix}_${cleanFilename}`;
@@ -100,7 +101,7 @@ export async function saveEvidenceBlob(buffer, filename, mimeType) {
 }
 
 export async function getEvidenceBlob(blobKey) {
-  if (!blobKey) return null;
+  if (!blobKey || typeof blobKey !== 'string') return null;
   const cleanKey = path.basename(blobKey);
 
   // 1. Try Netlify Blobs

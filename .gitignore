@@ -50,8 +50,11 @@ Desktop.ini
 
 # SQLite Database
 *.sqlite3
+*.db-shm
+*.db-wal
 database_backup.db
 !database.db
+!public/database.db
 uploads/evidence/*
 !uploads/evidence/.gitkeep
 500_traceback.log

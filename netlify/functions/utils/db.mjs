@@ -13,8 +13,17 @@ const { Pool } = pkg;
 import Database from 'better-sqlite3';
 import { hashPassword } from './auth.mjs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let currentDir = process.cwd();
+try {
+  if (typeof import.meta !== 'undefined' && import.meta && import.meta.url) {
+    const filename = fileURLToPath(import.meta.url);
+    currentDir = path.dirname(filename);
+  } else if (typeof __dirname !== 'undefined' && __dirname) {
+    currentDir = __dirname;
+  }
+} catch (_) {
+  currentDir = process.cwd() || os.tmpdir();
+}
 
 const PG_URL = process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
 let pool = null;
@@ -39,6 +48,7 @@ export function isPostgres() {
  * - Falls back to local database.db in project root for local development
  */
 function isDirWritable(dir) {
+  if (!dir || typeof dir !== 'string') return false;
   try {
     const testFile = path.join(dir, `.write_probe_${process.pid}_${Date.now()}`);
     fs.writeFileSync(testFile, '1');
@@ -58,18 +68,22 @@ function isDirWritable(dir) {
  */
 function resolveSqlitePath() {
   if (process.env.DATABASE_PATH) {
-    return path.resolve(process.env.DATABASE_PATH);
+    try {
+      return path.resolve(process.env.DATABASE_PATH);
+    } catch (_) {}
   }
 
+  const cwd = process.cwd() || os.tmpdir();
+
   // Detect Netlify Serverless / AWS Lambda environment or read-only filesystem
-  const isCwdWritable = isDirWritable(process.cwd());
+  const isCwdWritable = isDirWritable(cwd);
   const isServerless = !isCwdWritable || !!(
     process.env.NETLIFY ||
     process.env.AWS_LAMBDA_FUNCTION_NAME ||
     process.env.LAMBDA_TASK_ROOT ||
     process.env.CONTEXT ||
     process.env.DEPLOY_ID ||
-    (process.cwd() && (process.cwd().startsWith('/var/task') || process.cwd().includes('netlify-functions')))
+    (cwd && (cwd.startsWith('/var/task') || cwd.includes('netlify-functions')))
   );
 
   if (isServerless) {
@@ -80,34 +94,35 @@ function resolveSqlitePath() {
     }
 
     if (!fs.existsSync(tmpDbPath)) {
-      // Find candidate seed database.db files
-      const candidates = [
-        path.resolve(process.cwd(), 'database.db'),
-        path.resolve(process.cwd(), 'public', 'database.db'),
-        path.resolve(__dirname, 'database.db'),
-        path.resolve(__dirname, '..', 'database.db'),
-        path.resolve(__dirname, '..', '..', 'database.db'),
-        path.resolve(__dirname, '..', '..', 'public', 'database.db'),
-        path.resolve(process.env.LAMBDA_TASK_ROOT || '/var/task', 'database.db'),
-        path.resolve(process.env.LAMBDA_TASK_ROOT || '/var/task', 'public', 'database.db')
-      ];
-      for (const cand of candidates) {
-        if (fs.existsSync(cand)) {
-          try {
+      // Find candidate seed database.db files safely
+      const searchDirs = [
+        cwd,
+        path.join(cwd, 'public'),
+        currentDir,
+        path.resolve(currentDir, '..'),
+        path.resolve(currentDir, '..', '..'),
+        path.resolve(currentDir, '..', '..', 'public'),
+        process.env.LAMBDA_TASK_ROOT,
+        '/var/task',
+        '/var/task/public'
+      ].filter(d => typeof d === 'string' && d.length > 0);
+
+      for (const dir of searchDirs) {
+        try {
+          const cand = path.join(dir, 'database.db');
+          if (fs.existsSync(cand)) {
             fs.copyFileSync(cand, tmpDbPath);
             console.log(`[db.mjs] Initialized serverless DB at ${tmpDbPath} from seed ${cand}`);
             break;
-          } catch (e) {
-            console.warn(`[db.mjs] Warning copying seed database from ${cand}:`, e.message);
           }
-        }
+        } catch (_) {}
       }
     }
     return tmpDbPath;
   }
 
   // Local development fallback
-  return path.resolve(process.cwd(), 'database.db');
+  return path.resolve(cwd, 'database.db');
 }
 
 /**
