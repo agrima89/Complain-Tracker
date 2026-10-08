@@ -90,38 +90,60 @@ function initAdminStatusUpdaters() {
 }
 
 function updateStatusBadge(complaintId, status) {
-  const badge = document.querySelector(`#statusBadge-${complaintId}`);
+  const badge = document.querySelector(`#statusBadge-${complaintId}`) || document.querySelector('#detailStatusBadge');
   if (!badge) return;
 
-  const formatStatus = (s) => s.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-
   badge.className = 'badge';
-  if (['NEW', 'FORWARDED'].includes(status)) {
+  if (status === 'NEW') {
+    badge.style.background = 'rgba(148, 163, 184, 0.15)';
+    badge.style.borderColor = 'rgba(148, 163, 184, 0.35)';
+    badge.style.color = '#cbd5e1';
+    badge.textContent = '● New';
+  } else if (status === 'PENDING REVIEW') {
     badge.classList.add('badge-pending');
-    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
-  } else if (['IN_PROGRESS', 'REOPENED'].includes(status)) {
+    badge.textContent = '⏳ Pending Review';
+  } else if (status === 'ASSIGNED') {
+    badge.style.background = 'rgba(168, 85, 247, 0.15)';
+    badge.style.borderColor = 'rgba(168, 85, 247, 0.35)';
+    badge.style.color = '#c084fc';
+    badge.textContent = '📌 Assigned';
+  } else if (status === 'IN PROGRESS') {
     badge.classList.add('badge-progress');
-    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
-  } else if (['FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION'].includes(status)) {
+    badge.textContent = '🔄 In Progress';
+  } else if (status === 'RESOLVED') {
     badge.classList.add('badge-resolved');
-    badge.innerHTML = '<span class="badge-dot"></span> ' + formatStatus(status);
+    badge.textContent = '✓ Resolved';
+  } else if (status === 'REJECTED') {
+    badge.style.background = 'rgba(239, 68, 68, 0.15)';
+    badge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+    badge.style.color = '#f87171';
+    badge.textContent = '✕ Rejected';
   } else {
-    badge.classList.add('badge-category');
     badge.textContent = status;
   }
 }
 
 function updateDashboardStats(stats) {
   const elTotal = document.getElementById('stat-total');
+  const elNew = document.getElementById('stat-new');
   const elPending = document.getElementById('stat-pending');
+  const elAssigned = document.getElementById('stat-assigned');
   const elProgress = document.getElementById('stat-progress');
   const elResolved = document.getElementById('stat-resolved');
+  const elRejected = document.getElementById('stat-rejected');
+  const elAvgRes = document.getElementById('stat-avg-res');
   const elEscalated = document.getElementById('stat-escalated');
 
   if (elTotal && stats.total !== undefined) elTotal.textContent = stats.total;
-  if (elPending && stats.pending !== undefined) elPending.textContent = stats.pending;
+  if (elNew && stats.new !== undefined) elNew.textContent = stats.new;
+  if (elPending && (stats.pending_review !== undefined || stats.pending !== undefined)) {
+    elPending.textContent = stats.pending_review !== undefined ? stats.pending_review : stats.pending;
+  }
+  if (elAssigned && stats.assigned !== undefined) elAssigned.textContent = stats.assigned;
   if (elProgress && stats.in_progress !== undefined) elProgress.textContent = stats.in_progress;
   if (elResolved && stats.resolved !== undefined) elResolved.textContent = stats.resolved;
+  if (elRejected && stats.rejected !== undefined) elRejected.textContent = stats.rejected;
+  if (elAvgRes && stats.average_resolution_time !== undefined) elAvgRes.textContent = stats.average_resolution_time || 'N/A';
   if (elEscalated && stats.escalated !== undefined) elEscalated.textContent = stats.escalated;
 }
 

@@ -34,6 +34,21 @@ export const handler = async (event, context) => {
       };
     }
 
+    // Helpful detection if an administrator enters their username on student login form
+    if (email === 'admin' || (!email.includes('@') && email.length > 0)) {
+      const adminCheck = await query('SELECT * FROM admins WHERE LOWER(username) = $1', [email]);
+      if (adminCheck.rows.length > 0) {
+        return {
+          statusCode: 400,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            success: false,
+            error: 'You entered an Administrator username. Please log in using the Admin Portal at /admin-login.'
+          })
+        };
+      }
+    }
+
     const emailCheck = isValidCollegeEmail(email);
     if (!emailCheck.valid) {
       return {

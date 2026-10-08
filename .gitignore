@@ -49,16 +49,9 @@ Desktop.ini
 *.log
 
 # SQLite Database
-*.db
 *.sqlite3
-
-# Uploads
-uploads/complaints/*
-!uploads/complaints/.gitkeep
-
-# Explicit deployment ignores
-database.db
 database_backup.db
+!database.db
 uploads/evidence/*
 !uploads/evidence/.gitkeep
 500_traceback.log
@@ -68,6 +61,7 @@ flask_stderr.log
 Complain-Tracker/
 
 # Local scratch files
+scratch/
 scratch_*.py
 white_colors.txt
 node_modules

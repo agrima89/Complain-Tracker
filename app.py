@@ -283,6 +283,7 @@ def student_dashboard():
 
 
 @app.route("/student/submit", methods=["GET", "POST"])
+@app.route("/student/submit-complaint", methods=["GET", "POST"])
 @app.route("/submit-complaint", methods=["GET", "POST"])
 @app.route("/submit_complaint", methods=["GET", "POST"])
 @student_required
@@ -553,19 +554,25 @@ def admin_dashboard():
     analytics = database.get_analytics_data(department)
     status_filter = request.args.get("status", "All")
     priority_filter = request.args.get("priority", "All")
+    category_filter = request.args.get("category", "All")
+    department_filter = request.args.get("department_filter", "All")
+    location_filter = request.args.get("location", "All")
+    sort_order = request.args.get("sort", "newest")
     search_text = request.args.get("q", "").strip()
     escalated_only = request.args.get("escalated", "false").lower() == "true"
     page = request.args.get("page", 1, type=int)
 
-    # Also load collections for the new top section
-    collections, col_summary = database.get_complaint_collections()
-
+    # Also load collections
     collections, col_summary = database.get_complaint_collections()
 
     pagination = database.get_all_complaints_admin_paginated(
         status_filter=status_filter,
         priority_filter=priority_filter,
+        category_filter=category_filter,
+        department_filter=department_filter,
+        location_filter=location_filter,
         search_text=search_text,
+        sort_order=sort_order,
         escalated_only=escalated_only,
         page=page,
         per_page=10,
@@ -584,8 +591,6 @@ def admin_dashboard():
     pulse_data = database.get_campus_pulse_data(department)
     transport_stats = database.get_transport_statistics() if (not department or department == "Transport") else {"total": 0, "active": 0, "resolved": 0, "by_type": {}, "by_route": {}}
 
-    
-
     return render_template(
         "admin_dashboard.html",
         stats=stats,
@@ -599,9 +604,12 @@ def admin_dashboard():
         pagination=pagination,
         status_filter=status_filter,
         priority_filter=priority_filter,
+        category_filter=category_filter,
+        department_filter=department_filter,
+        location_filter=location_filter,
+        sort_order=sort_order,
         search_text=search_text,
         escalated_only=escalated_only,
-        
     )
 
 
@@ -714,10 +722,14 @@ def api_update_status():
         complaint_id = data.get("complaint_id")
         new_status = data.get("status")
         remarks = data.get("remarks", "")
+        department = data.get("department")
+        assigned_authority = data.get("assigned_authority")
     else:
         complaint_id = request.form.get("complaint_id")
         new_status = request.form.get("status")
         remarks = request.form.get("remarks", "")
+        department = request.form.get("department")
+        assigned_authority = request.form.get("assigned_authority")
 
     if not complaint_id or not new_status:
         if request.is_json:
@@ -728,7 +740,6 @@ def api_update_status():
     admin_id = session.get("admin_id", 1)
     admin_name = session.get("admin_username", "Administrator")
 
-    # Workflow validation
     comp = database.get_complaint_by_id(int(complaint_id))
     if not comp:
         if request.is_json:
@@ -744,31 +755,17 @@ def api_update_status():
         flash(msg, "error")
         return redirect(url_for("admin_dashboard"))
 
-    old_status = comp["status"]
-    allowed_transitions = {
-        "NEW": ["FORWARDED", "IN_PROGRESS"],
-        "FORWARDED": ["IN_PROGRESS"],
-        "IN_PROGRESS": ["RESOLUTION_SUBMITTED"],
-        "RESOLUTION_SUBMITTED": ["AWAITING_STUDENT_CONFIRMATION"],
-        "AWAITING_STUDENT_CONFIRMATION": ["FINAL_RESOLVED", "REOPENED"], # Sometimes admins might force resolve
-        "REOPENED": ["IN_PROGRESS", "FORWARDED"],
-        "FINAL_RESOLVED": []
-    }
-
-    if new_status not in allowed_transitions.get(old_status, []) and old_status != new_status:
-        msg = f"Invalid transition from {old_status} to {new_status}."
-        if request.is_json:
-            return jsonify({"success": False, "message": msg}), 400
-        flash(msg, "error")
-        return redirect(request.referrer or url_for("admin_dashboard"))
-
     success, message = database.update_complaint_status(
         int(complaint_id),
         new_status,
         admin_id=admin_id,
         admin_name=admin_name,
-        remarks=remarks
+        remarks=remarks,
+        department=department,
+        assigned_authority=assigned_authority
     )
+    database.log_soc_event("COMPLAINT_STATUS_CHANGED", admin_name, str(complaint_id), comp.get("department") or department or "", "LOW", f"Status updated to {new_status}")
+
     dept = session.get("admin_department") if session.get("admin_role") != "Super Admin" and session.get("admin_department") else None
     stats = database.get_admin_statistics(dept)
 
@@ -780,11 +777,11 @@ def api_update_status():
         })
 
     if success:
-        flash(f"Complaint #{complaint_id} status updated to {new_status}.", "success")
+        flash(message, "success")
     else:
         flash(message, "error")
 
-    referrer = request.referrer or url_for("admin_dashboard")
+    referrer = request.referrer or url_for("admin_complaint_detail_view", complaint_id=complaint_id)
     return redirect(referrer)
 
 

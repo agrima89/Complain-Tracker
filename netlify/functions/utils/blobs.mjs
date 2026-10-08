@@ -70,11 +70,22 @@ export async function saveEvidenceBlob(buffer, filename, mimeType) {
       storage: 'blobs'
     };
   } catch (err) {
-    // If running in local standalone environment without Blobs token, fallback to local uploads/evidence/
-    console.warn("[Blobs] Netlify Blobs storage unavailable, using local disk fallback:", err.message);
-    const uploadsDir = path.resolve(process.cwd(), 'uploads', 'evidence');
+    // If running in local standalone environment or serverless without Blobs token, fallback to safe disk path
+    console.warn("[Blobs] Netlify Blobs storage unavailable, using disk fallback:", err.message);
+    const isServerless = !!(
+      process.env.NETLIFY ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.LAMBDA_TASK_ROOT ||
+      (process.cwd() && process.cwd().startsWith('/var/task'))
+    );
+    const uploadsDir = isServerless
+      ? path.resolve('/tmp', 'uploads', 'evidence')
+      : path.resolve(process.cwd(), 'uploads', 'evidence');
+
     if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
+      try {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      } catch (_) {}
     }
     const localFilePath = path.join(uploadsDir, blobKey);
     fs.writeFileSync(localFilePath, buffer);
@@ -107,7 +118,17 @@ export async function getEvidenceBlob(blobKey) {
     // Continue to local disk check
   }
 
-  // 2. Check local uploads/evidence
+  // 2. Check /tmp/uploads/evidence (serverless fallback)
+  const tmpPath = path.join('/tmp', 'uploads', 'evidence', cleanKey);
+  if (fs.existsSync(tmpPath)) {
+    const data = fs.readFileSync(tmpPath);
+    let contentType = 'image/jpeg';
+    if (cleanKey.endsWith('.png')) contentType = 'image/png';
+    else if (cleanKey.endsWith('.webp')) contentType = 'image/webp';
+    return { data, contentType };
+  }
+
+  // 3. Check local uploads/evidence
   const localDir = path.resolve(process.cwd(), 'uploads', 'evidence');
   const localPath = path.join(localDir, cleanKey);
   if (fs.existsSync(localPath)) {
@@ -118,7 +139,7 @@ export async function getEvidenceBlob(blobKey) {
     return { data, contentType };
   }
 
-  // 3. Check legacy uploads/complaints
+  // 4. Check legacy uploads/complaints
   const legacyDir = path.resolve(process.cwd(), 'uploads', 'complaints');
   const legacyPath = path.join(legacyDir, cleanKey);
   if (fs.existsSync(legacyPath)) {

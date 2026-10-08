@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Review: {{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }} - CampusCare{% endblock %}
+{% block title %}Admin Review: {{ complaint.ticket_id or ('CMP-2026-%04d'|format(complaint.complaint_id)) }} - CampusCare{% endblock %}
 
 {% block content %}
 <div class="container" style="max-width: 980px;">
@@ -18,22 +18,30 @@
   <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
     <a href="{{ url_for('landing') }}" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
     <a href="{{ url_for('admin_dashboard') }}" style="color: #38bdf8; text-decoration: none;">Admin Dashboard</a> &nbsp;/&nbsp; 
-    <span style="color: #ffffff; font-weight: 600;">Inspect {{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</span>
+    <span style="color: #ffffff; font-weight: 600;">Inspect {{ complaint.ticket_id or ('CMP-2026-%04d'|format(complaint.complaint_id)) }}</span>
   </div>
 
   <!-- Page Header -->
   <div class="page-header" style="margin-bottom: 1.5rem;">
     <div class="page-header-title">
       <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-        <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or 'Ticket #' ~ "%03d"|format(complaint.complaint_id) }}</h1>
+        <h1 style="font-family: monospace; letter-spacing: -0.02em;">{{ complaint.ticket_id or ('CMP-2026-%04d'|format(complaint.complaint_id)) }}</h1>
         
         <!-- Status Badge -->
-        {% if complaint.status in ('NEW', 'FORWARDED') %}
-          <span id="detailStatusBadge" class="badge badge-pending">⏳ {{ complaint.status.replace('_', ' ')|title }}</span>
-        {% elif complaint.status in ('IN_PROGRESS', 'REOPENED') %}
-          <span id="detailStatusBadge" class="badge badge-progress">⚡ {{ complaint.status.replace('_', ' ')|title }}</span>
-        {% elif complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
-          <span id="detailStatusBadge" class="badge badge-resolved">✓ {{ complaint.status.replace('_', ' ')|title }}</span>
+        {% if complaint.status == 'NEW' %}
+          <span id="detailStatusBadge" class="badge" style="background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.35); color: #cbd5e1;">● New</span>
+        {% elif complaint.status == 'PENDING REVIEW' %}
+          <span id="detailStatusBadge" class="badge badge-pending">⏳ Pending Review</span>
+        {% elif complaint.status == 'ASSIGNED' %}
+          <span id="detailStatusBadge" class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); color: #c084fc;">📌 Assigned</span>
+        {% elif complaint.status == 'IN PROGRESS' %}
+          <span id="detailStatusBadge" class="badge badge-progress">🔄 In Progress</span>
+        {% elif complaint.status == 'RESOLVED' %}
+          <span id="detailStatusBadge" class="badge badge-resolved">✓ Resolved</span>
+        {% elif complaint.status == 'REJECTED' %}
+          <span id="detailStatusBadge" class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">✕ Rejected</span>
+        {% else %}
+          <span id="detailStatusBadge" class="badge">{{ complaint.status }}</span>
         {% endif %}
 
         <!-- Priority Badge -->
@@ -78,52 +86,130 @@
     </div>
   </div>
 
-  <!-- Administrative Action & Status Manager Card -->
+  <!-- Administrative Action & Status Manager Card (Requirements 3, 6, 9) -->
   <div class="cinematic-card" style="margin-bottom: 2rem; border-color: rgba(56, 189, 248, 0.4) !important;">
     <div class="card-header">
       <h2 class="card-title" style="color: #38bdf8;">
-        🛡️ Administrative Redressal Actions
+        🛡️ Administrative Redressal Actions & Status Workflow
       </h2>
       <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">Admin Control</span>
     </div>
 
     <div class="card-body">
-      <form action="{{ url_for('api_update_status') }}" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; align-items: flex-end;">
+      <form action="{{ url_for('api_update_status') }}" method="POST" style="display: flex; flex-direction: column; gap: 1.25rem;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="complaint_id" value="{{ complaint.complaint_id }}">
 
-        <div>
-          <label for="statusSelect" class="form-label" style="margin-bottom: 0.35rem;">
-            Update Lifecycle Status:
-          </label>
-          <select id="statusSelect" name="status" class="form-select">
-            <option value="Pending" {% if complaint.status in ('NEW', 'FORWARDED') %}selected{% endif %}>Pending</option>
-            <option value="In Progress" {% if complaint.status in ('IN_PROGRESS', 'REOPENED') %}selected{% endif %}>In Progress</option>
-            <option value="Resolved" {% if complaint.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}selected{% endif %}>Resolved</option>
-          </select>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+          
+          <!-- Status Dropdown (Requirement 3) -->
+          <div>
+            <label for="statusSelect" class="form-label" style="margin-bottom: 0.35rem; font-weight: 600;">
+              Complaint Status:
+            </label>
+            <select id="statusSelect" name="status" class="form-select" style="font-weight: 600;">
+              <option value="NEW" {% if complaint.status == 'NEW' %}selected{% endif %}>NEW</option>
+              <option value="PENDING REVIEW" {% if complaint.status == 'PENDING REVIEW' %}selected{% endif %}>PENDING REVIEW</option>
+              <option value="ASSIGNED" {% if complaint.status == 'ASSIGNED' %}selected{% endif %}>ASSIGNED</option>
+              <option value="IN PROGRESS" {% if complaint.status == 'IN PROGRESS' %}selected{% endif %}>IN PROGRESS</option>
+              <option value="RESOLVED" {% if complaint.status == 'RESOLVED' %}selected{% endif %}>RESOLVED</option>
+              <option value="REJECTED" {% if complaint.status == 'REJECTED' %}selected{% endif %}>REJECTED</option>
+            </select>
+          </div>
+
+          <!-- Department Assignment (Requirement 9) -->
+          <div>
+            <label for="deptSelect" class="form-label" style="margin-bottom: 0.35rem; font-weight: 600;">
+              Assigned Department:
+            </label>
+            <select id="deptSelect" name="department" class="form-select">
+              <option value="Electrical" {% if complaint.department == 'Electrical' %}selected{% endif %}>Electrical</option>
+              <option value="Wi-Fi/Internet" {% if complaint.department in ('Wi-Fi/Internet', 'WiFi / Internet', 'Internet') %}selected{% endif %}>WiFi / Internet</option>
+              <option value="Cleaning" {% if complaint.department == 'Cleaning' %}selected{% endif %}>Cleaning / Sanitation</option>
+              <option value="Classroom" {% if complaint.department == 'Classroom' %}selected{% endif %}>Classroom Facilities</option>
+              <option value="Hostel" {% if complaint.department == 'Hostel' %}selected{% endif %}>Hostel Administration</option>
+              <option value="Library" {% if complaint.department == 'Library' %}selected{% endif %}>Library</option>
+              <option value="Infrastructure" {% if complaint.department == 'Infrastructure' %}selected{% endif %}>Infrastructure & Civil</option>
+              <option value="Transport" {% if complaint.department == 'Transport' %}selected{% endif %}>Transport</option>
+              <option value="Other" {% if complaint.department == 'Other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+
+          <!-- Responsible Authority Assignment (Requirement 6, 9) -->
+          <div>
+            <label for="assignedAuthority" class="form-label" style="margin-bottom: 0.35rem; font-weight: 600;">
+              Responsible Authority / In-Charge:
+            </label>
+            <input
+              type="text"
+              id="assignedAuthority"
+              name="assigned_authority"
+              class="form-input"
+              value="{{ complaint.assigned_authority or '' }}"
+              placeholder="e.g. Chief Electrician Sharma, IT Officer Verma..."
+            >
+          </div>
+
         </div>
 
+        <!-- Remarks / Progress Note / Resolution Note (Requirement 5, 6) -->
         <div>
-          <label for="statusRemarks" class="form-label" style="margin-bottom: 0.35rem;">
-            Audit Trail Note / Action Log:
+          <label for="statusRemarks" class="form-label" style="margin-bottom: 0.35rem; font-weight: 600;">
+            Action Note / Progress Update / Resolution Remarks:
           </label>
-          <input
-            type="text"
+          <textarea
             id="statusRemarks"
             name="remarks"
+            rows="2"
             class="form-input"
-            placeholder="e.g. Electrician dispatched, parts ordered..."
-          >
+            placeholder="Add update remarks (e.g. Assigned work order #402, team dispatched, issue rectified and tested)..."
+          >{{ complaint.resolution_remarks if complaint.status == 'RESOLVED' else '' }}</textarea>
         </div>
 
-        <div>
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
-            Save Status & Log Action
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="submit" class="btn btn-primary btn-lg" style="box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);">
+            💾 Save Updates & Log Audit History
           </button>
         </div>
       </form>
     </div>
   </div>
+
+  <!-- Resolution Summary Card (When Resolved) -->
+  {% if complaint.status == 'RESOLVED' or complaint.resolved_at %}
+  <div class="cinematic-card" style="margin-bottom: 2rem; border-color: rgba(74, 222, 128, 0.4) !important; background: linear-gradient(180deg, rgba(74, 222, 128, 0.08) 0%, rgba(15, 23, 42, 0.95) 100%);">
+    <div class="card-header" style="border-bottom-color: rgba(74, 222, 128, 0.2);">
+      <h2 class="card-title" style="color: #4ade80; display: flex; align-items: center; gap: 0.5rem;">
+        <span>✓</span> Resolution Record & Turnaround Information
+      </h2>
+      <span class="badge badge-resolved">Resolved</span>
+    </div>
+    <div class="card-body">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Resolved At</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #ffffff; margin-top: 0.25rem;">
+            🕒 {{ complaint.resolved_at or complaint.last_updated }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Resolved By / Authority</div>
+          <div style="font-size: 1rem; font-weight: 700; color: #4ade80; margin-top: 0.25rem;">
+            🛡️ {{ complaint.assigned_authority or complaint.department or 'Administration' }}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 0.4rem;">
+          Official Resolution Remarks
+        </div>
+        <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(74, 222, 128, 0.25); border-radius: 10px; padding: 1rem 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #f0fdf4;">
+          {{ complaint.resolution_remarks or 'The issue has been marked resolved.' }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <!-- Ticket Overview, Exact Location & Photo Evidence -->
   <div class="cinematic-card" style="margin-bottom: 2rem;">
@@ -145,6 +231,27 @@
           <div style="font-size: 0.8rem; color: #38bdf8;">{{ complaint.student_email }}</div>
         </div>
 
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Assigned Department</div>
+          <div style="font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-top: 0.2rem;">
+            🏢 {{ complaint.department or 'General' }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Assigned Authority</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #38bdf8; margin-top: 0.2rem;">
+            👤 {{ complaint.assigned_authority or 'Pending Assignment' }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Submission Date</div>
+          <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
+            📅 {{ complaint.date }}
+          </div>
+        </div>
+
         {% if complaint.category == 'Transport Complaint' %}
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Transport Type</div>
@@ -154,7 +261,7 @@
         </div>
 
         <div>
-          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Bus/Vehicle No & Route</div>
+          <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Bus / Route</div>
           <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
             🔢 {{ complaint.bus_number or 'N/A' }} ({{ complaint.route or 'N/A' }})
           </div>
@@ -177,7 +284,7 @@
         <div>
           <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
           <div style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.2rem;">
-            🚪 {{ complaint.floor_no or 'N/A' }} {% if complaint.room_no %}({{ complaint.room_no }}){% endif %}
+            🚪 {{ complaint.floor_no or 'N/A' }} {% if complaint.room_no %}(Room {{ complaint.room_no }}){% endif %}
           </div>
         </div>
 
@@ -210,31 +317,34 @@
         <div style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;">{{ complaint.description }}</div>
       </div>
 
-      <!-- Evidence File Block -->
+      <!-- Evidence File Block (Requirement 10) -->
       <div>
         <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
           📷 ATTACHED EVIDENCE
         </div>
         {% if complaint.photo_path %}
-          <div style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1rem; max-width: 600px; width: 100%;">
-            <div style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #e2e8f0; font-weight: 500;">
-              📄 File: <a href="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline;">{{ complaint.photo_path.split('/')[-1] }}</a>
+          <div style="background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1.25rem; max-width: 650px; width: 100%;">
+            <div style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #e2e8f0; font-weight: 500; display: flex; flex-direction: column; gap: 0.25rem;">
+              <div><strong>Filename:</strong> <span style="font-family: monospace; color: #38bdf8;">{{ complaint.photo_path.split('/')[-1] }}</span></div>
+              <div style="font-size: 0.775rem; color: #94a3b8;"><strong>Path / URI:</strong> {{ complaint.photo_path }}</div>
             </div>
             
             {% if complaint.photo_path.lower().endswith('.pdf') %}
-              <div style="width: 100%; height: 400px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1);">
-                <embed src="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" type="application/pdf" width="100%" height="100%" style="display: block;">
+              <div style="width: 100%; height: 380px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <embed src="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" type="application/pdf" width="100%" height="100%">
               </div>
             {% else %}
-              <a href="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" target="_blank" title="Click to view full image in high resolution">
-                <img src="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" alt="Complaint Evidence Photo" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; display: block; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
-              </a>
+              <div style="margin-bottom: 1rem; text-align: center;">
+                <a href="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" target="_blank" title="Click to view full image in high resolution">
+                  <img src="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" alt="Complaint Evidence Photo" style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);">
+                </a>
+              </div>
             {% endif %}
             
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; border-top: 1px solid rgba(56, 189, 248, 0.15); padding-top: 0.75rem;">
-              <span style="color: #4ade80; font-weight: 600;">✓ Evidence Verified</span>
-              <a href="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);">
-                🔍 Open Proper Viewer ↗
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(56, 189, 248, 0.15); padding-top: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="color: #4ade80; font-size: 0.85rem; font-weight: 600;">✓ Authentic Student Evidence File</span>
+              <a href="{{ url_for('view_evidence', complaint_id=complaint.complaint_id) }}" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.45rem 1.1rem; font-size: 0.85rem; font-weight: 600;">
+                🔍 Open / View Evidence ↗
               </a>
             </div>
           </div>
@@ -282,9 +392,6 @@
                   </div>
                   <div style="font-size: 0.825rem; color: #38bdf8;">
                     {{ r.student_email or r.user_email or 'No email' }}
-                    {% if r.student_department %}
-                      <span style="color: #64748b; margin-left: 0.5rem;">• {{ r.student_department }}</span>
-                    {% endif %}
                   </div>
                 </div>
               </div>
@@ -303,13 +410,13 @@
               <span style="color: #38bdf8; font-size: 0.85rem;">{{ complaint.student_email }}</span>
             </div>
           </div>
-          <span style="font-size: 0.8rem; color: #94a3b8;">Reported on: {{ complaint.created_at }}</span>
+          <span style="font-size: 0.8rem; color: #94a3b8;">Reported on: {{ complaint.date }}</span>
         </div>
       {% endif %}
     </div>
   </div>
 
-  <!-- Status Lifecycle History Audit Trail -->
+  <!-- Status Lifecycle History Audit Trail (Requirement 5) -->
   <div class="cinematic-card" style="margin-bottom: 2rem;">
     <div class="card-header">
       <h2 class="card-title">📜 Lifecycle Audit Trail & Status History</h2>
@@ -322,22 +429,22 @@
           {% for h in history %}
             <div style="background: rgba(3, 7, 18, 0.6); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 10px; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
               <div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
-                  <span style="font-weight: 600; color: #94a3b8; font-size: 0.85rem;">{{ h.old_status or 'Created' }}</span>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
+                  <span style="font-weight: 600; color: #94a3b8; font-size: 0.85rem;">{{ h.previous_status or 'Created' }}</span>
                   <span style="color: #38bdf8;">&rarr;</span>
-                  <span class="badge {% if h.new_status == 'Resolved' %}badge-resolved{% elif h.new_status == 'In Progress' %}badge-progress{% else %}badge-pending{% endif %}" style="font-size: 0.75rem;">
+                  <span class="badge" style="font-size: 0.75rem; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700;">
                     {{ h.new_status }}
                   </span>
                   <span style="font-size: 0.8rem; color: #cbd5e1; margin-left: 0.5rem;">by <strong>{{ h.changed_by }}</strong></span>
                 </div>
-                {% if h.remarks %}
-                  <div style="font-size: 0.875rem; color: #e2e8f0; margin-top: 0.25rem; font-style: italic;">
-                    "{{ h.remarks }}"
+                {% if h.comment or h.remarks %}
+                  <div style="font-size: 0.875rem; color: #e2e8f0; margin-top: 0.25rem; font-style: italic; padding-left: 0.5rem; border-left: 2px solid rgba(56, 189, 248, 0.4);">
+                    "{{ h.comment or h.remarks }}"
                   </div>
                 {% endif %}
               </div>
               <div style="font-size: 0.8rem; color: #64748b; white-space: nowrap;">
-                🕒 {{ h.timestamp }}
+                🕒 {{ h.changed_at or h.timestamp }}
               </div>
             </div>
           {% endfor %}

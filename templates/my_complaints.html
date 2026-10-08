@@ -59,12 +59,11 @@
         <select id="status" name="status" class="form-select" style="width: auto; min-width: 140px;">
           <option value="All" {% if status_filter == 'All' or not status_filter %}selected{% endif %}>All Statuses</option>
           <option value="NEW" {% if status_filter == 'NEW' %}selected{% endif %}>NEW</option>
-<option value="FORWARDED" {% if status_filter == 'FORWARDED' %}selected{% endif %}>FORWARDED</option>
-          <option value="IN_PROGRESS" {% if status_filter == 'IN_PROGRESS' %}selected{% endif %}>IN PROGRESS</option>
-<option value="REOPENED" {% if status_filter == 'REOPENED' %}selected{% endif %}>REOPENED</option>
-          <option value="RESOLUTION_SUBMITTED" {% if status_filter == 'RESOLUTION_SUBMITTED' %}selected{% endif %}>RESOLUTION SUBMITTED</option>
-<option value="AWAITING_STUDENT_CONFIRMATION" {% if status_filter == 'AWAITING_STUDENT_CONFIRMATION' %}selected{% endif %}>AWAITING CONFIRMATION</option>
-<option value="FINAL_RESOLVED" {% if status_filter == 'FINAL_RESOLVED' %}selected{% endif %}>FINAL RESOLVED</option>
+          <option value="PENDING REVIEW" {% if status_filter == 'PENDING REVIEW' %}selected{% endif %}>PENDING REVIEW</option>
+          <option value="ASSIGNED" {% if status_filter == 'ASSIGNED' %}selected{% endif %}>ASSIGNED</option>
+          <option value="IN PROGRESS" {% if status_filter == 'IN PROGRESS' %}selected{% endif %}>IN PROGRESS</option>
+          <option value="RESOLVED" {% if status_filter == 'RESOLVED' %}selected{% endif %}>RESOLVED</option>
+          <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>REJECTED</option>
         </select>
       </div>
     </div>
@@ -176,12 +175,18 @@
                     {% endif %}
                   </td>
                   <td>
-                    {% if item.status in ('NEW', 'FORWARDED') %}
-                      <span class="badge badge-pending">⏳ {{ item.status.replace('_', ' ')|title }}</span>
-                    {% elif item.status in ('IN_PROGRESS', 'REOPENED') %}
-                      <span class="badge badge-progress">⚡ {{ item.status.replace('_', ' ')|title }}</span>
-                    {% elif item.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
-                      <span class="badge badge-resolved">✓ {{ item.status.replace('_', ' ')|title }}</span>
+                    {% if item.status == 'NEW' %}
+                      <span class="badge" style="background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.35); color: #cbd5e1;">● New</span>
+                    {% elif item.status == 'PENDING REVIEW' %}
+                      <span class="badge badge-pending">⏳ Under Review</span>
+                    {% elif item.status == 'ASSIGNED' %}
+                      <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); color: #c084fc;">📌 Assigned</span>
+                    {% elif item.status == 'IN PROGRESS' %}
+                      <span class="badge badge-progress">🔄 In Progress</span>
+                    {% elif item.status == 'RESOLVED' %}
+                      <span class="badge badge-resolved">✓ Resolved</span>
+                    {% elif item.status == 'REJECTED' %}
+                      <span class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">✕ Rejected</span>
                     {% else %}
                       <span class="badge">{{ item.status }}</span>
                     {% endif %}

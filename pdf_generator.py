@@ -368,12 +368,18 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
     status_str = complaint["status"] or "NEW"
     priority_str = complaint["priority"] or "Medium"
 
-    if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"]:
+    if status_str in ["RESOLVED", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"]:
         s_fg, s_bg = STATUS_RESOLVED, STATUS_RESOLVED_BG
-    elif status_str in ["IN_PROGRESS", "REOPENED"]:
+    elif status_str in ["IN PROGRESS", "IN_PROGRESS", "REOPENED"]:
         s_fg, s_bg = STATUS_PROGRESS, STATUS_PROGRESS_BG
-    else:
+    elif status_str == "ASSIGNED":
+        s_fg, s_bg = ACCENT_BLUE, ACCENT_LIGHT
+    elif status_str == "REJECTED":
+        s_fg, s_bg = PRIORITY_HIGH, PRIORITY_HIGH_BG
+    elif status_str == "PENDING REVIEW":
         s_fg, s_bg = STATUS_PENDING, STATUS_PENDING_BG
+    else:
+        s_fg, s_bg = TEXT_MUTED, BG_CARD
 
     if priority_str == "High":
         p_fg, p_bg = PRIORITY_HIGH, PRIORITY_HIGH_BG
@@ -452,6 +458,12 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
             Paragraph(complaint["date"], styles["FieldValue"])
         ],
         [
+            Paragraph("Assigned Dept", styles["FieldLabel"]),
+            Paragraph(complaint["department"] if "department" in complaint.keys() and complaint["department"] else "General Review", styles["FieldValueBold"]),
+            Paragraph("Assigned Authority", styles["FieldLabel"]),
+            Paragraph(complaint["assigned_authority"] if "assigned_authority" in complaint.keys() and complaint["assigned_authority"] else "Pending Assignment", styles["FieldValue"])
+        ],
+        [
             Paragraph("Priority Level", styles["FieldLabel"]),
             Paragraph(f"<font color='{p_fg.hexval()}'><b>{priority_str} Priority</b></font>", styles["FieldValueBold"]),
             Paragraph("Last Updated", styles["FieldLabel"]),
@@ -498,25 +510,29 @@ def generate_complaint_pdf(complaint, history=None, output_stream=None):
     story.append(Paragraph("3. RESOLUTION & ADMINISTRATIVE ACTIONS", styles["SectionHeading"]))
 
     has_resolution = False
-    latest_remarks = ""
-    latest_resolver = "Administration"
-    latest_time = str(last_updated)
+    latest_remarks = complaint.get("resolution_remarks", "") if "resolution_remarks" in complaint.keys() and complaint["resolution_remarks"] else ""
+    latest_resolver = complaint.get("assigned_authority", "Administration") if "assigned_authority" in complaint.keys() and complaint["assigned_authority"] else "Administration"
+    latest_time = str(complaint.get("resolved_at") or last_updated)
+
+    if latest_remarks:
+        has_resolution = True
 
     if history and len(history) > 0:
         for h in reversed(history):
             if h["remarks"] and h["remarks"].strip():
-                latest_remarks = h["remarks"].strip()
-                latest_resolver = h["admin_name"] or "Administration"
+                if not latest_remarks:
+                    latest_remarks = h["remarks"].strip()
+                latest_resolver = h["admin_name"] or h.get("changed_by") or "Administration"
                 latest_time = h["timestamp"] if "timestamp" in h.keys() else h["changed_at"]
                 has_resolution = True
                 break
-        if not has_resolution and (status_str in ["IN_PROGRESS", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED"]):
+        if not has_resolution and (status_str in ["RESOLVED", "IN PROGRESS", "IN_PROGRESS", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED"]):
             has_resolution = True
             latest_remarks = f"Complaint has been placed {status_str} by university authorities."
             latest_resolver = history[-1]["admin_name"] or "Administration"
             latest_time = history[-1]["changed_at"]
 
-    if status_str in ["FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"] or has_resolution:
+    if status_str in ["RESOLVED", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"] or has_resolution or complaint.get("resolved_at"):
         res_header = [
             [
                 Paragraph("<b>Resolution Status:</b>", styles["FieldLabel"]),

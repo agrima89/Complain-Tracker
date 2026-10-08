@@ -38,7 +38,7 @@
     </div>
   </div>
 
-    <!-- 1. COMPACT SAAS STATISTICS GRID -->
+    <!-- 1. COMPACT REAL-TIME STATISTICS GRID -->
   <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
     
     <!-- Total Logged -->
@@ -51,14 +51,34 @@
       <div class="stat-subtext">Complaints</div>
     </div>
 
+    <!-- New -->
+    <div class="stat-card" style="border-top-color: #94a3b8; background: linear-gradient(180deg, rgba(148, 163, 184, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #cbd5e1;">NEW</span>
+        <div class="stat-icon" style="color: #cbd5e1; background: rgba(148, 163, 184, 0.12); border-color: rgba(148, 163, 184, 0.3);">📥</div>
+      </div>
+      <div class="stat-value" style="color: #cbd5e1;">{{ stats.new }}</div>
+      <div class="stat-subtext">Received</div>
+    </div>
+
     <!-- Pending Review -->
     <div class="stat-card stat-pending">
       <div class="stat-header">
-        <span class="stat-label" style="color: #fbbf24;">OPEN</span>
+        <span class="stat-label" style="color: #fbbf24;">REVIEW</span>
         <div class="stat-icon" style="color: #fbbf24; background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3);">⏳</div>
       </div>
-      <div class="stat-value" style="color: #fbbf24;">{{ stats.pending }}</div>
-      <div class="stat-subtext">New/Forwarded</div>
+      <div class="stat-value" style="color: #fbbf24;">{{ stats.pending_review }}</div>
+      <div class="stat-subtext">Under Review</div>
+    </div>
+
+    <!-- Assigned -->
+    <div class="stat-card" style="border-top-color: #a855f7; background: linear-gradient(180deg, rgba(168, 85, 247, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
+      <div class="stat-header">
+        <span class="stat-label" style="color: #c084fc;">ASSIGNED</span>
+        <div class="stat-icon" style="color: #c084fc; background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.3);">📌</div>
+      </div>
+      <div class="stat-value" style="color: #c084fc;">{{ stats.assigned }}</div>
+      <div class="stat-subtext">Department</div>
     </div>
 
     <!-- In Progress -->
@@ -68,27 +88,7 @@
         <div class="stat-icon" style="color: #38bdf8; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.3);">🔄</div>
       </div>
       <div class="stat-value" style="color: #38bdf8;">{{ stats.in_progress }}</div>
-      <div class="stat-subtext">Working</div>
-    </div>
-    
-    <!-- Awaiting Confirmation -->
-    <div class="stat-card" style="border-top-color: #a855f7; background: linear-gradient(180deg, rgba(168, 85, 247, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
-      <div class="stat-header">
-        <span class="stat-label" style="color: #c084fc;">CONFIRM</span>
-        <div class="stat-icon" style="color: #c084fc; background: rgba(168, 85, 247, 0.12); border-color: rgba(168, 85, 247, 0.3);">⚠️</div>
-      </div>
-      <div class="stat-value" style="color: #c084fc;">{{ stats.awaiting }}</div>
-      <div class="stat-subtext">Needs Action</div>
-    </div>
-
-    <!-- Regenerated -->
-    <div class="stat-card" style="border-top-color: #f43f5e; background: linear-gradient(180deg, rgba(244, 63, 94, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);">
-      <div class="stat-header">
-        <span class="stat-label" style="color: #fb7185;">REGENERATED</span>
-        <div class="stat-icon" style="color: #fb7185; background: rgba(244, 63, 94, 0.12); border-color: rgba(244, 63, 94, 0.3);">🔄</div>
-      </div>
-      <div class="stat-value" style="color: #fb7185;">{{ stats.regenerated }}</div>
-      <div class="stat-subtext">Sent Back</div>
+      <div class="stat-subtext">Active Work</div>
     </div>
 
     <!-- Resolved -->
@@ -202,12 +202,18 @@
                   </td>
                   <td style="color: #94a3b8; font-size: 0.825rem;">{{ item.date }}</td>
                   <td>
-                    {% if item.status in ('NEW', 'FORWARDED') %}
-                      <span class="badge badge-pending">⏳ {{ item.status.replace('_', ' ')|title }}</span>
-                    {% elif item.status in ('IN_PROGRESS', 'REOPENED') %}
-                      <span class="badge badge-progress">⚡ {{ item.status.replace('_', ' ')|title }}</span>
-                    {% elif item.status in ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') %}
-                      <span class="badge badge-resolved">✓ {{ item.status.replace('_', ' ')|title }}</span>
+                    {% if item.status == 'NEW' %}
+                      <span class="badge" style="background: rgba(148, 163, 184, 0.15); border: 1px solid rgba(148, 163, 184, 0.35); color: #cbd5e1;">● New</span>
+                    {% elif item.status == 'PENDING REVIEW' %}
+                      <span class="badge badge-pending">⏳ Under Review</span>
+                    {% elif item.status == 'ASSIGNED' %}
+                      <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); color: #c084fc;">📌 Assigned</span>
+                    {% elif item.status == 'IN PROGRESS' %}
+                      <span class="badge badge-progress">🔄 In Progress</span>
+                    {% elif item.status == 'RESOLVED' %}
+                      <span class="badge badge-resolved">✓ Resolved</span>
+                    {% elif item.status == 'REJECTED' %}
+                      <span class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #f87171;">✕ Rejected</span>
                     {% else %}
                       <span class="badge">{{ item.status }}</span>
                     {% endif %}

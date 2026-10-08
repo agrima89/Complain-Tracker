@@ -6,6 +6,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[functions]
+  included_files = ["database.db", "public/database.db"]
+
+
 # ------------------------------------------------------------------------------
 # API FUNCTION REWRITES
 # ------------------------------------------------------------------------------

@@ -196,6 +196,22 @@
             </button>
           </form>
 
+          <!-- Demo Credentials Helper -->
+          <div class="auth-demo-box" style="margin-top: 1.25rem; padding: 0.85rem 1rem; border-radius: 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-size: 0.8rem; font-weight: 600; color: #38bdf8; display: flex; align-items: center; gap: 0.35rem;">
+                <span>💡</span> Demo Student Account
+              </span>
+              <button type="button" id="fillDemoStudentBtn" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #e0f2fe; border-radius: 6px; padding: 2px 10px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">
+                Auto-fill
+              </button>
+            </div>
+            <div style="font-size: 0.78rem; color: #94a3b8; line-height: 1.45;">
+              <div>Email: <code style="color: #f1f5f9; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 4px;">aryan99@culkomail.in</code></div>
+              <div>Password: <code style="color: #f1f5f9; background: rgba(0,0,0,0.3); padding: 1px 5px; border-radius: 4px;">Pass@12345</code></div>
+            </div>
+          </div>
+
           <div class="auth-card-footer">
             <p>New to CampusCare? <a href="/register" class="auth-switch-link">Create an Account</a></p>
             <div class="auth-admin-access-row">
@@ -232,7 +248,17 @@
         })
         .catch(err => console.warn('Could not load live login stats:', err));
 
-      // 2. Login Form Handler
+      // 2. Demo Credentials Auto-Fill
+      const fillDemoBtn = document.getElementById('fillDemoStudentBtn');
+      if (fillDemoBtn) {
+        fillDemoBtn.addEventListener('click', () => {
+          document.getElementById('email').value = 'aryan99@culkomail.in';
+          document.getElementById('password').value = 'Pass@12345';
+          showAlert('Demo student credentials filled! Click "Sign In" to proceed.', false);
+        });
+      }
+
+      // 3. Login Form Handler
       const loginForm = document.getElementById('studentLoginForm');
       const submitBtn = document.getElementById('authSubmitBtn');
       const alertBox = document.getElementById('authAlert');
@@ -244,7 +270,7 @@
         alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
         alertBox.style.color = isError ? '#f87171' : '#4ade80';
         alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
-        alertText.textContent = msg;
+        alertText.innerHTML = msg;
       }
 
       loginForm.addEventListener('submit', async (e) => {
@@ -293,7 +319,11 @@
               window.location.href = redirectUrl;
             }, 400);
           } else {
-            showAlert(json.error || 'Invalid email or password. Please check your credentials.');
+            let errorMsg = json.error || 'Invalid email or password. Please check your credentials.';
+            if (email.toLowerCase().includes('admin')) {
+              errorMsg += ' <br><a href="/admin-login" style="color: #38bdf8; text-decoration: underline; font-weight: 600; margin-top: 4px; display: inline-block;">Go to Admin Portal &rarr;</a>';
+            }
+            showAlert(errorMsg);
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span class="btn-auth-text">Sign In</span> <span class="btn-auth-arrow">→</span>';
           }

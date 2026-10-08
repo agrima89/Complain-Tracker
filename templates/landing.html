@@ -142,19 +142,16 @@
                 <span>Total Complaints</span> <strong>{{ stats.total_complaints if stats else 0 }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                <span>Open Complaints</span> <strong>{{ stats.open_complaints if stats else 0 }}</strong>
+                <span>Pending Review</span> <strong>{{ stats.pending_review if stats else 0 }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
                 <span>In Progress</span> <strong>{{ stats.in_progress if stats else 0 }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                <span>Awaiting Confirmation</span> <strong>{{ stats.awaiting if stats else 0 }}</strong>
-            </div>
-            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                <span>Regenerated</span> <strong>{{ stats.regenerated if stats else 0 }}</strong>
+                <span>Resolved</span> <strong style="color: #4ade80;">{{ stats.resolved_complaints if stats else 0 }}</strong>
             </div>
             <div style="display: flex; justify-content: space-between;">
-                <span>Final Resolved</span> <strong style="color: #4ade80;">{{ stats.resolved_complaints if stats else 0 }}</strong>
+                <span>Avg Resolution Time</span> <strong style="color: #38bdf8;">{{ stats.average_resolution_time if stats else 'N/A' }}</strong>
             </div>
           </div>
         </div>

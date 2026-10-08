@@ -23,7 +23,7 @@ VALID_CATEGORIES = [
     "Wi-Fi/Internet", "Library", "Infrastructure", "Transport Complaint", "Other"
 ]
 VALID_PRIORITIES = ["Low", "Medium", "High"]
-VALID_STATUSES = ["NEW", "FORWARDED", "IN_PROGRESS", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION", "REOPENED", "FINAL_RESOLVED"]
+VALID_STATUSES = ["NEW", "PENDING REVIEW", "ASSIGNED", "IN PROGRESS", "RESOLVED", "REJECTED"]
 VALID_BLOCKS = [
     "Hostel", "Academic Block", "Campus", "Library", "Sports",
     "Block A", "Block B", "Block C", "Block D", "Block E", "Block F", "Other"
@@ -38,6 +38,36 @@ def allowed_file(filename):
         return False
     ext = os.path.splitext(filename)[1].lower()
     return ext in ALLOWED_EXTENSIONS
+
+
+def parse_flexible_dt(val):
+    """Safely parse various datetime string formats into a datetime object."""
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        return val
+    val_str = str(val).strip()
+    for fmt in (
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d",
+        "%d %b %Y",
+    ):
+        try:
+            return datetime.strptime(val_str, fmt)
+        except (ValueError, TypeError):
+            pass
+    # Prefix fallback
+    try:
+        if len(val_str) >= 19:
+            return datetime.strptime(val_str[:19].replace("T", " "), "%Y-%m-%d %H:%M:%S")
+        elif len(val_str) >= 10:
+            return datetime.strptime(val_str[:10], "%Y-%m-%d")
+    except (ValueError, TypeError):
+        pass
+    return None
 
 
 def get_db_connection():
@@ -936,191 +966,244 @@ def register_new_student(name, email, password):
         return False, f"Database error: {str(e)}"
 
 
+
+def calculate_resolution_metrics(department=None):
+    """
+    Calculates average resolution time and rate from actual database records.
+    Returns:
+        avg_time_display: e.g. "4h 15m", "1.5d", or "N/A"
+        avg_hours: float or None
+        resolution_rate: float
+        resolution_rate_display: str
+    """
+    conn = get_db_connection()
+    where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    params = []
+    if department:
+        where += " AND department = ?"
+        params.append(department)
+
+    total = conn.execute(f"SELECT COUNT(*) FROM complaints {where}", params).fetchone()[0]
+    resolved_rows = conn.execute(f"""
+        SELECT complaint_id, date, last_updated, resolved_at 
+        FROM complaints 
+        {where} AND status = 'RESOLVED'
+    """, params).fetchall()
+    
+    hist_rows = conn.execute("""
+        SELECT complaint_id, new_status, changed_at 
+        FROM complaint_status_history 
+        WHERE new_status IN ('NEW', 'RESOLVED')
+        ORDER BY history_id ASC
+    """).fetchall()
+    conn.close()
+
+    submission_times = {}
+    resolution_times = {}
+
+    for h in hist_rows:
+        cid = h["complaint_id"]
+        if h["new_status"] == "NEW" and cid not in submission_times:
+            submission_times[cid] = h["changed_at"]
+        elif h["new_status"] == "RESOLVED":
+            resolution_times[cid] = h["changed_at"]
+
+    durations = []
+    for r in resolved_rows:
+        cid = r["complaint_id"]
+        created_str = submission_times.get(cid) or r["date"]
+        resolved_str = r["resolved_at"] or resolution_times.get(cid) or r["last_updated"]
+
+        if created_str and resolved_str:
+            dt_start = parse_flexible_dt(created_str)
+            dt_end = parse_flexible_dt(resolved_str)
+            if dt_start and dt_end and dt_end >= dt_start:
+                sec = (dt_end - dt_start).total_seconds()
+                durations.append(sec)
+
+    resolved_count = len(resolved_rows)
+    if total > 0:
+        resolution_rate = round((resolved_count / total) * 100.0, 1)
+        resolution_rate_display = f"{resolution_rate:.1f}%"
+    else:
+        resolution_rate = 0.0
+        resolution_rate_display = "0.0%"
+
+    if durations:
+        avg_sec = sum(durations) / len(durations)
+        avg_hours = avg_sec / 3600.0
+        if avg_hours < 1:
+            mins = max(1, round(avg_sec / 60))
+            avg_time_display = f"{mins}m"
+        elif avg_hours < 24:
+            hrs = int(avg_hours)
+            mins = int((avg_sec % 3600) / 60)
+            avg_time_display = f"{hrs}h {mins}m" if mins > 0 else f"{hrs}h"
+        else:
+            days = round(avg_hours / 24.0, 1)
+            avg_time_display = f"{days}d"
+    else:
+        avg_hours = None
+        avg_time_display = "N/A"
+
+    return {
+        "avg_time_display": avg_time_display,
+        "avg_hours": avg_hours,
+        "resolution_rate": resolution_rate,
+        "resolution_rate_display": resolution_rate_display,
+        "resolved_count": resolved_count,
+        "total_count": total
+    }
+
 def get_student_statistics(student_id):
     conn = get_db_connection()
     student_where = """
-        complaint_id IN (
+        (complaint_id IN (
             SELECT complaint_id FROM complaint_reporters WHERE student_id = ?
-            UNION
-            SELECT complaint_id FROM complaints WHERE student_id = ?
-        )
+        ) OR student_id = ?)
     """
-    total = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where}", (student_id, student_id)).fetchone()[0]
-    pending = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE ({student_where}) AND status IN ('NEW', 'FORWARDED')", (student_id, student_id)).fetchone()[0]
-    in_progress = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE ({student_where}) AND status IN ('IN_PROGRESS', 'REOPENED')", (student_id, student_id)).fetchone()[0]
-    awaiting = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE ({student_where}) AND status IN ('RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION')", (student_id, student_id)).fetchone()[0]
-    regenerated = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE ({student_where}) AND status = 'REOPENED'", (student_id, student_id)).fetchone()[0]
-    resolved = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE ({student_where}) AND status = 'FINAL_RESOLVED'", (student_id, student_id)).fetchone()[0]
+    params = (student_id, student_id)
+    total = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1", params).fetchone()[0]
+    new_count = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'NEW'", params).fetchone()[0]
+    pending_review = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'PENDING REVIEW'", params).fetchone()[0]
+    assigned = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'ASSIGNED'", params).fetchone()[0]
+    in_progress = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'IN PROGRESS'", params).fetchone()[0]
+    resolved = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'RESOLVED'", params).fetchone()[0]
+    rejected = conn.execute(f"SELECT COUNT(*) FROM complaints WHERE {student_where} AND is_primary = 1 AND status = 'REJECTED'", params).fetchone()[0]
     conn.close()
+
     return {
         "total": total,
-        "pending": pending,
+        "new": new_count,
+        "pending_review": pending_review,
+        "pending": pending_review + new_count,
+        "assigned": assigned,
         "in_progress": in_progress,
-        "awaiting": awaiting,
-        "regenerated": regenerated,
-        "resolved": resolved
+        "resolved": resolved,
+        "rejected": rejected
     }
 
 
 def get_admin_statistics(department=None):
     conn = get_db_connection()
     where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    params = []
     if department:
         where += " AND department = ?"
-        params = (department,)
-    else:
-        params = ()
+        params.append(department)
 
-    # 1. Unique Grievances (Total Master Complaints)
     total = conn.execute(f"SELECT COUNT(*) FROM complaints {where}", params).fetchone()[0]
+    new_count = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'NEW'", params).fetchone()[0]
+    pending_review = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'PENDING REVIEW'", params).fetchone()[0]
+    assigned = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'ASSIGNED'", params).fetchone()[0]
+    in_progress = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'IN PROGRESS'", params).fetchone()[0]
+    resolved = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'RESOLVED'", params).fetchone()[0]
+    rejected = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'REJECTED'", params).fetchone()[0]
 
-    # 2 & 3. Student Reports and Students Affected
-    # Only count reporters that belong to a valid active master complaint
-    # (to prevent double counting if an old/merged record still has reporters)
-    if department:
-        total_reports = conn.execute(f"""
-            SELECT COUNT(*) FROM complaint_reporters cr
-            JOIN complaints c ON cr.complaint_id = c.complaint_id
-            {where}
-        """, params).fetchone()[0]
-        students_affected = conn.execute(f"""
-            SELECT COUNT(DISTINCT cr.student_id) FROM complaint_reporters cr
-            JOIN complaints c ON cr.complaint_id = c.complaint_id
-            {where}
-        """, params).fetchone()[0]
-    else:
-        total_reports = conn.execute(f"""
-            SELECT COUNT(*) FROM complaint_reporters cr
-            JOIN complaints c ON cr.complaint_id = c.complaint_id
-            {where}
-        """, params).fetchone()[0]
-        students_affected = conn.execute(f"""
-            SELECT COUNT(DISTINCT cr.student_id) FROM complaint_reporters cr
-            JOIN complaints c ON cr.complaint_id = c.complaint_id
-            {where}
-        """, params).fetchone()[0]
-
-    # Ensure reports/affected are at least equal to master complaints count
-    total_reports = max(total_reports, total)
-    students_affected = max(students_affected, total)
-    
-    # 4. Pending Action
-    # The application uses NEW, FORWARDED, RESOLUTION_SUBMITTED, AWAITING_STUDENT_CONFIRMATION for Pending Action
-    # Let's count them according to the rules defined previously.
-    where_pending = f"{where} AND status IN ('NEW', 'FORWARDED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION')"
-    pending = conn.execute(f"SELECT COUNT(*) FROM complaints {where_pending}", params).fetchone()[0]
-    
-    where_in_progress = f"{where} AND status IN ('IN_PROGRESS', 'REOPENED')"
-    in_progress = conn.execute(f"SELECT COUNT(*) FROM complaints {where_in_progress}", params).fetchone()[0]
-    
-    where_resolved = f"{where} AND status = 'FINAL_RESOLVED'"
-    resolved = conn.execute(f"SELECT COUNT(*) FROM complaints {where_resolved}", params).fetchone()[0]
-
-    # Count escalated items (High Priority + status != 'FINAL_RESOLVED' older than 48 hours)
-    from datetime import datetime, timedelta
+    # Count escalated items (High Priority + not RESOLVED/REJECTED older than 48 hours)
     threshold_dt = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d %H:%M:%S")
     threshold_date = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d")
 
-    where_escalated = f"{where} AND priority = 'High' AND status != 'FINAL_RESOLVED' AND (date < ? OR (last_updated != '' AND last_updated < ?))"
-    params_escalated = params + (threshold_date, threshold_dt)
+    where_escalated = f"{where} AND priority = 'High' AND status NOT IN ('RESOLVED', 'REJECTED') AND (date < ? OR (last_updated != '' AND last_updated < ?))"
+    params_escalated = list(params) + [threshold_date, threshold_dt]
     escalated = conn.execute(f"SELECT COUNT(*) FROM complaints {where_escalated}", params_escalated).fetchone()[0]
 
+    # Total reports and students affected
+    total_reports = conn.execute(f"""
+        SELECT COUNT(*) FROM complaint_reporters cr
+        JOIN complaints c ON cr.complaint_id = c.complaint_id
+        {where}
+    """, params).fetchone()[0]
+    students_affected = conn.execute(f"""
+        SELECT COUNT(DISTINCT cr.student_id) FROM complaint_reporters cr
+        JOIN complaints c ON cr.complaint_id = c.complaint_id
+        {where}
+    """, params).fetchone()[0]
     conn.close()
+
+    total_reports = max(total_reports, total)
+    students_affected = max(students_affected, total)
+
+    res_metrics = calculate_resolution_metrics(department)
+
     return {
         "total": total,
         "unique_complaints": total,
-        "total_reports": total_reports,
-        "students_affected": students_affected,
-        "pending": pending,
-        "new": pending,
+        "new": new_count,
+        "pending_review": pending_review,
+        "pending": pending_review + new_count,
+        "assigned": assigned,
         "in_progress": in_progress,
         "resolved": resolved,
-        "final_resolved": resolved,
-        "escalated": escalated
+        "rejected": rejected,
+        "escalated": escalated,
+        "total_reports": total_reports,
+        "students_affected": students_affected,
+        "average_resolution_time": res_metrics["avg_time_display"],
+        "avg_resolution_days": res_metrics["avg_time_display"],
+        "resolution_rate": res_metrics["resolution_rate"],
+        "resolution_rate_display": res_metrics["resolution_rate_display"]
     }
+
 
 def get_transport_statistics():
     """Aggregates real-time statistics for transport complaints directly from the database."""
     conn = get_db_connection()
-    
     total = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint'").fetchone()[0]
-    pending = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status IN ('NEW', 'FORWARDED')").fetchone()[0]
-    in_progress = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status IN ('IN_PROGRESS', 'REOPENED')").fetchone()[0]
-    resolved = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status IN ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED')").fetchone()[0]
+    pending = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status IN ('NEW', 'PENDING REVIEW', 'ASSIGNED')").fetchone()[0]
+    in_progress = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status = 'IN PROGRESS'").fetchone()[0]
+    resolved = conn.execute("SELECT COUNT(*) FROM complaints WHERE category = 'Transport Complaint' AND status = 'RESOLVED'").fetchone()[0]
     
-    routes_rows = conn.execute("SELECT route, COUNT(*) as count FROM complaints WHERE category = 'Transport Complaint' AND route != '' GROUP BY route ORDER BY count DESC").fetchall()
-    bus_rows = conn.execute("SELECT bus_number, COUNT(*) as count FROM complaints WHERE category = 'Transport Complaint' AND bus_number != '' GROUP BY bus_number ORDER BY count DESC").fetchall()
-    types_rows = conn.execute("SELECT transport_complaint_type, COUNT(*) as count FROM complaints WHERE category = 'Transport Complaint' AND transport_complaint_type != '' GROUP BY transport_complaint_type ORDER BY count DESC").fetchall()
+    rows_by_type = conn.execute("SELECT transport_complaint_type, COUNT(*) as c FROM complaints WHERE category = 'Transport Complaint' GROUP BY transport_complaint_type").fetchall()
+    by_type = {r['transport_complaint_type'] or 'General': r['c'] for r in rows_by_type}
     
-    recent_rows = conn.execute("""
-        SELECT complaint_id, ticket_id, status, priority, bus_number, route, transport_complaint_type, date 
-        FROM complaints 
-        WHERE category = 'Transport Complaint' 
-        ORDER BY complaint_id DESC LIMIT 5
-    """).fetchall()
-
+    rows_by_route = conn.execute("SELECT route, COUNT(*) as c FROM complaints WHERE category = 'Transport Complaint' GROUP BY route").fetchall()
+    by_route = {r['route'] or 'Unassigned': r['c'] for r in rows_by_route}
     conn.close()
-
+    
     return {
         "total": total,
+        "active": pending + in_progress,
         "pending": pending,
         "in_progress": in_progress,
         "resolved": resolved,
-        "by_route": [dict(r) for r in routes_rows],
-        "by_bus": [dict(r) for r in bus_rows],
-        "by_type": [dict(r) for r in types_rows],
-        "recent": [dict(r) for r in recent_rows]
+        "by_type": by_type,
+        "by_route": by_route
     }
 
 
-def parse_flexible_dt(val):
-    """Parses various datetime and date string formats safely."""
-    if not val:
-        return None
-    val = str(val).strip()
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d", "%d-%m-%Y %H:%M:%S", "%d/%m/%Y"):
-        try:
-            return datetime.strptime(val, fmt)
-        except (ValueError, TypeError):
-            continue
-    return None
-
-
 def get_public_statistics():
+    res_metrics = calculate_resolution_metrics()
     conn = get_db_connection()
-    total = conn.execute("SELECT COUNT(*) FROM complaints").fetchone()[0]
-    resolved = conn.execute("SELECT COUNT(*) FROM complaints WHERE status = 'FINAL_RESOLVED'").fetchone()[0]
+    total = conn.execute("SELECT COUNT(*) FROM complaints WHERE is_primary = 1").fetchone()[0]
+    resolved = conn.execute("SELECT COUNT(*) FROM complaints WHERE is_primary = 1 AND status = 'RESOLVED'").fetchone()[0]
+    in_progress = conn.execute("SELECT COUNT(*) FROM complaints WHERE is_primary = 1 AND status = 'IN PROGRESS'").fetchone()[0]
+    pending_review = conn.execute("SELECT COUNT(*) FROM complaints WHERE is_primary = 1 AND status IN ('NEW', 'PENDING REVIEW', 'ASSIGNED')").fetchone()[0]
     students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    in_progress = conn.execute("SELECT COUNT(*) FROM complaints WHERE status IN ('IN_PROGRESS', 'REOPENED')").fetchone()[0]
-    awaiting = conn.execute("SELECT COUNT(*) FROM complaints WHERE status IN ('RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION')").fetchone()[0]
-    open_comp = conn.execute("SELECT COUNT(*) FROM complaints WHERE status IN ('NEW', 'FORWARDED', 'REOPENED')").fetchone()[0]
-    regenerated = conn.execute("SELECT COUNT(*) FROM complaints WHERE status = 'REOPENED'").fetchone()[0]
-    
     total_reports = conn.execute("SELECT COUNT(*) FROM complaint_reporters").fetchone()[0]
     students_affected = conn.execute("SELECT COUNT(DISTINCT student_id) FROM complaint_reporters").fetchone()[0]
     total_reports = max(total_reports, total)
     students_affected = max(students_affected, total)
 
-    # Department activity
-    dept_rows = conn.execute("SELECT department, COUNT(*) as c FROM complaints GROUP BY department").fetchall()
-    department_activity = {row['department'] or 'Unassigned': row['c'] for row in dept_rows}
-
+    dept_rows = conn.execute("SELECT department, COUNT(*) as c FROM complaints WHERE is_primary = 1 GROUP BY department").fetchall()
+    department_activity = {row['department'] or 'General': row['c'] for row in dept_rows}
     conn.close()
-
-    resolution_rate = int((resolved / total * 100)) if total > 0 else 0
 
     return {
         "total_complaints": total,
         "unique_complaints": total,
+        "resolved_complaints": resolved,
+        "in_progress": in_progress,
+        "pending_review": pending_review,
+        "open_complaints": pending_review + in_progress,
+        "active_students": students,
         "total_reports": total_reports,
         "students_affected": students_affected,
-        "resolved_complaints": resolved,
-        "active_students": students,
-        "resolution_rate": resolution_rate,
-        "in_progress": in_progress,
-        "awaiting": awaiting,
-        "open_complaints": open_comp,
-        "regenerated": regenerated,
+        "resolution_rate": res_metrics["resolution_rate"],
+        "resolution_rate_display": res_metrics["resolution_rate_display"],
+        "average_response_hours": res_metrics["avg_hours"],
+        "average_response_display": res_metrics["avg_time_display"],
+        "average_resolution_time": res_metrics["avg_time_display"],
         "department_activity": department_activity
     }
 
@@ -1243,7 +1326,7 @@ def submit_or_attach_complaint(
     master = cursor.execute("""
         SELECT * FROM complaints 
         WHERE complaint_fingerprint = ? 
-          AND status != 'FINAL_RESOLVED' 
+          AND status NOT IN ('RESOLVED', 'REJECTED') 
         ORDER BY complaint_id DESC LIMIT 1
     """, (fingerprint,)).fetchone()
     
@@ -1385,9 +1468,7 @@ def submit_or_attach_complaint(
     """, (complaint_id, student_id, student_email, now_timestamp))
     
     cursor.execute("""
-        INSERT INTO complaint_status_history
-        (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at)
-        VALUES (?, NULL, 'Student (Submission)', NULL, 'NEW', 'Grievance ticket created and lodged for administration review.', ?)
+        INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, changed_by, old_status, previous_status, new_status, remarks, comment, changed_at) VALUES (?, NULL, \'Student (Submission)\', \'Student (Submission)\', NULL, NULL, \'NEW\', \'Complaint submitted.\', \'Complaint submitted.\', ?)
     """, (complaint_id, now_timestamp))
     
     conn.commit()
@@ -1456,20 +1537,28 @@ def add_status_history(complaint_id, admin_id, admin_name, old_status, new_statu
     cursor.execute("BEGIN EXCLUSIVE")
     cursor.execute("""
         INSERT INTO complaint_status_history
-        (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (complaint_id, admin_id, admin_name or "Administrator", old_status, new_status, remarks or "", now_timestamp))
+        (complaint_id, admin_id, admin_name, changed_by, old_status, previous_status, new_status, remarks, comment, changed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        complaint_id,
+        admin_id,
+        admin_name or "Administrator",
+        admin_name or "Administrator",
+        old_status,
+        old_status,
+        new_status,
+        remarks or "",
+        remarks or "",
+        now_timestamp
+    ))
     
-    # Update last_updated and first_responded_at if administrative action
-    if admin_name != "Student (Submission)" or admin_id is not None or new_status in ("IN_PROGRESS", "FINAL_RESOLVED", "RESOLUTION_SUBMITTED"):
-        cursor.execute("""
-            UPDATE complaints
-            SET last_updated = ?,
-                first_responded_at = CASE WHEN (first_responded_at = '' OR first_responded_at IS NULL) THEN ? ELSE first_responded_at END
-            WHERE complaint_id = ?
-        """, (now_timestamp, now_timestamp, complaint_id))
-    else:
-        cursor.execute("UPDATE complaints SET last_updated = ? WHERE complaint_id = ?", (now_timestamp, complaint_id))
+    cursor.execute("""
+        UPDATE complaints
+        SET last_updated = ?,
+            first_responded_at = CASE WHEN (first_responded_at = '' OR first_responded_at IS NULL) THEN ? ELSE first_responded_at END
+        WHERE complaint_id = ?
+    """, (now_timestamp, now_timestamp, complaint_id))
+    
     conn.commit()
     conn.close()
 
@@ -1480,13 +1569,16 @@ def get_complaint_history(complaint_id):
     history = conn.execute("""
         SELECT
             history_id,
+            history_id AS id,
             complaint_id,
             admin_id,
             admin_name,
-            admin_name AS changed_by,
-            old_status,
+            COALESCE(NULLIF(changed_by, ''), admin_name, 'System') AS changed_by,
+            COALESCE(previous_status, old_status) AS previous_status,
+            COALESCE(old_status, previous_status) AS old_status,
             new_status,
-            remarks,
+            COALESCE(NULLIF(comment, ''), remarks, '') AS comment,
+            COALESCE(NULLIF(remarks, ''), comment, '') AS remarks,
             changed_at,
             changed_at AS timestamp
         FROM complaint_status_history
@@ -1641,12 +1733,17 @@ def get_student_complaints_paginated(student_id, status_filter="All", search_que
 def get_all_complaints_admin_paginated(
     status_filter="All",
     priority_filter="All",
+    category_filter="All",
+    department_filter="All",
+    location_filter="All",
     search_text="",
+    sort_order="newest",
     escalated_only=False,
     page=1,
     per_page=10,
     department=None
 ):
+    """Returns paginated complaints for admin portal with complete multi-criteria filters."""
     conn = get_db_connection()
     base_where = "WHERE complaints.is_primary = 1"
     params = []
@@ -1654,6 +1751,9 @@ def get_all_complaints_admin_paginated(
     if department:
         base_where += " AND complaints.department = ?"
         params.append(department)
+    elif department_filter and department_filter != "All":
+        base_where += " AND complaints.department = ?"
+        params.append(department_filter)
 
     if status_filter and status_filter != "All":
         base_where += " AND complaints.status = ?"
@@ -1662,6 +1762,14 @@ def get_all_complaints_admin_paginated(
     if priority_filter and priority_filter != "All":
         base_where += " AND complaints.priority = ?"
         params.append(priority_filter)
+
+    if category_filter and category_filter != "All":
+        base_where += " AND complaints.category = ?"
+        params.append(category_filter)
+
+    if location_filter and location_filter != "All":
+        base_where += " AND (complaints.block = ? OR complaints.location LIKE ?)"
+        params.extend([location_filter, f"%{location_filter}%"])
 
     if search_text and search_text.strip():
         s = f"%{search_text.strip()}%"
@@ -1684,7 +1792,7 @@ def get_all_complaints_admin_paginated(
     if escalated_only:
         threshold_date = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d")
         threshold_dt = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d %H:%M:%S")
-        base_where += " AND complaints.priority = 'High' AND complaints.status != 'FINAL_RESOLVED'"
+        base_where += " AND complaints.priority = 'High' AND complaints.status NOT IN ('RESOLVED', 'REJECTED')"
         base_where += " AND (complaints.date < ? OR (complaints.last_updated != '' AND complaints.last_updated < ?))"
         params.extend([threshold_date, threshold_dt])
 
@@ -1701,6 +1809,8 @@ def get_all_complaints_admin_paginated(
     total_pages = max(1, (total_count + per_page - 1) // per_page)
     offset = (page - 1) * per_page
 
+    order_clause = "ORDER BY complaints.complaint_id ASC" if sort_order == "oldest" else "ORDER BY complaints.complaint_id DESC"
+
     query_sql = f"""
         SELECT
             complaints.*,
@@ -1709,7 +1819,7 @@ def get_all_complaints_admin_paginated(
         FROM complaints
         JOIN students ON complaints.student_id = students.student_id
         {base_where}
-        ORDER BY complaints.complaint_id DESC
+        {order_clause}
         LIMIT ? OFFSET ?
     """
     query_params = list(params) + [per_page, offset]
@@ -1719,13 +1829,8 @@ def get_all_complaints_admin_paginated(
     items = []
     for r in complaints_raw:
         c = dict(r)
-        related = get_related_complaints(c['complaint_id'])
-        if related:
-            c['affected_student_count'] = related['affected_student_count']
-            c['related_complaints_data'] = related
-        else:
-            c['affected_student_count'] = 1
-            c['related_complaints_data'] = None
+        c['evidence_url'] = c.get('photo_path', '')
+        c['evidence_file'] = c.get('photo_path', '')
         items.append(c)
 
     return {
@@ -1871,76 +1976,115 @@ def get_complaint_by_id(complaint_id):
     return c
 
 
-def update_complaint_status(complaint_id, new_status, admin_id=None, admin_name="Administrator", remarks=""):
+def update_complaint_status(
+    complaint_id,
+    new_status,
+    admin_id=None,
+    admin_name="Administrator",
+    remarks="",
+    department=None,
+    assigned_authority=None
+):
     """
     Updates a complaint's status, updates last_updated, and creates a history audit trail entry.
+    Handles department assignment, authority assignment, and resolution timestamps.
     """
-    if new_status not in VALID_STATUSES:
-        return False, "Invalid status value."
+    if not new_status:
+        return False, "Status cannot be empty."
+
+    norm_status = new_status.strip().upper()
+    # Normalize potential alias values
+    status_map = {
+        "PENDING": "PENDING REVIEW",
+        "UNDER REVIEW": "PENDING REVIEW",
+        "IN_PROGRESS": "IN PROGRESS",
+        "RESOLVED_BY_DEPARTMENT": "RESOLVED",
+        "FINAL_RESOLVED": "RESOLVED"
+    }
+    if norm_status in status_map:
+        norm_status = status_map[norm_status]
+
+    if norm_status not in VALID_STATUSES:
+        return False, f"Invalid status '{new_status}'. Allowed: {', '.join(VALID_STATUSES)}"
 
     conn = get_db_connection()
-    existing = conn.execute("SELECT status, ticket_id FROM complaints WHERE complaint_id = ?", (complaint_id,)).fetchone()
+    cursor = conn.cursor()
+    existing = cursor.execute("SELECT * FROM complaints WHERE complaint_id = ?", (complaint_id,)).fetchone()
     if not existing:
         conn.close()
         return False, "Complaint record not found."
 
     old_status = existing["status"]
-    if old_status == new_status:
-        conn.close()
-        return True, f"Status is already {new_status}."
-
     now_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE complaints
-        SET status = ?,
-            last_updated = ?,
-            first_responded_at = CASE WHEN (first_responded_at = '' OR first_responded_at IS NULL) THEN ? ELSE first_responded_at END
-        WHERE complaint_id = ?
-    """, (new_status, now_timestamp, now_timestamp, complaint_id))
+
+    # Build update fields
+    update_fields = ["status = ?", "last_updated = ?"]
+    update_params = [norm_status, now_timestamp]
+
+    # Set first_responded_at
+    update_fields.append("first_responded_at = CASE WHEN (first_responded_at = '' OR first_responded_at IS NULL) THEN ? ELSE first_responded_at END")
+    update_params.append(now_timestamp)
+
+    if department:
+        update_fields.append("department = ?")
+        update_params.append(department)
+
+    if assigned_authority is not None:
+        update_fields.append("assigned_authority = ?")
+        update_params.append(assigned_authority)
+
+    if norm_status == "RESOLVED":
+        update_fields.append("resolved_at = ?")
+        update_params.append(now_timestamp)
+        res_note = remarks or existing["resolution_remarks"] or "Issue resolved by administration."
+        update_fields.append("resolution_remarks = ?")
+        update_params.append(res_note)
+
+    update_params.append(complaint_id)
+    cursor.execute(f"UPDATE complaints SET {', '.join(update_fields)} WHERE complaint_id = ?", update_params)
 
     # Record status change audit history
+    action_comment = remarks or f"Status changed from '{old_status}' to '{norm_status}'"
     cursor.execute("""
         INSERT INTO complaint_status_history
-        (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        (complaint_id, admin_id, admin_name, changed_by, old_status, previous_status, new_status, remarks, comment, changed_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         complaint_id,
         admin_id,
         admin_name or "Administrator",
+        admin_name or "Administrator",
         old_status,
-        new_status,
-        remarks or f"Status transitioned from '{old_status}' to '{new_status}'",
+        old_status,
+        norm_status,
+        action_comment,
+        action_comment,
         now_timestamp
     ))
 
-    # Synchronize active_complaint_slots: release if resolved/closed, acquire if reopened/active
-    if new_status in ("FINAL_RESOLVED", "RESOLUTION_SUBMITTED", "RESOLVED"):
+    # Synchronize active slots
+    if norm_status in ("RESOLVED", "REJECTED"):
         cursor.execute("DELETE FROM active_complaint_slots WHERE complaint_id = ?", (complaint_id,))
-    elif new_status in ("REOPENED", "IN_PROGRESS", "NEW", "PENDING", "FORWARDED"):
-        comp_row = cursor.execute("SELECT student_id, complaint_fingerprint FROM complaints WHERE complaint_id = ?", (complaint_id,)).fetchone()
-        if comp_row:
-            s_key = f"{comp_row['student_id']}::{comp_row['complaint_fingerprint']}"
-            cursor.execute("INSERT OR IGNORE INTO active_complaint_slots (slot_key, complaint_id, student_id, created_at) VALUES (?, ?, ?, ?)", (s_key, complaint_id, comp_row["student_id"], now_timestamp))
+    else:
+        s_key = f"{existing['student_id']}::{existing['complaint_fingerprint']}"
+        cursor.execute("INSERT OR IGNORE INTO active_complaint_slots (slot_key, complaint_id, student_id, created_at) VALUES (?, ?, ?, ?)", (s_key, complaint_id, existing["student_id"], now_timestamp))
 
     conn.commit()
     conn.close()
-    return True, f"Complaint status updated to {new_status}." 
+    return True, f"Complaint status updated to {norm_status}."
 
 
 def get_analytics_data(department=None):
     """
     Aggregates statistical insights for the admin dashboard:
     Category breakdown, Priority breakdown, Status distribution, and 6-Month trends.
-    Optionally scoped to a specific department.
     """
     conn = get_db_connection()
     where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    params = []
     if department:
         where += " AND department = ?"
-        params = (department,)
-    else:
-        params = ()
+        params.append(department)
 
     # 1. By Category
     cat_rows = conn.execute(f"SELECT category, COUNT(*) as count FROM complaints {where} GROUP BY category ORDER BY count DESC", params).fetchall()
@@ -1956,16 +2100,30 @@ def get_analytics_data(department=None):
 
     # 3. By Status
     status_rows = conn.execute(f"SELECT status, COUNT(*) as count FROM complaints {where} GROUP BY status", params).fetchall()
-    by_status = {"Pending": 0, "In Progress": 0, "Resolved": 0}
+    by_status = {
+        "New": 0,
+        "Pending Review": 0,
+        "Assigned": 0,
+        "In Progress": 0,
+        "Resolved": 0,
+        "Rejected": 0
+    }
     for row in status_rows:
         s = row["status"]
-        if s in ("NEW", "FORWARDED", "RESOLUTION_SUBMITTED", "AWAITING_STUDENT_CONFIRMATION"):
-            by_status["Pending"] += row["count"]
-        elif s in ("IN_PROGRESS", "REOPENED"):
+        if s == "NEW":
+            by_status["New"] += row["count"]
+        elif s == "PENDING REVIEW":
+            by_status["Pending Review"] += row["count"]
+        elif s == "ASSIGNED":
+            by_status["Assigned"] += row["count"]
+        elif s == "IN PROGRESS":
             by_status["In Progress"] += row["count"]
-        elif s == "FINAL_RESOLVED":
+        elif s == "RESOLVED":
             by_status["Resolved"] += row["count"]
-    statuses_list = [{"status": s, "count": by_status[s]} for s in ["Pending", "In Progress", "Resolved"]]
+        elif s == "REJECTED":
+            by_status["Rejected"] += row["count"]
+
+    statuses_list = [{"status": k, "count": v} for k, v in by_status.items()]
 
     # 4. Monthly Trend (Past 6 Months)
     monthly_trend = []
@@ -1975,7 +2133,7 @@ def get_analytics_data(department=None):
         m_date = now - timedelta(days=i * 30)
         m_str = m_date.strftime("%Y-%m")
         m_label = m_date.strftime("%b %Y")
-        m_count = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND date LIKE ?", params + (f"{m_str}%",)).fetchone()[0]
+        m_count = conn.execute(f"SELECT COUNT(*) FROM complaints {where} AND date LIKE ?", params + [f"{m_str}%"]).fetchone()[0]
         monthly_trend.append({"month": m_label, "count": m_count})
 
     total = sum(by_status.values())
@@ -1996,7 +2154,6 @@ def get_analytics_data(department=None):
     }
 
 
-# Backwards compatibility alias
 def get_student_complaints(student_id, status_filter="All", search_query=None):
     res = get_student_complaints_paginated(student_id, status_filter, search_query, page=1, per_page=100)
     return res["items"]
@@ -2394,128 +2551,79 @@ def get_campus_heatmap_data(department=None):
 
 
 def get_campus_pulse_data(department=None):
-    """
-    Computes real-time Campus Pulse executive telemetry:
-    - Critical unresolved issues
-    - Top problem area / hotspot
-    - Resolution rate percentage
-    - Active complaints volume
-    - 7-day complaint activity trend velocity
-    Optionally scoped to a specific department.
-    """
+    """Aggregates real-time campus operational telemetry from actual database records."""
     conn = get_db_connection()
-    where = "WHERE department = ?" if department else "WHERE 1=1"
-    params = (department,) if department else ()
-    
-    # 1. Total, Pending, Progress, Resolved
-    stats = get_admin_statistics(department)
-    total = stats["total"]
-    pending = stats["pending"]
-    in_progress = stats["in_progress"]
-    resolved = stats["resolved"]
-    active = pending + in_progress
-    
-    # 2. Critical Unresolved Issues (High Priority + Pending/In Progress)
     cur = conn.cursor()
+
+    where = "WHERE (is_primary = 1 OR group_id IS NULL)"
+    params = []
+    if department:
+        where += " AND department = ?"
+        params.append(department)
+
+    total = cur.execute(f"SELECT COUNT(*) FROM complaints {where}", params).fetchone()[0]
+    active = cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND status NOT IN ('RESOLVED', 'REJECTED')", params).fetchone()[0]
+    pending = cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND status IN ('NEW', 'PENDING REVIEW')", params).fetchone()[0]
+    in_progress = cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND status IN ('ASSIGNED', 'IN PROGRESS')", params).fetchone()[0]
+    resolved = cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND status = 'RESOLVED'", params).fetchone()[0]
+
+    from datetime import datetime, timedelta
+    threshold_dt = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d %H:%M:%S")
+    threshold_date = (datetime.now() - timedelta(hours=48)).strftime("%Y-%m-%d")
+
     cur.execute(f"""
         SELECT COUNT(*) FROM complaints 
-        {where} AND priority = 'High' AND status IN ('NEW', 'FORWARDED', 'IN_PROGRESS', 'REOPENED')
-    """, params)
-    critical_issues = cur.fetchone()[0]
-
-    # 3. Top Problem Area (Location/Block with highest active unresolved complaints)
-    cur.execute(f"""
-        SELECT 
-            COALESCE(NULLIF(block, ''), NULLIF(location, ''), 'Campus') as loc_name,
-            COUNT(*) as active_cnt,
-            SUM(CASE WHEN priority = 'High' THEN 1 ELSE 0 END) as high_cnt
-        FROM complaints
-        {where} AND status IN ('NEW', 'FORWARDED', 'IN_PROGRESS', 'REOPENED')
-        GROUP BY loc_name
-        ORDER BY active_cnt DESC, high_cnt DESC
-        LIMIT 1
-    """, params)
-    top_area_row = cur.fetchone()
-    if top_area_row:
-        problem_area = {
-            "name": top_area_row["loc_name"],
-            "active_count": top_area_row["active_cnt"],
-            "high_priority_count": top_area_row["high_cnt"]
-        }
-        top_area_str = f"{problem_area['name']} ({problem_area['active_count']} complaints)"
-    else:
-        problem_area = {
-            "name": "None (All Clear)",
-            "active_count": 0,
-            "high_priority_count": 0
-        }
-        top_area_str = "All Zones Normal"
-
-    # 4. Resolution Rate %
-    resolution_rate = round((resolved / total * 100), 1) if total > 0 else 0.0
-
-    # 5. Overdue / Escalations (> 48h active)
-    cur.execute(f"""
-        SELECT COUNT(*) FROM complaints
-        {where} AND priority = 'High' AND status != 'FINAL_RESOLVED'
-    """, params)
+        {where} AND priority = 'High' AND status NOT IN ('RESOLVED', 'REJECTED')
+        AND (date < ? OR (last_updated != '' AND last_updated < ?))
+    """, params + [threshold_date, threshold_dt])
     escalated_count = cur.fetchone()[0]
+    critical_issues = escalated_count
 
-    # 6. Past 7-Day Velocity Trend
-    now = datetime.now()
-    daily_velocity = []
-    velocity_7d = []
-    for i in range(6, -1, -1):
-        day_dt = now - timedelta(days=i)
-        day_str = day_dt.strftime("%Y-%m-%d")
-        day_label = day_dt.strftime("%a (%d %b)") if i in [0, 6] else day_dt.strftime("%a")
-        
-        cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND date = ?", params + (day_str,))
-        filed_count = cur.fetchone()[0]
-        
-        daily_velocity.append({
-            "day": day_label,
-            "date": day_str,
-            "filed": filed_count
-        })
-        velocity_7d.append({
-            "day_name": day_label,
-            "day": day_label,
-            "date": day_str,
-            "count": filed_count,
-            "filed": filed_count
-        })
-
-    # Real DB calculation for avg resolution days
+    # Hotspot problem area
     cur.execute(f"""
-        SELECT AVG(julianday(last_updated) - julianday(date)) 
-        FROM complaints 
-        {where} AND status = 'FINAL_RESOLVED' AND last_updated != '' AND date != ''
+        SELECT location, COUNT(*) as c FROM complaints 
+        {where} AND status NOT IN ('RESOLVED', 'REJECTED')
+        GROUP BY location ORDER BY c DESC LIMIT 1
     """, params)
-    avg_turnaround = cur.fetchone()[0]
-    avg_resolution_days = round(float(avg_turnaround), 1) if avg_turnaround is not None else "N/A"
+    hotspot_row = cur.fetchone()
+    if hotspot_row and hotspot_row[0]:
+        top_area_str = hotspot_row[0]
+        problem_area = hotspot_row[0]
+    else:
+        top_area_str = "None (No Active Issues)"
+        problem_area = "None"
 
+    # Daily velocity
+    daily_velocity = []
+    now = datetime.now()
+    for i in range(6, -1, -1):
+        target_day = now - timedelta(days=i)
+        day_str = target_day.strftime("%Y-%m-%d")
+        day_label = target_day.strftime("%a")
+        filed_count = cur.execute(f"SELECT COUNT(*) FROM complaints {where} AND date = ?", params + [day_str]).fetchone()[0]
+        daily_velocity.append({"day": day_label, "date": day_str, "filed": filed_count})
+
+    res_metrics = calculate_resolution_metrics(department)
     conn.close()
 
     return {
         "critical_issues": critical_issues,
         "top_problem_area": top_area_str,
         "problem_area": problem_area,
-        "resolution_rate": resolution_rate,
+        "resolution_rate": res_metrics["resolution_rate"],
         "active_complaints": active,
         "pending_complaints": pending,
         "in_progress_complaints": in_progress,
         "resolved_complaints": resolved,
         "total_complaints": total,
         "escalated_count": escalated_count,
-        "avg_resolution_days": avg_resolution_days,
+        "avg_resolution_days": res_metrics["avg_time_display"],
         "status_breakdown": {
             "Pending": pending,
             "In Progress": in_progress,
             "Resolved": resolved
         },
-        "daily_velocity": daily_velocity,
-        "velocity_7d": velocity_7d
+        "daily_velocity": daily_velocity
     }
 
 
@@ -2534,55 +2642,56 @@ def log_soc_event(event_type, user_email, complaint_id, department, severity="LO
 
 
 def forward_complaint(complaint_id, department, admin_name, admin_id, reason):
+    """Assigns / forwards a complaint to a department and updates status to ASSIGNED."""
     conn = get_db_connection()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     conn.execute(
-        "UPDATE complaints SET department = ?, forwarded_to = ?, forwarded_by = ?, forwarded_at = ?, status = 'FORWARDED', last_updated = ? WHERE complaint_id = ?",
+        "UPDATE complaints SET department = ?, forwarded_to = ?, forwarded_by = ?, forwarded_at = ?, status = 'ASSIGNED', last_updated = ? WHERE complaint_id = ?",
         (department, department, admin_name, now, now, complaint_id)
     )
     conn.execute(
-        "INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at) VALUES (?, ?, ?, (SELECT status FROM complaints WHERE complaint_id = ?), 'FORWARDED', ?, ?)",
-        (complaint_id, admin_id, admin_name, complaint_id, f"Forwarded to {department}. Reason: {reason}", now)
+        "INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, changed_by, old_status, previous_status, new_status, remarks, comment, changed_at) VALUES (?, ?, ?, ?, (SELECT status FROM complaints WHERE complaint_id = ?), (SELECT status FROM complaints WHERE complaint_id = ?), 'ASSIGNED', ?, ?, ?)",
+        (complaint_id, admin_id, admin_name, admin_name, complaint_id, complaint_id, f"Assigned to {department}. Reason: {reason}", f"Assigned to {department}. Reason: {reason}", now)
     )
     conn.commit()
     conn.close()
-    return True, "Complaint forwarded successfully."
+    return True, f"Complaint assigned to {department} department."
+
 
 def mark_resolved_by_department(complaint_id, admin_name, admin_id, remarks):
+    """Marks a complaint as RESOLVED with resolution remarks and timestamp."""
     conn = get_db_connection()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    res_note = remarks or "Issue resolved by department."
     conn.execute(
-        "UPDATE complaints SET resolved_by_department = 1, department_resolution_time = ?, status = 'AWAITING_STUDENT_CONFIRMATION', last_updated = ? WHERE complaint_id = ?",
-        (now, now, complaint_id)
+        "UPDATE complaints SET resolved_by_department = 1, department_resolution_time = ?, resolved_at = ?, resolution_remarks = ?, status = 'RESOLVED', last_updated = ? WHERE complaint_id = ?",
+        (now, now, res_note, now, complaint_id)
     )
     conn.execute(
-        "INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at) VALUES (?, ?, ?, (SELECT status FROM complaints WHERE complaint_id = ?), 'AWAITING_STUDENT_CONFIRMATION', ?, ?)",
-        (complaint_id, admin_id, admin_name, complaint_id, f"Resolved by department. Remarks: {remarks}", now)
+        "INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, changed_by, old_status, previous_status, new_status, remarks, comment, changed_at) VALUES (?, ?, ?, ?, (SELECT status FROM complaints WHERE complaint_id = ?), (SELECT status FROM complaints WHERE complaint_id = ?), 'RESOLVED', ?, ?, ?)",
+        (complaint_id, admin_id, admin_name, admin_name, complaint_id, complaint_id, res_note, res_note, now)
     )
     conn.commit()
     conn.close()
-    return True, "Complaint marked as resolved by department."
+    return True, "Complaint marked as RESOLVED."
+
 
 def confirm_resolution(complaint_id, student_id):
     conn = get_db_connection()
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # Verify student
     comp = conn.execute("SELECT student_id FROM complaints WHERE complaint_id = ?", (complaint_id,)).fetchone()
     if not comp or comp['student_id'] != student_id:
         conn.close()
         return False, "Unauthorized"
 
     conn.execute(
-        "UPDATE complaints SET student_confirmation = 'confirmed', student_confirmation_time = ?, final_resolution_time = ?, status = 'FINAL_RESOLVED', last_updated = ? WHERE complaint_id = ?",
-        (now, now, now, complaint_id)
-    )
-    conn.execute(
-        "INSERT INTO complaint_status_history (complaint_id, admin_id, admin_name, old_status, new_status, remarks, changed_at) VALUES (?, NULL, 'Student', 'AWAITING_STUDENT_CONFIRMATION', 'FINAL_RESOLVED', 'Student confirmed resolution.', ?)",
-        (complaint_id, now)
+        "UPDATE complaints SET student_confirmation = 'confirmed', student_confirmation_time = ?, status = 'RESOLVED', last_updated = ? WHERE complaint_id = ?",
+        (now, now, complaint_id)
     )
     conn.commit()
     conn.close()
     return True, "Resolution confirmed."
+
 
 def regenerate_complaint(complaint_id, student_id, reason, new_photo):
     conn = get_db_connection()
@@ -2785,8 +2894,7 @@ def delete_student_complaint(complaint_id, student_id):
             # Safe to delete completely
             cursor.execute("DELETE FROM complaint_reporters WHERE complaint_id = ?", (complaint_id,))
             cursor.execute("DELETE FROM complaint_status_history WHERE complaint_id = ?", (complaint_id,))
-            
-            # Check if ticket_id exists before accessing
+            cursor.execute("DELETE FROM admin_notes WHERE complaint_id = ?", (complaint_id,))
             cursor.execute("DELETE FROM active_complaint_slots WHERE complaint_id = ?", (complaint_id,))
             
             photo_path = None
