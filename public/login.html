@@ -231,18 +231,7 @@
           }
         })
         .catch(err => console.warn('Could not load live login stats:', err));
-
-      // 2. Demo Credentials Auto-Fill
-      const fillDemoBtn = document.getElementById('fillDemoStudentBtn');
-      if (fillDemoBtn) {
-        fillDemoBtn.addEventListener('click', () => {
-          document.getElementById('email').value = 'aryan99@culkomail.in';
-          document.getElementById('password').value = 'Pass@12345';
-          showAlert('Demo student credentials filled! Click "Sign In" to proceed.', false);
-        });
-      }
-
-      // 3. Login Form Handler
+      // Login Form Handler
       const loginForm = document.getElementById('studentLoginForm');
       const submitBtn = document.getElementById('authSubmitBtn');
       const alertBox = document.getElementById('authAlert');
