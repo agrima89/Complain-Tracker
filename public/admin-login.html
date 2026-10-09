@@ -124,16 +124,6 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Demo Admin Auto-Fill
-      const fillAdminBtn = document.getElementById('fillDemoAdminBtn');
-      if (fillAdminBtn) {
-        fillAdminBtn.addEventListener('click', () => {
-          document.getElementById('username').value = 'admin';
-          document.getElementById('password').value = 'admin123';
-          showAlert('Demo admin credentials filled! Click "Access Admin Command Center" to sign in.', false);
-        });
-      }
-
       const adminForm = document.getElementById('adminLoginForm');
       const submitBtn = document.getElementById('adminSubmitBtn');
       const alertBox = document.getElementById('adminAlert');
