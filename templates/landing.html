@@ -478,14 +478,50 @@
      * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
      */
     function getTimeCategory(dateObj) {
-      const now = dateObj || new Date();
-      const hour = now.getHours(); // 0 - 23 in user's local timezone
+      if (typeof window.getCampusBackground === 'function' && window.getCampusBackground !== getTimeCategory) {
+        return window.getCampusBackground(dateObj);
+      }
 
-      if (hour >= 4 && hour < 10) {
+      if (typeof dateObj === 'number' && dateObj >= 0 && dateObj <= 24) {
+        const h = dateObj === 24 ? 0 : dateObj;
+        if (h >= 5 && h < 12) return 'morning';
+        if (h >= 12 && h < 17) return 'afternoon';
+        if (h >= 17 && h < 20) return 'evening';
+        return 'night';
+      }
+
+      let d;
+      if (dateObj instanceof Date) {
+        d = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+      } else if (typeof dateObj === 'number') {
+        d = new Date(dateObj);
+      } else if (typeof dateObj === 'string') {
+        d = new Date(dateObj);
+        if (isNaN(d.getTime())) d = new Date();
+      } else {
+        d = new Date();
+      }
+
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        hour: 'numeric',
+        hourCycle: 'h23'
+      });
+
+      let hour = 0;
+      const parts = formatter.formatToParts(d);
+      for (const part of parts) {
+        if (part.type === 'hour') {
+          hour = parseInt(part.value, 10);
+        }
+      }
+      if (hour === 24) hour = 0;
+
+      if (hour >= 5 && hour < 12) {
         return 'morning';
-      } else if (hour >= 10 && hour < 17) {
+      } else if (hour >= 12 && hour < 17) {
         return 'afternoon';
-      } else if (hour >= 17 && hour < 19) {
+      } else if (hour >= 17 && hour < 20) {
         return 'evening';
       } else {
         return 'night';

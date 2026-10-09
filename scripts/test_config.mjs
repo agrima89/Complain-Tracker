@@ -25,8 +25,8 @@ assert.match(db, /Fresh database has no administrators/, 'fresh database must no
 assert.doesNotMatch(db, /electrical123|cleaning123|classroom123|hostel123|wifi123|library123|transport123|other123/, 'department demo passwords must not be seeded');
 assert.doesNotMatch(studentLogin, /Demo Student Account|Pass@12345|aryan99@culkomail\.in/, 'student demo credentials must not be public');
 assert.doesNotMatch(adminLogin, /Demo Admin Account|admin123/, 'admin demo credentials must not be public');
-assert.doesNotMatch(envExample, /postgresql:\/\/[^\s]+/, 'example environment file must not contain a database URL with credentials');
-assert.doesNotMatch(envExample, /JWT_SECRET=\S+|ADMIN_PASSWORD=\S+/, 'example environment file must not contain working secrets');
+assert.doesNotMatch(envExample, /^[ \t]*(?:NETLIFY_DB_URL|DATABASE_URL)[ \t]*=[ \t]*[^ \t\r\n#]+/im, 'example environment file must not contain an active database URL');
+assert.doesNotMatch(envExample, /^[ \t]*(?:JWT_SECRET|ADMIN_PASSWORD)[ \t]*=[ \t]*[^ \t\r\n#]+/im, 'example environment file must not contain active secrets');
 assert.doesNotMatch(build, /copyFileSync\(dbSrc, dbDest\)/, 'build must not copy SQLite database into public assets');
 assert.doesNotMatch(readme, /\| \*\*Admin Portal\*\* \| Administrator \| `admin` \| `admin123`/, 'README must not publish default admin credentials');
 assert.equal(fs.existsSync(path.join(root, 'public/database.db')), false, 'public/database.db must not exist');

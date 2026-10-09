@@ -105,11 +105,6 @@ Visit: **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 
 For security, this repository does not document working demo passwords. Create administrator credentials through the supported setup flow and use unique passwords. Never deploy with default credentials or place passwords, JWT secrets, or database connection strings in source control. Configure production secrets in Netlify environment variables.
 
---- | :--- | :--- | :--- |
-| **Admin Portal** | Administrator | `admin` | `admin123` |
-| **Student Portal** | Student | `agrima89@gmail.com` | `1703` |
-| *New Student* | Student | *Click "Create Account"* | *User defined* |
-
 ---
 
 ## 🎓 Viva & Project Evaluation Highlights
