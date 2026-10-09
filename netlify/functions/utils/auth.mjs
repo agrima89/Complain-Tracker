@@ -7,7 +7,11 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { parse as parseCookie, serialize as serializeCookie } from 'cookie';
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'campuscare_secure_jwt_secret_key_2026_change_in_production';
+const configuredJwtSecret = process.env.JWT_SECRET || process.env.SESSION_SECRET;
+if (!configuredJwtSecret && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be configured in Netlify environment variables for production.');
+}
+const JWT_SECRET = configuredJwtSecret || crypto.randomBytes(32).toString('hex');
 export const SESSION_COOKIE_NAME = 'campuscare_session';
 
 export const CU_EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i;
@@ -111,6 +115,7 @@ export function createSessionCookie(token) {
   return serializeCookie(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 7 * 24 * 60 * 60 // 7 days
   });
@@ -120,6 +125,7 @@ export function createLogoutCookie() {
   return serializeCookie(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 0
   });

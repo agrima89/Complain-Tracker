@@ -1,0 +1,27 @@
+name: Campus Care CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "security/**"]
+
+jobs:
+  configuration-smoke-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run configuration and security smoke tests
+        run: npm test
+      - name: Build static deployment assets
+        run: npm run build
+      - name: Verify database is not in public output
+        run: test ! -e public/database.db

@@ -7,7 +7,7 @@
     "dev": "netlify dev",
     "build": "node scripts/build.js",
     "migrate:pg": "node scripts/migrate_sqlite_to_pg.js",
-    "test": "node test/test_endpoints.js"
+    "test": "node scripts/test_config.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "^8.1.0",

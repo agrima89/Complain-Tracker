@@ -47,14 +47,31 @@
     }
   };
 
+  const CAMPUS_TIMEZONE = 'Asia/Kolkata';
+
+  function getISTHour(dateObj) {
+    const d = dateObj || new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: CAMPUS_TIMEZONE,
+      hour: 'numeric',
+      hourCycle: 'h23'
+    });
+    let hour = 0;
+    for (const part of formatter.formatToParts(d)) {
+      if (part.type === 'hour') hour = parseInt(part.value, 10);
+    }
+    return hour === 24 ? 0 : hour;
+  }
+
   function detectPhase(hour) {
-    if (hour >= 5 && hour < 7) {
+    const h = typeof hour === 'number' ? (hour === 24 ? 0 : hour) : getISTHour();
+    if (h >= 5 && h < 7) {
       return 'sunrise';
-    } else if (hour >= 7 && hour < 12) {
+    } else if (h >= 7 && h < 12) {
       return 'morning';
-    } else if (hour >= 12 && hour < 17) {
+    } else if (h >= 12 && h < 17) {
       return 'afternoon';
-    } else if (hour >= 17 && hour < 19) {
+    } else if (h >= 17 && hour < 20) {
       return 'sunset';
     } else {
       return 'night';
@@ -62,18 +79,18 @@
   }
 
   function formatTime12h(date) {
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    return `${hours}:${minutes} ${ampm}`;
+    const d = date || new Date();
+    return new Intl.DateTimeFormat('en-US', {
+      timeZone: CAMPUS_TIMEZONE,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(d).replace(/[\u202F\u00A0\s]+/g, ' ').trim();
   }
 
   function updateEnvironmentState() {
     const now = new Date();
-    const hour = now.getHours();
+    const hour = getISTHour(now);
     const activeEnv = currentEnvironment === 'auto' ? detectPhase(hour) : currentEnvironment;
     const config = PHASE_CONFIG[activeEnv] || PHASE_CONFIG.morning;
 

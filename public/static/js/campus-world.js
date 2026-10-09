@@ -11,22 +11,16 @@
   let clockTimer = null;
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  document.addEventListener('DOMContentLoaded', () => {
-    initWorldTimeEngine();
-    initWorldStars();
-    initWindowGlowCycling();
-    initCinematicParallax();
-    initCampusPulseLoop();
-  });
-
   /* --------------------------------------------------------------------------
      1. TIME-OF-DAY ATMOSPHERIC ENGINE
      -------------------------------------------------------------------------- */
+  const CAMPUS_TIMEZONE = 'Asia/Kolkata';
+
   const WORLD_CONFIG = {
     morning: {
       name: 'MORNING CAMPUS',
       symbol: '☀️',
-      greeting: 'Good morning — campus is coming alive.'
+      greeting: 'Good morning — campus is active.'
     },
     afternoon: {
       name: 'AFTERNOON CAMPUS',
@@ -36,57 +30,142 @@
     evening: {
       name: 'EVENING CAMPUS',
       symbol: '🌇',
-      greeting: 'Good evening — campus is winding down.'
+      greeting: 'Good evening — campus is active.'
     },
     night: {
       name: 'NIGHT CAMPUS',
       symbol: '☾',
-      greeting: 'Campus is quiet, but your voice is still heard.'
+      greeting: 'Good night — campus is quiet, but your voice is still heard.'
     }
   };
 
   /**
-   * Centralized function to evaluate the campus time category based on local browser time:
-   * 🌅 MORNING:   4:00 AM – 9:59 AM  (hours 4 to 9)
-   * ☀️ AFTERNOON: 10:00 AM – 4:59 PM (hours 10 to 16)
-   * 🌇 EVENING:   5:00 PM – 6:59 PM  (hours 17 to 18)
-   * 🌙 NIGHT:     7:00 PM – 3:59 AM  (hours 19 to 23, 0 to 3)
-   * @param {Date} [dateObj]
+   * Helper to extract timezone-aware hour, minute, second using Asia/Kolkata timezone.
+   * Ensures midnight is handled as hour 0, not 24.
+   * @param {Date|number|string} [dateObj]
+   * @returns {{ hour: number, minute: number, second: number }}
+   */
+  function getISTDateParts(dateObj) {
+    let d;
+    if (dateObj instanceof Date) {
+      d = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+    } else if (typeof dateObj === 'number') {
+      d = new Date(dateObj);
+    } else if (typeof dateObj === 'string') {
+      d = new Date(dateObj);
+      if (isNaN(d.getTime())) d = new Date();
+    } else {
+      d = new Date();
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: CAMPUS_TIMEZONE,
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      hourCycle: 'h23'
+    });
+
+    let hour = 0;
+    let minute = 0;
+    let second = 0;
+
+    const parts = formatter.formatToParts(d);
+    for (const part of parts) {
+      if (part.type === 'hour') {
+        hour = parseInt(part.value, 10);
+      } else if (part.type === 'minute') {
+        minute = parseInt(part.value, 10);
+      } else if (part.type === 'second') {
+        second = parseInt(part.value, 10);
+      }
+    }
+
+    // Ensure midnight is handled as hour 0, not 24
+    if (hour === 24) {
+      hour = 0;
+    }
+
+    return { hour, minute, second };
+  }
+
+  /**
+   * Evaluates the phase for a given hour in Indian Standard Time (IST):
+   * 🌅 MORNING:   5:00 AM – 11:59 AM (hours 5 to 11)
+   * ☀️ AFTERNOON: 12:00 PM – 4:59 PM (hours 12 to 16)
+   * 🌇 EVENING:   5:00 PM – 7:59 PM  (hours 17 to 19)
+   * 🌙 NIGHT:     8:00 PM – 4:59 AM  (hours 20 to 23, 0 to 4)
+   * @param {number} hour
    * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
    */
-  function getCampusBackground(dateObj) {
-    const now = dateObj || new Date();
-    const hour = now.getHours(); // 0 - 23 in user's local timezone
+  function getPhaseForHour(hour) {
+    const h = parseInt(hour, 10);
+    const normalizedHour = h === 24 ? 0 : h;
 
-    if (hour >= 4 && hour < 10) {
+    if (normalizedHour >= 5 && normalizedHour < 12) {
       return 'morning';
-    } else if (hour >= 10 && hour < 17) {
+    } else if (normalizedHour >= 12 && normalizedHour < 17) {
       return 'afternoon';
-    } else if (hour >= 17 && hour < 19) {
+    } else if (normalizedHour >= 17 && normalizedHour < 20) {
       return 'evening';
     } else {
       return 'night';
     }
   }
+
+  /**
+   * Centralized function to evaluate the campus time category based on Asia/Kolkata (IST) time:
+   * @param {Date|number|string} [dateObj]
+   * @returns {'morning' | 'afternoon' | 'evening' | 'night'}
+   */
+  function getCampusBackground(dateObj) {
+    if (typeof dateObj === 'number' && dateObj >= 0 && dateObj <= 24) {
+      return getPhaseForHour(dateObj);
+    }
+    const { hour } = getISTDateParts(dateObj);
+    return getPhaseForHour(hour);
+  }
   window.getCampusBackground = getCampusBackground;
+  window.getPhaseForHour = getPhaseForHour;
+  window.WORLD_CONFIG = WORLD_CONFIG;
 
-  function getPhaseForHour(hour) {
-    const d = new Date();
-    d.setHours(hour, 30, 0, 0);
-    return getCampusBackground(d);
+  /**
+   * Formats the date object into 12-hour format string (e.g. "11:38 AM") in Asia/Kolkata timezone.
+   * @param {Date|number|string} [dateObj]
+   * @returns {string}
+   */
+  function formatTime(dateObj) {
+    let d;
+    if (dateObj instanceof Date) {
+      d = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+    } else if (typeof dateObj === 'number') {
+      d = new Date(dateObj);
+    } else if (typeof dateObj === 'string') {
+      d = new Date(dateObj);
+      if (isNaN(d.getTime())) d = new Date();
+    } else {
+      d = new Date();
+    }
+
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: CAMPUS_TIMEZONE,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    return formatter.format(d).replace(/[\u202F\u00A0\s]+/g, ' ').trim();
+  }
+  window.formatCampusTime = formatTime;
+
+  function getCurrentCampusTime() {
+    if (window.__mockDate) {
+      return (window.__mockDate instanceof Date) ? window.__mockDate : new Date(window.__mockDate);
+    }
+    return new Date();
   }
 
-  function formatTime(date) {
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    minutes = minutes < 10 ? '0' + minutes : minutes;
-    return `${hours}:${minutes} ${ampm}`;
-  }
-
-  function applyWorldEnvironment(envKey) {
+  function applyWorldEnvironment(envKey, dateObj) {
     const config = WORLD_CONFIG[envKey] || WORLD_CONFIG.night;
 
     // Set attributes for CSS variable cascades
@@ -96,8 +175,8 @@
       stage.setAttribute('data-world-env', envKey);
     }
 
-    // Update Floating Time & Signature Greeting
-    const now = new Date();
+    // Update Floating Time & Signature Greeting using same timezone-aware time source
+    const now = dateObj || getCurrentCampusTime();
     const timeStr = formatTime(now);
 
     const timeEl = document.getElementById('worldLiveTimeText');
@@ -116,17 +195,23 @@
   }
 
   function updateEnvironmentLoop() {
-    const now = new Date();
-    const activeEnv = currentEnvironment === 'auto' ? getPhaseForHour(now.getHours()) : currentEnvironment;
-    applyWorldEnvironment(activeEnv);
+    const now = getCurrentCampusTime();
+    const activeEnv = currentEnvironment === 'auto' ? getCampusBackground(now) : currentEnvironment;
+    applyWorldEnvironment(activeEnv, now);
   }
 
   function initWorldTimeEngine() {
     updateEnvironmentLoop();
 
-    // Check every 60 seconds smoothly without page refresh
+    // Check periodically without page reload (every 1 second so clock updates smoothly and boundary crossing updates instantly)
     if (clockTimer) clearInterval(clockTimer);
-    clockTimer = setInterval(updateEnvironmentLoop, 60000);
+    clockTimer = setInterval(updateEnvironmentLoop, 1000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        updateEnvironmentLoop();
+      }
+    });
   }
 
   /* --------------------------------------------------------------------------
@@ -302,6 +387,20 @@
     }
   }
 
+  function bootCampusWorld() {
+    initWorldTimeEngine();
+    initWorldStars();
+    initWindowGlowCycling();
+    initCinematicParallax();
+    initCampusPulseLoop();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootCampusWorld);
+  } else {
+    bootCampusWorld();
+  }
+
   /* --------------------------------------------------------------------------
      6. DEVELOPER TEST HOOK (CONSOLE TESTING)
      -------------------------------------------------------------------------- */
@@ -313,10 +412,16 @@
     } else if (mode === 'auto') {
       currentEnvironment = 'auto';
       updateEnvironmentLoop();
-      console.log('[CampusCare] Cinematic Environment switched to: AUTO (Local System Time)');
+      console.log('[CampusCare] Cinematic Environment switched to: AUTO (Asia/Kolkata IST Time)');
     } else {
       console.warn('[CampusCare] Usage: window.setCampusEnvironment("night" | "sunset" | "afternoon" | "morning" | "sunrise" | "auto")');
     }
+  };
+
+  window.setMockTime = function (dateOrIso) {
+    window.__mockDate = dateOrIso ? new Date(dateOrIso) : null;
+    updateEnvironmentLoop();
+    console.log(`[CampusCare] Mock time set to: ${window.__mockDate ? window.__mockDate.toISOString() : 'REALTIME'}`);
   };
 
 })();

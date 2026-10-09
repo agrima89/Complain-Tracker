@@ -26,6 +26,9 @@ try {
 }
 
 const PG_URL = process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
+if (!PG_URL && process.env.NODE_ENV === 'production') {
+  throw new Error('A persistent PostgreSQL connection is required in production. Configure NETLIFY_DB_URL or DATABASE_URL in Netlify. SQLite in /tmp is not persistent across serverless invocations.');
+}
 let pool = null;
 let sqliteDb = null;
 
@@ -408,54 +411,24 @@ export async function initDb() {
     }
   }
 
-  // Seed default admin and department admins if admins table is empty
+  // Never create public demo accounts or predictable default passwords.
+  // Provision administrators through a controlled setup process. If this is a fresh
+  // database, an explicit strong ADMIN_PASSWORD is required to create the first
+  // super-admin; department accounts should be created individually by an authorized admin.
   const adminCheck = await query(`SELECT COUNT(*) as count FROM admins`);
   const adminCount = parseInt(adminCheck.rows[0]?.count || 0, 10);
   if (adminCount === 0) {
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const hashed = hashPassword(adminPassword);
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || adminPassword.length < 12) {
+      throw new Error('Fresh database has no administrators. Set a unique ADMIN_PASSWORD of at least 12 characters before initializing production.');
+    }
     await query(
       `INSERT INTO admins (username, password, role, department) VALUES ($1, $2, $3, $4)`,
-      ['admin', hashed, 'Super Admin', '']
+      ['admin', hashPassword(adminPassword), 'Super Admin', '']
     );
-
-    const deptAccounts = [
-      ["electrical_admin", "electrical123", "HOD", "Electrical"],
-      ["cleaning_admin", "cleaning123", "HOD", "Cleaning"],
-      ["classroom_admin", "classroom123", "HOD", "Classroom"],
-      ["hostel_admin", "hostel123", "HOD", "Hostel"],
-      ["wifi_admin", "wifi123", "HOD", "Wi-Fi/Internet"],
-      ["library_admin", "library123", "HOD", "Library"],
-      ["infra_admin", "infra123", "HOD", "Infrastructure"],
-      ["transport_admin", "transport123", "HOD", "Transport"],
-      ["other_admin", "other123", "HOD", "Other"]
-    ];
-
-    for (const [u, p, r, d] of deptAccounts) {
-      await query(
-        `INSERT INTO admins (username, password, role, department) VALUES ($1, $2, $3, $4)`,
-        [u, hashPassword(p), r, d]
-      );
-    }
   }
 
-  // Seed default students if students table is empty
-  const studentCheck = await query(`SELECT COUNT(*) as count FROM students`);
-  const studentCount = parseInt(studentCheck.rows[0]?.count || 0, 10);
-  if (studentCount === 0) {
-    const initialStudents = [
-      ["Aryan Sharma", "aryan99@culkomail.in", hashPassword("Pass@12345")],
-      ["Agrima Bajpai", "bajpaiagrima89@gmail.com", hashPassword("12345")],
-      ["Agrima", "agrima@gmail.com", hashPassword("12345")],
-      ["Mayank Awasthi", "mayankawas@culkomail.in", hashPassword("1234")]
-    ];
-    for (const [sName, sEmail, sPass] of initialStudents) {
-      try {
-        await query(
-          `INSERT INTO students (name, email, password) VALUES ($1, $2, $3)`,
-          [sName, sEmail, sPass]
-        );
-      } catch (_) {}
-    }
-  }
+  // Do not seed student accounts with public/demo credentials. Students must register
+  // through the application; existing migrated student records are preserved.
+
 }
