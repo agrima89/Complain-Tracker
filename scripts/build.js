@@ -38,12 +38,6 @@ function copyDirRecursive(src, dest) {
 console.log('[Build] Syncing static assets to public/static...');
 copyDirRecursive(staticSrc, staticDest);
 
-// Mirror seed database.db to public/ for Netlify functions distribution
-const dbSrc = path.resolve(rootDir, 'database.db');
-const dbDest = path.resolve(publicDir, 'database.db');
-if (fs.existsSync(dbSrc)) {
-  fs.copyFileSync(dbSrc, dbDest);
-  console.log('[Build] database.db mirrored to public/database.db for serverless distribution.');
-}
-
+// Do not copy the SQLite database into the public directory. Static files are publicly downloadable,
+// and serverless /tmp SQLite is not durable storage. Production must use configured PostgreSQL.
 console.log('[Build] Static assets synced successfully.');
