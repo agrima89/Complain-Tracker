@@ -2,7 +2,7 @@
 
 A modern, full-stack, responsive web application designed for university and college campuses to manage, track, and resolve student grievances transparently and efficiently.
 
-Built with **Python (Flask)**, **SQLite3**, **HTML5**, **Modular CSS3**, and **Vanilla JavaScript**.
+The repository contains a **Netlify serverless frontend/API** (HTML, CSS, JavaScript, Node.js functions) plus a legacy **Python Flask + SQLite** local-development application. For production, the Netlify functions require a persistent PostgreSQL database configured through `NETLIFY_DB_URL` or `DATABASE_URL`; SQLite is for local development only.
 
 ---
 
@@ -19,7 +19,7 @@ Built with **Python (Flask)**, **SQLite3**, **HTML5**, **Modular CSS3**, and **V
 
 ### 🛡️ Administrator Management Portal
 - **Secure Admin Gateway**: Dedicated login with role-based access control.
-- **Analytics & Metric Cards**: Live counters dynamically computed from the SQLite database.
+- **Analytics & Metric Cards**: Live counters dynamically computed from the configured database.
 - **Multi-Parameter Search & Filter Toolbar**: Full-text search across student names, emails, categories, descriptions, locations, and ticket IDs with status and priority filters.
 - **In-Place Status Updates (AJAX)**: One-click status updates directly from the table without full page reloads.
 - **Detailed Grievance Inspection**: Complete report view with student contact details and lifecycle status controller.
@@ -31,7 +31,8 @@ Built with **Python (Flask)**, **SQLite3**, **HTML5**, **Modular CSS3**, and **V
 | Layer | Technology | Description |
 | :--- | :--- | :--- |
 | **Backend Framework** | **Flask (Python 3.x)** | Lightweight WSGI web framework, session management, and RESTful API endpoints. |
-| **Database** | **SQLite3** | Embedded relational database with foreign key constraints and parameterized queries. |
+| **Production database (Netlify functions)** | **PostgreSQL** | Persistent relational storage configured through `NETLIFY_DB_URL` or `DATABASE_URL`. Do not use serverless `/tmp` SQLite for production records. |
+| **Local/legacy database** | **SQLite3** | Embedded relational database used by the local Flask application and as a migration source. |
 | **Frontend Templates**| **Jinja2 (HTML5)** | Semantic server-rendered views with modular template inheritance (`base.html`). |
 | **Styling & UI** | **Vanilla CSS3** | Custom design system (`Inter` typography, CSS variables, flexbox, CSS grid, micro-animations). |
 | **Client Scripting** | **Vanilla JavaScript** | Asynchronous AJAX status updates, live validation, mobile navigation drawer, and toast alerts. |
