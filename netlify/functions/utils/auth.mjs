@@ -115,6 +115,7 @@ export function createSessionCookie(token) {
   return serializeCookie(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 7 * 24 * 60 * 60 // 7 days
   });
@@ -124,6 +125,7 @@ export function createLogoutCookie() {
   return serializeCookie(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
     path: '/',
     maxAge: 0
   });
