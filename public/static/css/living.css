@@ -1,0 +1,98 @@
+/* CampusCare "Living Campus": warm paper theme for student-facing pages + map styles.
+   Apply with <body class="cc-living">. Admin pages keep the dark theme.css look. */
+.cc-living {
+  color-scheme: light;
+  --cc-bg: #f6f3ec; --cc-bg-2: #efebe1; --cc-surface: #fffdf8; --cc-surface-2: #f3efe5; --cc-surface-3: #e9e4d7;
+  --cc-line: #e2dccd; --cc-line-2: #cfc8b6; --cc-text: #1f2622; --cc-text-2: #4a514c; --cc-muted: #7d7f77;
+  --cc-accent: #0f6e56; --cc-accent-2: #1d9e75; --cc-accent-ink: #ffffff;
+  --cc-accent-soft: rgba(15,110,86,.09); --cc-accent-line: rgba(15,110,86,.3);
+  --cc-care: #d98a1c; --cc-critical: #d8553a; --cc-high: #d98a1c; --cc-medium: #b98a12; --cc-low: #1d9e75; --cc-info: #2f6fb3;
+  --cc-shadow: 0 1px 0 rgba(255,255,255,.7) inset, 0 18px 40px -24px rgba(60,50,30,.35);
+  --cc-glow: 0 0 0 1px var(--cc-accent-line), 0 12px 30px -14px rgba(15,110,86,.35);
+  --navbar-bg: rgba(246,243,236,.85);
+  --input-bg: #fffdf8; --input-border: #d6cfbd; --input-text: #1f2622; --input-placeholder: #9a9a90;
+  --input-focus-shadow: 0 0 0 3px rgba(15,110,86,.16);
+}
+html:has(.cc-living), .cc-living { background: var(--cc-bg) !important; }
+.cc-living body::before, html:has(.cc-living) body::before {
+  background:
+    radial-gradient(900px 480px at 90% -10%, var(--cc-sky, rgba(29,158,117,.10)), transparent 60%),
+    radial-gradient(1px 1px at 20px 20px, rgba(60,50,30,.07) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--cc-bg);
+}
+.cc-living .cc-btn-primary, .cc-living .btn-primary { box-shadow: 0 8px 22px -10px rgba(15,110,86,.6) !important; }
+.cc-living .cc-btn-primary:hover, .cc-living .btn-primary:hover { background: #0b5c48 !important; }
+.cc-living .cc-sev { background: color-mix(in srgb, currentColor 9%, transparent); }
+.cc-living ::selection { color: #fff; }
+
+/* Time-of-day sky tint (set on <body data-phase>) */
+[data-phase=morning] { --cc-sky: rgba(250,199,117,.30); }
+[data-phase=afternoon] { --cc-sky: rgba(93,202,165,.20); }
+[data-phase=evening] { --cc-sky: rgba(240,153,123,.28); }
+[data-phase=night] { --cc-sky: rgba(83,74,183,.18); }
+
+/* ---------- Map ---------- */
+.cm { position: relative; }
+.cm-svg { width: 100%; height: auto; display: block; }
+.cm-ground { fill: #eef0e4; stroke: var(--cc-line); }
+.cm-paths path { stroke: #fbfaf5; stroke-width: 16; fill: none; stroke-linecap: round; }
+.cm-trees circle { fill: #b9d8b0; }
+.cm-block { cursor: pointer; outline: none; }
+.cm-shadow { fill: rgba(60,50,30,.10); }
+.cm-roof { fill: #fffdf8; stroke: #d9d2c0; stroke-width: 1.2; transition: fill .25s, stroke .25s, transform .25s; }
+.cm-win { fill: #e6e0d0; }
+.cm-label { font: 500 12.5px var(--cc-font); fill: var(--cc-text-2); pointer-events: none; }
+.cm-block:hover .cm-roof, .cm-block:focus-visible .cm-roof { stroke: var(--cc-accent); stroke-width: 2; }
+.cm-block.on .cm-roof { fill: #f2faf6; stroke: var(--cc-accent); stroke-width: 2.4; }
+.cm-pin { transition: transform .3s; }
+.cm-dot { fill: #c8c3b4; stroke: #fff; stroke-width: 2.5; }
+.cm-halo { fill: transparent; }
+.cm-count { font: 600 11px var(--cc-font-mono); fill: #fff; pointer-events: none; }
+.cm-block[data-state=quiet] .cm-pin { opacity: 0; }
+.cm-block[data-state=healthy] .cm-dot { fill: var(--cc-low); }
+.cm-block[data-state=care] .cm-dot { fill: var(--cc-care); }
+.cm-block[data-state=urgent] .cm-dot { fill: var(--cc-critical); }
+.cm-block[data-state=urgent] .cm-halo { fill: rgba(216,85,58,.25); animation: cmPulse 1.8s ease-out infinite; transform-origin: center; transform-box: fill-box; }
+.cm-block[data-state=care] .cm-halo { fill: rgba(217,138,28,.18); }
+@keyframes cmPulse { 0% { transform: scale(.7); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+.cm-night .cm-ground { fill: #e7e6e9; }
+.cm-night .cm-win { fill: #f4cf7c; }
+.cm-evening .cm-win { fill: #f1d9a6; }
+
+.cm-legend { display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; font-size: .8rem; color: var(--cc-text-2); }
+.cm-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .4rem; vertical-align: -1px; }
+
+/* Dark variant for the admin console */
+.cm-dark .cm-ground { fill: #141418; stroke: #26262c; }
+.cm-dark .cm-paths path { stroke: #1c1c21; }
+.cm-dark .cm-trees circle { fill: #1f2a24; }
+.cm-dark .cm-roof { fill: #1a1a1f; stroke: #34343c; }
+.cm-dark .cm-shadow { fill: rgba(0,0,0,.4); }
+.cm-dark .cm-win { fill: #2a2a31; }
+.cm-dark .cm-label { fill: #c9c5bc; }
+.cm-dark .cm-dot { stroke: #141418; }
+.cm-dark .cm-block.on .cm-roof { fill: #1f2620; }
+
+/* ---------- Landing hero ---------- */
+.lv-hero { display: grid; grid-template-columns: .9fr 1.1fr; gap: 3rem; align-items: center; padding: 3.5rem 0 4.5rem; }
+.lv-hero .h-title { font-size: clamp(3rem, 7vw, 5.8rem); }
+.lv-k { font-size: .66rem; letter-spacing: .12em; text-transform: uppercase; color: var(--cc-muted); }
+.lv-health { display: flex; align-items: center; gap: 1rem; margin-top: 2.25rem; padding-top: 1.5rem; border-top: 1px solid var(--cc-line); }
+.lv-health p { margin: .25rem 0 0; color: var(--cc-text-2); font-size: .92rem; }
+.lv-ring { --p: 0; width: 76px; height: 76px; border-radius: 50%; flex: none; display: grid; place-items: center; grid-auto-flow: column; align-content: center;
+  background: radial-gradient(closest-side, var(--cc-bg) 78%, transparent 80% 100%), conic-gradient(var(--cc-accent) calc(var(--p) * 1%), var(--cc-line) 0); transition: --p 1s; }
+.lv-ring b { font-family: var(--cc-font-display); font-size: 1.5rem; font-weight: 600; }
+.lv-ring span { font-size: .8rem; color: var(--cc-muted); align-self: start; margin-top: .2rem; }
+.lv-mapcard { position: relative; padding: 1rem; border-radius: 28px; }
+.lv-mapbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; padding: .25rem .4rem .8rem; }
+.lv-block { position: static; margin-top: .75rem; flex-direction: row !important; align-items: baseline; flex-wrap: wrap; column-gap: .9rem; background: var(--cc-surface); border: 1px solid var(--cc-line); border-radius: 16px; padding: .8rem 1rem; box-shadow: var(--cc-shadow); display: flex; flex-direction: column; gap: .25rem; transition: transform .25s var(--cc-ease); }
+.lv-block b { font-family: var(--cc-font-display); font-weight: 500; font-size: 1.05rem; }
+.lv-block p { margin: 0; font-size: .82rem; color: var(--cc-text-2); }
+.lv-block a { font-size: .82rem; color: var(--cc-accent); font-weight: 600; margin-left: auto; }
+.lv-sample { display: inline-block; margin: 0 .4rem .5rem; font-size: .7rem; color: var(--cc-muted); background: var(--cc-surface-2); border-radius: 999px; padding: .2rem .6rem; }
+@media (max-width: 1020px) { .lv-hero { grid-template-columns: 1fr; padding-top: 2rem; } }
+@media (max-width: 600px) { .lv-block { position: static; max-width: none; margin-top: .75rem; } .lv-mapcard { padding: .6rem; border-radius: 20px; } }
+.cc-living .h-merge-out { box-shadow: var(--cc-glow); }
+.cc-living .h-avatars span:first-child { color: #fff; }
+.cc-living .h-chip, .cc-living .h-steps li { background: var(--cc-surface); }
+.cc-living .h-nav.scrolled { background: rgba(246,243,236,.85); }

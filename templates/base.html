@@ -17,7 +17,7 @@
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Bodoni+Moda:ital,wght@1,500&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
 
   <!-- Core Design System CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -30,6 +30,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
   {% block extra_css %}{% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
 </head>
 <body>
 

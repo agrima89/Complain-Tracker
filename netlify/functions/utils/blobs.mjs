@@ -71,7 +71,13 @@ export async function saveEvidenceBlob(buffer, filename, mimeType) {
       storage: 'blobs'
     };
   } catch (err) {
-    // If running in local standalone environment or serverless without Blobs token, fallback to safe disk path
+    // In production a disk fallback would lose the photo when the function instance is recycled,
+    // leaving the complaint pointing at nothing. Fail loudly instead.
+    if (process.env.NODE_ENV === 'production' && process.env.NETLIFY_DEV !== 'true') {
+      console.error('[Blobs] Netlify Blobs unavailable in production:', err.message);
+      throw new Error('Photo storage is temporarily unavailable. Please try again in a moment.');
+    }
+    // Local development without Blobs: keep files on disk.
     console.warn("[Blobs] Netlify Blobs storage unavailable, using disk fallback:", err.message);
     const isServerless = !!(
       process.env.NETLIFY ||

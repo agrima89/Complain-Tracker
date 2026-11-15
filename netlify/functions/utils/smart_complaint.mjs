@@ -237,6 +237,22 @@ export function detectLocation(text) {
   return { block: "", specificLabel: "" };
 }
 
+const FLOOR_WORDS = { ground: 'Ground Floor', first: '1st Floor', second: '2nd Floor', third: '3rd Floor', fourth: '4th Floor', fifth: '5th Floor' };
+const FLOOR_NUMS = ['Ground Floor', '1st Floor', '2nd Floor', '3rd Floor', '4th Floor', '5th Floor'];
+
+/** Room number ("room 204", "rm 12B", "lab 3") and floor ("2nd floor", "ground floor"), if mentioned. */
+export function detectRoomAndFloor(text) {
+  const t = String(text || '').toLowerCase();
+  const room = t.match(/\b(?:room|rm|classroom|lab|hall)\s*(?:no\.?|number|#)?\s*([a-z]?-?\d{1,4}[a-z]?)\b/i)
+    || t.match(/\b[a-f][- ]?(\d{3})\b/i);
+  let floor = '';
+  const word = t.match(/\b(ground|first|second|third|fourth|fifth)\s+floor\b/);
+  const num = t.match(/\b([0-5])(?:st|nd|rd|th)?\s+floor\b/);
+  if (word) floor = FLOOR_WORDS[word[1]];
+  else if (num) floor = FLOOR_NUMS[Number(num[1])];
+  return { room: room ? room[1].toUpperCase() : '', floor };
+}
+
 export function generateReason(category, priority, locationLabel, matchedKeywords, urgencyReasons) {
   const parts = [];
   if (urgencyReasons.length > 0) {
@@ -281,6 +297,7 @@ export function analyzeComplaint(text) {
     block,
     location_block: block,
     location_label: locationLabel || block || "Campus Premises",
+    ...(({ room, floor }) => ({ room, floor }))(detectRoomAndFloor(text)),
     reason,
     confidence,
     keywords: [...matchedKeywords, ...urgencyReasons]

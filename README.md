@@ -105,6 +105,24 @@ Visit: **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
 
 For security, this repository does not document working demo passwords. Create administrator credentials through the supported setup flow and use unique passwords. Never deploy with default credentials or place passwords, JWT secrets, or database connection strings in source control. Configure production secrets in Netlify environment variables.
 
+### Deploying to Netlify
+
+1. Connect a PostgreSQL database (Netlify Database, Neon or Supabase). The site refuses to start in production without one.
+2. In **Site settings → Environment variables**, set:
+   - `NETLIFY_DB_URL` (or `DATABASE_URL`): the PostgreSQL connection string
+   - `JWT_SECRET`: a long random value, e.g. from `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`
+   - `ADMIN_PASSWORD`: at least 12 characters; used once to create the first `admin` account on an empty database
+   - `NODE_ENV=production`
+   - `ALLOWED_EMAIL_DOMAINS` (optional): e.g. `culkomail.in` so only university emails can register
+3. Deploy. Evidence photos are stored in Netlify Blobs automatically.
+4. Sign in at `/admin-login` as `admin` and open **Staff** (`/admin/staff`) to create one account per department. Each gets a one-time password to hand over; you can also reset passwords and disable accounts there. Staff cannot sign themselves up.
+
+   The same can be done from a terminal, pointing at the production database:
+   ```bash
+   DATABASE_URL="postgresql://..." node scripts/create_admin.mjs electrical.head Electrical
+   ```
+   Departments: Electrical, Cleaning, Classroom, Hostel, Wi-Fi/Internet, Library, Infrastructure, Transport, Other. Leave the department out for an all-departments admin.
+
 ---
 
 ## 🎓 Viva & Project Evaluation Highlights

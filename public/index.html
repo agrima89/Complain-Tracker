@@ -1,784 +1,159 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CampusCare - Student Complaint & Solution Tracker. Transparent, fast, and accessible university grievance redressal platform.">
-  <title>CampusCare - Student Grievance & Resolution Portal</title>
-
-  <!-- Theme Initialization Script (Prevents White Flash) -->
-  <script>
-    (function() {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
-
-  <!-- Google Fonts: Inter -->
+  <meta name="description" content="CampusCare: report a campus issue in a minute, watch it get routed to the right department, and see it fixed with every step on record.">
+  <meta name="theme-color" content="#000000">
+  <title>CampusCare | Care for your campus</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Core Design System CSS -->
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/components.css">
-  <link rel="stylesheet" href="/static/css/forms.css">
-  <link rel="stylesheet" href="/static/css/dashboard.css">
-  <link rel="stylesheet" href="/static/css/campus-world.css">
-  <link rel="stylesheet" href="/static/css/landing.css">
-
-  <!-- CSRF Token Meta -->
-  <meta name="csrf-token" content="netlify-serverless-jwt">
+  <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Instrument+Serif:ital@1&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="/static/images/campus-dusk.jpg">
+  <link rel="stylesheet" href="/static/css/living.css">
+  <link rel="stylesheet" href="/static/css/cinema.css">
 </head>
-<body>
+<body class="cn">
+  <a class="cn-skip" href="#main">Skip to content</a>
 
-  <!-- ==========================================================================
-       PREMIUM GLASSMORPHIC SINGLE-LINE NAVBAR
-       ========================================================================== -->
-  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
-    <div class="container navbar-inner">
+  <!-- ================= HERO ================= -->
+  <section class="cn-hero" aria-label="Introduction">
+    <div class="cn-frame">
+      <!-- Drop a campus video at /static/video/campus.mp4 and it plays here; the photo is the poster/fallback -->
+      <video class="cn-media" id="heroVideo" autoplay loop muted playsinline preload="none" poster="/static/images/campus-dusk.jpg" aria-hidden="true" data-src="/static/video/campus.mp4"></video>
+      <div class="cn-media cn-kenburns" style="background-image:url('/static/images/campus-dusk.jpg')" aria-hidden="true"></div>
+      <div class="noise-overlay cn-noise" aria-hidden="true"></div>
+      <div class="cn-shade" aria-hidden="true"></div>
 
-      <!-- LEFT SIDE: Compact CampusCare Branding -->
-      <a href="/" class="navbar-brand" title="CampusCare - Student Grievance Portal">
-        <div class="brand-icon">
-          <span>🎓</span>
-        </div>
-        <div class="brand-text">
-          <span class="brand-name">CampusCare</span>
-          <span class="brand-tag">Student Grievance Portal</span>
-        </div>
-      </a>
-
-      <!-- CENTER: Clean Modern Navigation Items (Single Line) -->
-      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation">
-        <ul class="navbar-nav" id="dynamicNavItems">
-          <li class="nav-item">
-            <a href="/" class="nav-link active" title="Public Campus Home">
-              <span class="nav-link-icon">⌂</span>
-              <span class="nav-link-text">Home</span>
-            </a>
-          </li>
-          <li class="nav-item" id="navItemLogin">
-            <a href="/login.html" class="nav-link">Student Login</a>
-          </li>
-          <li class="nav-item" id="navItemRegister">
-            <a href="/register.html" class="nav-link">Register</a>
-          </li>
-          <li class="nav-item" id="navItemAdmin">
-            <a href="/admin-login.html" class="nav-link">Admin Portal</a>
-          </li>
-        </ul>
+      <nav class="cn-nav" aria-label="Main">
+        <a href="#about">Our story</a>
+        <a href="#features">How it works</a>
+        <a href="#live">Live campus</a>
+        <a href="/my-complaints" id="navTrack">Track</a>
+        <a href="/login" id="navAuth">Sign in</a>
       </nav>
 
-      <!-- RIGHT SIDE: Compact Icons, Profile Pill & Logout -->
-      <div class="navbar-actions">
-        
-        <!-- 1. Notification Bell -->
-        <div class="navbar-notif-wrapper" style="position: relative;">
-          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
-            <span class="notif-btn-icon">🔔</span>
-            <span class="notification-badge-dot"></span>
-          </button>
-          
-          <div id="publicNotificationDropdown" class="glass-notification-dropdown" style="display: none;">
-            <div class="notif-dropdown-head">
-              <span>🔔 Live Campus Updates</span>
-              <span class="notif-live-tag">● Live</span>
-            </div>
-            <div class="notif-dropdown-body">
-              <div class="notif-item">
-                <span class="notif-dot"></span>
-                <div class="notif-content">
-                  <p class="notif-title">Central Library Wi-Fi Ticket #CC-1042</p>
-                  <p class="notif-time">Technician Dispatched • 10m ago</p>
-                </div>
-              </div>
-              <div class="notif-item">
-                <span class="notif-dot notif-dot--success"></span>
-                <div class="notif-content">
-                  <p class="notif-title">Hostel Block C Water Supply</p>
-                  <p class="notif-time">Resolved & Verified • 1h ago</p>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div class="cn-hero-grid">
+        <h1 class="cn-giant" data-pullup data-asterisk aria-label="CampusCare">CampusCare</h1>
+        <div class="cn-hero-side">
+          <p class="cn-fade" style="--d:.5s">CampusCare is your campus's shared voice: students, staff and departments, bound not by hierarchy or red tape but by one promise. Every broken thing gets heard, routed and fixed.</p>
+          <a href="/register" class="cn-cta cn-fade" style="--d:.7s" id="heroCta">
+            <span id="heroCtaText">Report an issue</span>
+            <span class="cn-cta-dot" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </a>
         </div>
-
-        <!-- Dynamic User Auth Slot -->
-        <div id="navAuthSlot">
-          <a href="/login.html" class="btn-navbar-signin">Sign In</a>
-        </div>
-
-        <!-- Mobile Hamburger Toggle -->
-        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span id="mobileNavToggleIcon">☰</span>
-        </button>
-      </div>
-
-    </div>
-
-    <!-- Mobile Navigation Drawer -->
-    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
-      <div class="mobile-nav-drawer-inner">
-        <ul class="mobile-nav-list" id="mobileNavList">
-          <li>
-            <a href="/" class="mobile-nav-link active">
-              <span class="mobile-nav-icon">⌂</span>
-              <span>Home</span>
-            </a>
-          </li>
-          <li id="mobileNavLogin">
-            <a href="/login.html" class="mobile-nav-link">
-              <span class="mobile-nav-icon">👤</span>
-              <span>Student Login</span>
-            </a>
-          </li>
-          <li id="mobileNavRegister">
-            <a href="/register.html" class="mobile-nav-link">
-              <span class="mobile-nav-icon">📝</span>
-              <span>Register</span>
-            </a>
-          </li>
-          <li id="mobileNavAdmin">
-            <a href="/admin-login.html" class="mobile-nav-link">
-              <span class="mobile-nav-icon">🛡️</span>
-              <span>Admin Portal</span>
-            </a>
-          </li>
-        </ul>
       </div>
     </div>
-  </header>
+  </section>
 
-  <!-- Main Content Body -->
-  <main class="main-content main-content--flush">
-
-    <!-- ==========================================================================
-         FULL-PAGE IMMERSIVE CAMPUS ENVIRONMENT MASTER WRAPPER
-         ========================================================================== -->
-    <div class="landing-page-master" id="landingPageMaster">
-
-      <!-- Dual-Layer Fixed Campus Viewport Background -->
-      <div class="campus-bg-viewport" id="campusBgViewport" aria-hidden="true">
-        <div class="campus-bg-layer bg-layer-1" id="campusBgLayer1"></div>
-        <div class="campus-bg-layer bg-layer-2" id="campusBgLayer2"></div>
-        <div class="campus-bg-overlay" id="campusBgOverlay"></div>
+  <main id="main">
+    <!-- ================= ABOUT ================= -->
+    <section class="cn-about" id="about">
+      <div class="cn-about-card">
+        <span class="cn-label">Our promise</span>
+        <h2 class="cn-about-h" data-multi>
+          <span data-seg>We are CampusCare,</span>
+          <span data-seg class="cn-serif">a student-built helpdesk.</span>
+          <span data-seg>We turn everyday complaints into real fixes, with every step on record.</span>
+        </h2>
+        <p class="cn-reveal" id="revealText">Every complaint on campus is routed to the right department, merged with reports of the same problem and tracked in the open. Students see each update, staff get a clear queue and the whole campus gets a little better every week. No lost emails, no chasing anyone at the office counter.</p>
       </div>
+    </section>
 
-      <!-- ==========================================================================
-           1. HERO SECTION — FLOATING TYPOGRAPHY & GLASS DASHBOARD
-           ========================================================================== -->
-      <section class="campus-hero-stage" id="campusHeroStage">
-        <div class="hero-ambient-glow" aria-hidden="true"></div>
+    <!-- ================= FEATURES ================= -->
+    <section class="cn-features" id="features">
+      <div class="bg-noise cn-features-noise" aria-hidden="true"></div>
+      <div class="cn-features-inner">
+        <h2 class="cn-feat-h" data-multi>
+          <span data-seg>Campus-grade workflows for every student.</span>
+          <span data-seg class="cn-gray">Built for clarity. Powered by care.</span>
+        </h2>
 
-        <div class="container hero-content-grid">
-          
-          <!-- LEFT COLUMN: HERO TYPOGRAPHY & CTAS -->
-          <div class="hero-left-column">
-            
-            <div class="hero-cell-tag">
-              <span class="tag-cyan-pulse"></span>
-              <span class="tag-text">CAMPUS GRIEVANCE REDRESSAL CELL</span>
-            </div>
+        <div class="cn-cards">
+          <article class="cn-card cn-card-media">
+            <div class="cn-kenburns slow" style="background-image:url('/static/images/campus-night.jpg')" aria-hidden="true"></div>
+            <div class="cn-card-shade" aria-hidden="true"></div>
+            <p>Your campus, cared for.</p>
+          </article>
 
-            <h1 class="hero-main-title">
-              Your Campus.<br>
-              Your Voice.<br>
-              <span class="hero-cyan-gradient">Your Resolution.</span>
-            </h1>
+          <article class="cn-card">
+            <span class="cn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg></span>
+            <h3>Smart routing. <sup>01</sup></h3>
+            <ul>
+              <li>Category and department picked from your words</li>
+              <li>Safety cues like “sparking” raise the priority</li>
+              <li>Room and block detected automatically</li>
+              <li>Reasons are shown for every suggestion</li>
+            </ul>
+            <a href="#live" class="cn-more">Learn more <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </article>
 
-            <p class="hero-lead-description">
-              Report campus problems, track every update, and stay informed until your issue is resolved.
-            </p>
+          <article class="cn-card">
+            <span class="cn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><circle cx="16" cy="16" r="4"/><path d="M11 11l2 2"/></svg></span>
+            <h3>Duplicate merge. <sup>02</sup></h3>
+            <ul>
+              <li>Ten reports of one leak become one case</li>
+              <li>Every reporter is kept in the loop</li>
+              <li>Staff fix faults instead of sorting the same complaint again</li>
+            </ul>
+            <a href="#live" class="cn-more">Learn more <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </article>
 
-            <div class="hero-action-buttons">
-              <a href="/submit-complaint.html" class="btn-hero-primary" id="heroReportBtn">
-                <span class="btn-icon">📝</span>
-                <span>Report an Issue</span>
-                <span class="btn-arrow">→</span>
-              </a>
-
-              <a href="/my-complaints.html" class="btn-hero-secondary" id="heroTrackBtn">
-                <span class="btn-icon">🔍</span>
-                <span>Track My Complaint</span>
-              </a>
-            </div>
-
-            <div class="hero-trust-meta">
-              <div class="trust-badge-pill">
-                <span class="trust-icon">⚡</span>
-                <span>Instant dispatch in &lt; 2 minutes</span>
-              </div>
-              <div class="trust-badge-pill">
-                <span class="trust-icon">🛡️</span>
-                <span>Live SLA milestone tracking</span>
-              </div>
-            </div>
-
-            <div class="hero-categories-block">
-              <div class="categories-label">WHAT WOULD YOU LIKE TO REPORT?</div>
-              <div class="category-pills-row">
-                <a href="/submit-complaint.html?category=Wi-Fi/Internet" class="glass-category-chip">
-                  <span class="chip-emoji">📶</span>
-                  <span>Wi-Fi</span>
-                </a>
-                <a href="/submit-complaint.html?category=Electrical" class="glass-category-chip">
-                  <span class="chip-emoji">⚡</span>
-                  <span>Electricity</span>
-                </a>
-                <a href="/submit-complaint.html?category=Infrastructure" class="glass-category-chip">
-                  <span class="chip-emoji">💧</span>
-                  <span>Water</span>
-                </a>
-                <a href="/submit-complaint.html?category=Cleaning" class="glass-category-chip">
-                  <span class="chip-emoji">🧹</span>
-                  <span>Cleanliness</span>
-                </a>
-                <a href="/submit-complaint.html?category=Classroom" class="glass-category-chip">
-                  <span class="chip-emoji">📖</span>
-                  <span>Classroom</span>
-                </a>
-                <a href="/submit-complaint.html?category=Transport%20Complaint" class="glass-category-chip">
-                  <span class="chip-icon">🚌</span>
-                  <span>Transport</span>
-                </a>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- RIGHT COLUMN: LIVE DATA DASHBOARD -->
-          <div class="hero-right-column">
-            
-            <div class="floating-stat-card">
-              <div class="stat-card-icon">⚡</div>
-              <div class="stat-card-content">
-                <div class="stat-card-number" id="heroResolvedCount">-- Complaints Resolved</div>
-                <div class="stat-card-label" id="heroTotalCount">Out of -- Total Complaints</div>
-              </div>
-            </div>
-
-            <!-- Live Complaint Overview -->
-            <div class="glass-journey-panel" style="padding: 1.5rem;">
-              <div class="journey-panel-header" style="margin-bottom: 1rem;">
-                <div class="window-controls-group">
-                  <span class="win-dot win-dot--red"></span>
-                  <span class="win-dot win-dot--yellow"></span>
-                  <span class="win-dot win-dot--green"></span>
-                  <span class="journey-panel-title">Live Complaint Overview</span>
-                </div>
-              </div>
-              
-              <div class="stats-list" style="display: flex; flex-direction: column; gap: 0.8rem; color: #fff;">
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                  <span>Total Complaints</span> <strong id="liveTotalComplaints">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                  <span>Open Complaints</span> <strong id="liveOpenComplaints">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                  <span>In Progress</span> <strong id="liveInProgress">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                  <span>Awaiting Confirmation</span> <strong id="liveAwaiting">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem;">
-                  <span>Regenerated</span> <strong id="liveRegenerated">--</strong>
-                </div>
-                <div style="display: flex; justify-content: space-between;">
-                  <span>Final Resolved</span> <strong id="liveResolved" style="color: #4ade80;">--</strong>
-                </div>
-              </div>
-            </div>
-
-            <!-- Department Activity -->
-            <div class="sensor-network-card" style="margin-top: 1.5rem; padding: 1.5rem;">
-              <div class="sensor-card-header" style="margin-bottom: 1rem;">
-                <div class="sensor-title">
-                  <span class="sensor-bolt">🏢</span>
-                  <span>DEPARTMENT ACTIVITY</span>
-                </div>
-              </div>
-              
-              <div id="departmentActivityList" style="color: #fff; font-size: 0.9rem;">
-                <div style="padding: 1rem 0; text-align: center; color: rgba(255,255,255,0.6);">
-                  Loading live department activity...
-                </div>
-              </div>
-            </div>
-
-          </div>
-
+          <article class="cn-card">
+            <span class="cn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <h3>Live tracking. <sup>03</sup></h3>
+            <ul>
+              <li>Submitted → routed → in progress → fixed</li>
+              <li>You confirm the fix, or reopen it</li>
+              <li>A PDF record of every case</li>
+            </ul>
+            <a href="/register" class="cn-more">Get started <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </article>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ==========================================================================
-           2. LIVE STATISTICS COUNTERS SECTION
-           ========================================================================== -->
-      <section class="stats-counter-section" id="statsSection">
-        <div class="container">
-          <div class="stats-counter-grid">
-            
-            <div class="metric-card">
-              <div class="metric-top-bar">
-                <span class="metric-icon">📥</span>
-                <span class="metric-trend">Verified Audit</span>
-              </div>
-              <div class="metric-value-wrap">
-                <span class="metric-counter" id="statComplaintsSubmitted">--</span>
-              </div>
-              <div class="metric-title">Complaints Submitted</div>
-              <div class="metric-desc">Total campus grievances recorded digitally</div>
-            </div>
-
-            <div class="metric-card metric-card--highlight">
-              <div class="metric-top-bar">
-                <span class="metric-icon">✅</span>
-                <span class="metric-trend trend-positive">↑ High Efficiency</span>
-              </div>
-              <div class="metric-value-wrap">
-                <span class="metric-counter" id="statIssuesResolved">--</span>
-              </div>
-              <div class="metric-title">Issues Resolved</div>
-              <div class="metric-desc">Fixed and verified by facility maintenance</div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-top-bar">
-                <span class="metric-icon">📈</span>
-                <span class="metric-trend trend-positive">Top Tier SLA</span>
-              </div>
-              <div class="metric-value-wrap">
-                <span class="metric-counter" id="statResolutionRate">--</span>
-              </div>
-              <div class="metric-title">Resolution Rate</div>
-              <div class="metric-desc">Consistently above institutional benchmark</div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-top-bar">
-                <span class="metric-icon">⚡</span>
-                <span class="metric-trend">Rapid Triage</span>
-              </div>
-              <div class="metric-value-wrap">
-                <span class="metric-counter" id="statAverageResponse">--</span>
-              </div>
-              <div class="metric-title">Average Response</div>
-              <div class="metric-desc">From submission to technician dispatch</div>
-            </div>
-
+    <!-- ================= LIVE CAMPUS ================= -->
+    <section class="cn-live" id="live">
+      <div class="cn-live-inner">
+        <div class="cn-live-copy">
+          <span class="cn-label">Live campus · <span id="phaseName">IST</span></span>
+          <h2 class="cn-live-h" data-multi>
+            <span data-seg>Every pin is a real issue.</span>
+            <span data-seg class="cn-serif">Every tick, a fix.</span>
+          </h2>
+          <div class="cn-health">
+            <div class="cn-ring" id="healthRing"><b id="healthScore">–</b><span>%</span></div>
+            <div><span class="cn-label">Campus health</span><p id="healthLine">Loading live data…</p></div>
           </div>
+          <dl class="cn-stats">
+            <div><dt>Reported</dt><dd id="sTotal">–</dd></div>
+            <div><dt>Fixed</dt><dd id="sResolved">–</dd></div>
+            <div><dt>Resolution rate</dt><dd id="sRate">–</dd></div>
+          </dl>
         </div>
-      </section>
-
-      <!-- ==========================================================================
-           3. "HOW CAMPUSCARE WORKS" (4-STAGE CONNECTED PROCESS PIPELINE)
-           ========================================================================== -->
-      <section class="how-it-works-section" id="howItWorksSection">
-        <div class="container">
-          <div class="section-head-center">
-            <span class="section-tag">STRUCTURED LIFECYCLE</span>
-            <h2>How CampusCare Works</h2>
-            <p>From the moment you notice an issue to its verified resolution, every grievance follows a structured 4-step workflow.</p>
-          </div>
-
-          <div class="process-pipeline-container">
-            <div class="pipeline-illuminated-track">
-              <div class="pipeline-track-fill" id="pipelineTrackFill"></div>
-            </div>
-            
-            <div class="process-steps-grid">
-              
-              <!-- Step 01 -->
-              <div class="process-step-card" data-step="1">
-                <div class="step-badge-pill">01</div>
-                <div class="step-icon-wrapper">
-                  <span>📝</span>
-                </div>
-                <h3 class="step-title">Report</h3>
-                <p class="step-description">
-                  Submit your issue in under 2 minutes with category, campus location, and photo evidence.
-                </p>
-                <div class="step-indicator-dot"></div>
-              </div>
-
-              <!-- Step 02 -->
-              <div class="process-step-card" data-step="2">
-                <div class="step-badge-pill">02</div>
-                <div class="step-icon-wrapper">
-                  <span>🔎</span>
-                </div>
-                <h3 class="step-title">Track</h3>
-                <p class="step-description">
-                  Follow transparent timeline milestones as administrative officers review and triage your ticket.
-                </p>
-                <div class="step-indicator-dot"></div>
-              </div>
-
-              <!-- Step 03 -->
-              <div class="process-step-card" data-step="3">
-                <div class="step-badge-pill">03</div>
-                <div class="step-icon-wrapper">
-                  <span>🛠️</span>
-                </div>
-                <h3 class="step-title">Action</h3>
-                <p class="step-description">
-                  Dedicated maintenance technicians are dispatched on-site to inspect and repair the reported problem.
-                </p>
-                <div class="step-indicator-dot"></div>
-              </div>
-
-              <!-- Step 04 -->
-              <div class="process-step-card" data-step="4">
-                <div class="step-badge-pill">04</div>
-                <div class="step-icon-wrapper">
-                  <span>🏆</span>
-                </div>
-                <h3 class="step-title">Resolve</h3>
-                <p class="step-description">
-                  Your complaint is officially marked resolved with timestamped completion records and outcome history.
-                </p>
-                <div class="step-indicator-dot"></div>
-              </div>
-
-            </div>
-          </div>
+        <div class="cn-mapcard">
+          <div class="cm-legend cn-legend"><span><i style="background:#d8553a"></i>Urgent</span><span><i style="background:#d98a1c"></i>Needs care</span><span><i style="background:#1d9e75"></i>Fixed</span><span class="cn-sample" id="sampleTag" hidden>Sample data</span></div>
+          <div id="campusMap" class="cm-dark"></div>
+          <div class="cn-block" id="blockCard" aria-live="polite"><span class="cn-label">Tap a building</span><b>See what's happening there</b></div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ==========================================================================
-           4. TRUST & BENEFITS SECTION ("Built for a more transparent campus.")
-           ========================================================================== -->
-      <section class="trust-benefits-section" id="benefitsSection">
-        <div class="container">
-          <div class="section-head-center">
-            <span class="section-tag">THE CAMPUSCARE ADVANTAGE</span>
-            <h2>Built for a more transparent campus.</h2>
-            <p>Modernized redressal infrastructure eliminating paper delays and lost complaints.</p>
-          </div>
-
-          <div class="benefits-quad-grid">
-            
-            <div class="benefit-glass-card">
-              <div class="benefit-card-icon-box">
-                <span>🔒</span>
-              </div>
-              <div class="benefit-card-body">
-                <h3 class="benefit-card-title">Secure Reporting</h3>
-                <p class="benefit-card-text">
-                  Students can report issues through a structured, authenticated process with full data integrity.
-                </p>
-              </div>
-              <div class="benefit-card-accent"></div>
-            </div>
-
-            <div class="benefit-glass-card">
-              <div class="benefit-card-icon-box">
-                <span>👁️</span>
-              </div>
-              <div class="benefit-card-body">
-                <h3 class="benefit-card-title">Transparent Tracking</h3>
-                <p class="benefit-card-text">
-                  See exactly where your complaint stands in real time with status timestamps and stage indicators.
-                </p>
-              </div>
-              <div class="benefit-card-accent"></div>
-            </div>
-
-            <div class="benefit-glass-card">
-              <div class="benefit-card-icon-box">
-                <span>⚡</span>
-              </div>
-              <div class="benefit-card-body">
-                <h3 class="benefit-card-title">Faster Resolution</h3>
-                <p class="benefit-card-text">
-                  Issues reach the appropriate facility authority quickly, dramatically reducing turnaround delays.
-                </p>
-              </div>
-              <div class="benefit-card-accent"></div>
-            </div>
-
-            <div class="benefit-glass-card">
-              <div class="benefit-card-icon-box">
-                <span>🎓</span>
-              </div>
-              <div class="benefit-card-body">
-                <h3 class="benefit-card-title">Student-Centric</h3>
-                <p class="benefit-card-text">
-                  Designed around the actual campus experience to ensure student voices lead to concrete improvements.
-                </p>
-              </div>
-              <div class="benefit-card-accent"></div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- ==========================================================================
-           5. FINAL CALL TO ACTION SECTION
-           ========================================================================== -->
-      <section class="final-cta-section" id="finalCtaSection">
-        <div class="container">
-          <div class="final-cta-banner">
-            <div class="cta-mesh-glow"></div>
-            
-            <div class="final-cta-container">
-              <span class="final-cta-badge">INSTANT CAMPUS ACTION</span>
-              <h2 class="final-cta-title">Have an issue on campus?</h2>
-              <p class="final-cta-desc">
-                Don't just report it.<br>
-                <span class="cta-accent-text">Track it. Resolve it.</span>
-              </p>
-              
-              <div class="final-cta-buttons">
-                <a href="/submit-complaint.html" class="btn btn-primary btn-cta-primary">
-                  <span>📝</span> Report an Issue →
-                </a>
-                <a href="/my-complaints.html" class="btn btn-cta-secondary">
-                  <span>🔍</span> Track Existing Complaint
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </div>
-
+    <!-- ================= CTA ================= -->
+    <section class="cn-final">
+      <h2 data-multi><span data-seg>Seen something broken?</span> <span data-seg class="cn-serif">Say it once.</span></h2>
+      <a href="/register" class="cn-cta" id="finalCta"><span>Report an issue</span><span class="cn-cta-dot" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+    </section>
   </main>
 
-  <!-- Universal CampusCare Footer -->
-  <footer class="app-footer campus-footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-brand-section">
-          <a href="/" class="footer-brand-logo">
-            <span class="brand-icon-sm">🏫</span>
-            <div class="brand-text">
-              <span class="brand-name">CampusCare</span>
-              <span class="brand-tag">Student Grievance Portal</span>
-            </div>
-          </a>
-          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
-        </div>
-        <div class="footer-links-section">
-          <ul class="footer-links" id="footerNavLinks">
-            <li><a href="/">Home</a></li>
-            <li><a href="/login.html">Student Login</a></li>
-            <li><a href="/register.html">Register</a></li>
-            <li><a href="/admin-login.html">Admin Portal</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div class="footer-copy">
-          &copy; 2026 CampusCare. Student Grievance Portal.
-        </div>
-      </div>
-    </div>
+  <footer class="cn-foot">
+    <span>CampusCare<sup>*</sup></span>
+    <span class="cn-mono">Built for students · Run by departments · Open by default</span>
+    <span><a href="/login">Students</a> · <a href="/admin-login">Staff</a></span>
   </footer>
 
-  <script src="/static/js/auth-state.js"></script>
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/campus-world.js"></script>
-
-  <!-- CampusCare Dynamic Time-Based Campus Background Controller -->
-  <script>
-    (function () {
-      'use strict';
-
-      const CAMPUS_IMAGES = {
-        morning: "/static/images/campus-morning.jpg",
-        afternoon: "/static/images/campus-afternoon.jpg",
-        evening: "/static/images/campus-evening.jpg",
-        night: "/static/images/campus-night.jpg"
-      };
-
-      Object.keys(CAMPUS_IMAGES).forEach(function (key) {
-        const preloadImg = new Image();
-        preloadImg.src = CAMPUS_IMAGES[key];
-      });
-
-      function getTimeCategory(dateObj) {
-        if (typeof window.getCampusBackground === 'function') {
-          return window.getCampusBackground(dateObj);
-        }
-
-        if (typeof dateObj === 'number' && dateObj >= 0 && dateObj <= 24) {
-          const h = dateObj === 24 ? 0 : dateObj;
-          if (h >= 5 && h < 12) return 'morning';
-          if (h >= 12 && h < 17) return 'afternoon';
-          if (h >= 17 && h < 20) return 'evening';
-          return 'night';
-        }
-
-        let d;
-        if (dateObj instanceof Date) {
-          d = isNaN(dateObj.getTime()) ? new Date() : dateObj;
-        } else if (typeof dateObj === 'number') {
-          d = new Date(dateObj);
-        } else if (typeof dateObj === 'string') {
-          d = new Date(dateObj);
-          if (isNaN(d.getTime())) d = new Date();
-        } else {
-          d = new Date();
-        }
-
-        const formatter = new Intl.DateTimeFormat('en-US', {
-          timeZone: 'Asia/Kolkata',
-          hour: 'numeric',
-          hourCycle: 'h23'
-        });
-
-        let hour = 0;
-        const parts = formatter.formatToParts(d);
-        for (const part of parts) {
-          if (part.type === 'hour') {
-            hour = parseInt(part.value, 10);
-          }
-        }
-        if (hour === 24) hour = 0;
-
-        if (hour >= 5 && hour < 12) {
-          return 'morning';
-        } else if (hour >= 12 && hour < 17) {
-          return 'afternoon';
-        } else if (hour >= 17 && hour < 20) {
-          return 'evening';
-        } else {
-          return 'night';
-        }
-      }
-      window.getTimeCategory = getTimeCategory;
-
-      let currentCategory = null;
-      let activeLayer = 1;
-      let timeEngineInterval = null;
-
-      function applyTimeBackground(targetCategory, isInitial) {
-        const layer1 = document.getElementById('campusBgLayer1');
-        const layer2 = document.getElementById('campusBgLayer2');
-        if (!layer1 || !layer2) return;
-
-        const imgUrl = CAMPUS_IMAGES[targetCategory] || CAMPUS_IMAGES.morning;
-
-        if (isInitial) {
-          layer1.style.backgroundImage = 'url("' + imgUrl + '")';
-          layer1.classList.add('is-active');
-          layer2.classList.remove('is-active');
-          currentCategory = targetCategory;
-          activeLayer = 1;
-          return;
-        }
-
-        if (targetCategory === currentCategory) return;
-
-        const nextLayer = activeLayer === 1 ? layer2 : layer1;
-        const prevLayer = activeLayer === 1 ? layer1 : layer2;
-
-        nextLayer.style.backgroundImage = 'url("' + imgUrl + '")';
-
-        requestAnimationFrame(function () {
-          nextLayer.classList.add('is-active');
-          prevLayer.classList.remove('is-active');
-        });
-
-        currentCategory = targetCategory;
-        activeLayer = activeLayer === 1 ? 2 : 1;
-      }
-
-      function updateCampusBackground() {
-        const now = new Date();
-        const category = getTimeCategory(now);
-        applyTimeBackground(category, !currentCategory);
-      }
-
-      function startEngine() {
-        updateCampusBackground();
-        if (timeEngineInterval) clearInterval(timeEngineInterval);
-        timeEngineInterval = setInterval(updateCampusBackground, 60000);
-        document.addEventListener('visibilitychange', function () {
-          if (!document.hidden) {
-            updateCampusBackground();
-          }
-        });
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', startEngine);
-      } else {
-        startEngine();
-      }
-    })();
-  </script>
-
-  <!-- Live Database Statistics Fetcher -->
-  <script>
-    async function loadLiveStatistics() {
-      try {
-        const res = await fetch('/api/public-stats');
-        const json = await res.json();
-        if (json.success && json.data) {
-          const s = json.data;
-
-          // Hero Right Card
-          const heroResolved = document.getElementById('heroResolvedCount');
-          const heroTotal = document.getElementById('heroTotalCount');
-          if (heroResolved) heroResolved.textContent = `${s.resolved_complaints} Complaints Resolved`;
-          if (heroTotal) heroTotal.textContent = `Out of ${s.total_complaints} Total Complaints`;
-
-          // Live Complaint Overview
-          const elTotal = document.getElementById('liveTotalComplaints');
-          const elOpen = document.getElementById('liveOpenComplaints');
-          const elProgress = document.getElementById('liveInProgress');
-          const elAwaiting = document.getElementById('liveAwaiting');
-          const elRegen = document.getElementById('liveRegenerated');
-          const elRes = document.getElementById('liveResolved');
-
-          if (elTotal) elTotal.textContent = s.total_complaints;
-          if (elOpen) elOpen.textContent = s.open_complaints;
-          if (elProgress) elProgress.textContent = s.in_progress;
-          if (elAwaiting) elAwaiting.textContent = s.awaiting;
-          if (elRegen) elRegen.textContent = s.regenerated;
-          if (elRes) elRes.textContent = s.resolved_complaints;
-
-          // Department Activity list
-          const deptContainer = document.getElementById('departmentActivityList');
-          if (deptContainer) {
-            const depts = Object.entries(s.department_activity || {});
-            if (depts.length > 0) {
-              deptContainer.innerHTML = depts.map(([dept, count]) => `
-                <div style="display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                  <span>${dept}</span>
-                  <span style="background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">${count}</span>
-                </div>
-              `).join('');
-            } else {
-              deptContainer.innerHTML = `
-                <div style="padding: 1rem 0; text-align: center; color: rgba(255,255,255,0.6);">
-                  No complaints recorded yet
-                </div>
-              `;
-            }
-          }
-
-          // Section 2: Metric counters
-          const cSub = document.getElementById('statComplaintsSubmitted');
-          const cRes = document.getElementById('statIssuesResolved');
-          const cRate = document.getElementById('statResolutionRate');
-          const cAvg = document.getElementById('statAverageResponse');
-
-          if (cSub) cSub.textContent = s.total_complaints;
-          if (cRes) cRes.textContent = s.resolved_complaints;
-          if (cRate) cRate.textContent = s.resolution_rate_display || `${s.resolution_rate}%`;
-          if (cAvg) cAvg.textContent = s.average_response_display || '--';
-        }
-      } catch (err) {
-        console.error('Error loading public statistics:', err);
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadLiveStatistics);
-  </script>
+  <script src="/static/js/campus-map.js" defer></script>
+  <script src="/static/js/cinema.js" defer></script>
 </body>
 </html>

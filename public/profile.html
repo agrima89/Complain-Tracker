@@ -3,176 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Profile - CampusCare</title>
+  <meta name="description" content="Your CampusCare account.">
+  <title>Profile · CampusCare</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css">
-  <meta name="csrf-token" content="netlify-serverless-jwt">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body>
-  <!-- Global Navbar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="/" class="nav-brand">
-        <span class="nav-logo-icon">🛡️</span>
-        <span class="nav-brand-text">Campus<span class="brand-accent">Care</span></span>
-      </a>
-      <div class="nav-links">
-        <a href="/" class="nav-link">Home</a>
-        <a id="navDashboardLink" href="/student-dashboard.html" class="nav-link">Dashboard</a>
-        <a href="/profile.html" class="nav-link active">Profile</a>
-        <button id="logoutBtn" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Sign Out</button>
-      </div>
-    </div>
-  </nav>
+<body class="app">
 
-  <div class="container" style="max-width: 720px; padding-top: 2rem; padding-bottom: 3rem;">
-    <!-- Live Time & Greeting -->
-    <div class="floating-time-display" style="margin-bottom: 1.5rem;">
-      <span class="time-headline-text">
-        <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
-        <span id="worldLiveTimeText">NIGHT CAMPUS</span>
-      </span>
-      <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
-    </div>
-
-    <div class="page-header">
-      <div class="page-header-title">
-        <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
-          <span class="tag-cyan-dot"></span>
-          <span>USER PROFILE</span>
-        </div>
-        <h1>Account Profile</h1>
-        <p class="page-header-subtitle">Your registered profile details and grievance activity summary.</p>
-      </div>
-      <div>
-        <a id="backDashboardBtn" href="/student-dashboard.html" class="btn btn-secondary btn-sm">← Back to Dashboard</a>
-      </div>
-    </div>
-
-    <!-- Profile Card -->
-    <div class="cinematic-card" style="margin-bottom: 2rem;">
-      <div class="card-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <div id="profileAvatar" style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; border: 2px solid rgba(56, 189, 248, 0.4); box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);">
-            👤
-          </div>
-          <div>
-            <h2 id="profileName" style="font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 0.2rem;">
-              Loading...
-            </h2>
-            <span id="profileRoleBadge" class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;">
-              Registered Account
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div class="card-body">
-        <div style="display: flex; flex-direction: column; gap: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Account Role</span>
-            <span id="profileRoleText" style="font-weight: 600; color: #ffffff; text-transform: capitalize;">-</span>
-          </div>
-
-          <div id="studentIdRow" style="display: none; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Student ID</span>
-            <span id="profileStudentId" style="font-weight: 600; font-family: monospace; color: #38bdf8;">-</span>
-          </div>
-
-          <div id="emailRow" style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Registered Email</span>
-            <span id="profileEmail" style="font-weight: 600; color: #ffffff;">-</span>
-          </div>
-
-          <div id="deptRow" style="display: none; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Department</span>
-            <span id="profileDept" style="font-weight: 600; color: #ffffff;">-</span>
-          </div>
-
-          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Total Grievances Lodged</span>
-            <span id="profileTotal" style="font-weight: 700; color: #38bdf8; font-size: 1.1rem;">0</span>
-          </div>
-
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #94a3b8; font-size: 0.9rem;">Successfully Resolved</span>
-            <span id="profileResolved" style="font-weight: 700; color: #4ade80; font-size: 1.1rem;">0</span>
-          </div>
-        </div>
-      </div>
-
-      <div style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <span style="font-size: 0.8rem; color: #94a3b8;">
-          Authenticated Session &bull; CampusCare
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="/" class="brand" aria-label="CampusCare home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg>
         </span>
-        <button id="profileSignOutBtn" class="btn btn-secondary btn-sm" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
-          🚪 Sign Out
-        </button>
+        CampusCare
+      </a>
+      <nav class="nav" aria-label="Main" id="nav"></nav>
+      <div class="user">
+        <span class="avatar" id="userInitials" aria-hidden="true">·</span>
+        <span class="user-name" id="userName"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
       </div>
     </div>
-  </div>
+  </header>
+
+  <main class="page">
+    <div class="wrap narrow">
+
+      <div class="profile-head">
+        <span class="avatar avatar-lg" id="bigInitials" aria-hidden="true">·</span>
+        <div>
+          <h1 class="page-title" id="profileName">Loading…</h1>
+          <p class="page-sub" id="profileRole"></p>
+        </div>
+      </div>
+
+      <section class="stats stats-3" aria-label="Activity summary">
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--st-open)"></i><span id="totalLabel">Reported</span></div>
+          <div class="stat-value" id="statTotal">–</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--st-progress)"></i>Still open</div>
+          <div class="stat-value" id="statOpen">–</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--st-resolved)"></i>Resolved</div>
+          <div class="stat-value" id="statResolved">–</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Account</h2></div>
+        <dl class="kv-list" id="facts"></dl>
+      </section>
+
+      <div class="form-actions">
+        <a class="btn btn-ghost" id="homeBtn" href="/student-dashboard">Back to dashboard</a>
+        <button type="button" class="btn btn-danger-ghost" id="signOutBtn">Sign out</button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>© 2026 CampusCare</span>
+      <span>Student grievance portal</span>
+    </div>
+  </footer>
 
   <script src="/static/js/auth-state.js"></script>
   <script>
-    async function loadProfile() {
-      const session = await checkAuthSession();
-      if (!session || !session.authenticated) {
-        window.location.href = '/login.html';
-        return;
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = (id) => document.getElementById(id);
+    const initials = (n) => n.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('') || '·';
+
+    const NAV = {
+      student: [['/student-dashboard', 'Dashboard'], ['/my-complaints', 'My complaints'], ['/submit-complaint', 'Report issue'], ['/profile', 'Profile']],
+      admin: [['/admin-dashboard', 'Complaints'], ['/soc', 'Audit log'], ['/admin/staff', 'Staff'], ['/profile', 'Profile']]
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { authenticated, user } = await window.CampusCareAuth.fetchSession();
+      if (!authenticated || !user) return (location.href = '/login?redirect=/profile');
+
+      const isStudent = user.role === 'student';
+      $('nav').innerHTML = NAV[isStudent ? 'student' : 'admin']
+        .filter(([href]) => href !== '/admin/staff' || !user.admin_department)
+        .map(([href, text]) => `<a href="${href}"${href === '/profile' ? ' aria-current="page"' : ''}>${text}</a>`).join('');
+
+      const name = isStudent ? (user.student_name || 'Student') : (user.admin_username || 'Administrator');
+      $('userName').textContent = name;
+      $('userInitials').textContent = initials(name);
+      $('bigInitials').textContent = initials(name);
+      $('profileName').textContent = name;
+      $('profileRole').textContent = isStudent
+        ? 'Student account'
+        : (user.admin_department ? `${user.admin_department} department admin` : 'Administrator · all departments');
+      $('homeBtn').href = isStudent ? '/student-dashboard' : '/admin-dashboard';
+      $('homeBtn').textContent = isStudent ? 'Back to dashboard' : 'Back to complaints';
+
+      const logout = () => window.CampusCareAuth.handleLogout();
+      $('logoutBtn').addEventListener('click', logout);
+      $('signOutBtn').addEventListener('click', logout);
+
+      const facts = isStudent
+        ? [['Name', name], ['Email', user.student_email], ['Student ID', `STU-${String(user.student_id).padStart(4, '0')}`], ['Role', 'Student']]
+        : [['Username', name], ['Email', user.admin_email], ['Department', user.admin_department || 'All departments'], ['Role', user.admin_role || 'Administrator']];
+      $('facts').innerHTML = facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v || '—')}</dd></div>`).join('');
+
+      if (!isStudent) $('totalLabel').textContent = 'Total complaints';
+      try {
+        const res = await fetch(isStudent ? '/api/complaints-list?page=1&per_page=1' : '/api/admin-stats');
+        const json = await res.json();
+        const s = json.data?.stats || {};
+        const total = s.total || 0, resolved = s.resolved || 0;
+        $('statTotal').textContent = total;
+        $('statResolved').textContent = resolved;
+        $('statOpen').textContent = Math.max(total - resolved, 0);
+      } catch {
+        ['statTotal', 'statOpen', 'statResolved'].forEach(id => $(id).textContent = '—');
       }
-
-      const role = session.role;
-      const isStudent = role === 'student';
-
-      document.getElementById('backDashboardBtn').href = isStudent ? '/student-dashboard.html' : '/admin-dashboard.html';
-      document.getElementById('navDashboardLink').href = isStudent ? '/student-dashboard.html' : '/admin-dashboard.html';
-      document.getElementById('profileAvatar').textContent = isStudent ? '👤' : '🛡️';
-      document.getElementById('profileRoleBadge').textContent = isStudent ? 'Registered Student' : 'System Administrator';
-      document.getElementById('profileRoleText').textContent = isStudent ? 'Student' : (session.admin_role || 'Administrator');
-
-      if (isStudent) {
-        document.getElementById('profileName').textContent = session.student_name || 'Student';
-        document.getElementById('studentIdRow').style.display = 'flex';
-        document.getElementById('profileStudentId').textContent = `STU-${String(session.student_id).padStart(4, '0')}`;
-        document.getElementById('profileEmail').textContent = session.student_email || '';
-
-        // Fetch student complaint stats
-        try {
-          const res = await fetch('/api/complaints-list?page=1&per_page=1');
-          const json = await res.json();
-          if (json.success && json.data) {
-            document.getElementById('profileTotal').textContent = json.data.stats?.total || 0;
-            document.getElementById('profileResolved').textContent = json.data.stats?.resolved || 0;
-          }
-        } catch (e) {}
-      } else {
-        document.getElementById('profileName').textContent = session.admin_username || 'Admin';
-        document.getElementById('profileEmail').textContent = session.admin_email || 'admin@campuscare.culko.in';
-        if (session.admin_department) {
-          document.getElementById('deptRow').style.display = 'flex';
-          document.getElementById('profileDept').textContent = session.admin_department;
-        }
-
-        // Fetch admin stats
-        try {
-          const res = await fetch('/api/admin-stats');
-          const json = await res.json();
-          if (json.success && json.data) {
-            document.getElementById('profileTotal').textContent = json.data.stats?.total || 0;
-            document.getElementById('profileResolved').textContent = json.data.stats?.resolved || 0;
-          }
-        } catch (e) {}
-      }
-
-      document.getElementById('profileSignOutBtn').addEventListener('click', async () => {
-        await fetch('/api/auth-logout', { method: 'POST' });
-        window.location.href = '/login.html';
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', loadProfile);
+    });
   </script>
 </body>
 </html>

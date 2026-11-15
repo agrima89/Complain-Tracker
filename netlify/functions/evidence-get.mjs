@@ -1,5 +1,5 @@
 import { query, initDb } from './utils/db.mjs';
-import { getSessionFromEvent } from './utils/auth.mjs';
+import { getSessionFromEvent, adminCanAccessComplaint } from './utils/auth.mjs';
 import { getEvidenceBlob } from './utils/blobs.mjs';
 
 export const handler = async (event, context) => {
@@ -15,7 +15,8 @@ export const handler = async (event, context) => {
   await initDb();
 
   const complaintId = event.queryStringParameters?.complaint_id || event.queryStringParameters?.id;
-  const directKey = event.queryStringParameters?.key;
+  // Fetching by raw storage key skips the ownership check, so only admins may do it.
+  const directKey = session.user.role === 'admin' ? event.queryStringParameters?.key : undefined;
 
   let photoPath = directKey;
 
@@ -31,7 +32,15 @@ export const handler = async (event, context) => {
       };
     }
 
-    // Check authorization: Admins have access to all; students only to their complaints
+    if (session.user.role === 'admin' && !adminCanAccessComplaint(session.user, complaint)) {
+      return {
+        statusCode: 403,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This complaint belongs to another department.' })
+      };
+    }
+
+    // Students may only see evidence for complaints they filed or co-reported.
     if (session.user.role !== 'admin') {
       const studentId = session.user.student_id;
       const isOwner = complaint.student_id === studentId;
@@ -74,7 +83,9 @@ export const handler = async (event, context) => {
     statusCode: 200,
     headers: {
       'Content-Type': blob.contentType,
-      'Cache-Control': 'private, max-age=3600',
+      // Never let a shared (e.g. college lab) browser keep another user's evidence.
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
       'Content-Disposition': 'inline'
     },
     body: blob.data.toString('base64'),

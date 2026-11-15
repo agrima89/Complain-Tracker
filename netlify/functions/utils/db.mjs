@@ -209,7 +209,8 @@ export async function query(text, params = []) {
     if (matches.length > 0) {
       sqliteParams = matches.map(m => params[parseInt(m[1], 10) - 1]);
     }
-    let convertedSql = text.replace(/\$([0-9]+)/g, '?');
+    // SQLite has no ILIKE; its LIKE is already case-insensitive for ASCII.
+    let convertedSql = text.replace(/\$([0-9]+)/g, '?').replace(/\bILIKE\b/gi, 'LIKE');
 
     // Remove RETURNING clauses for standard SQLite unless supported, or handle gracefully
     const hasReturning = /RETURNING\s+([a-zA-Z0-9_, *]+)/i.test(convertedSql);
@@ -250,7 +251,16 @@ export async function query(text, params = []) {
   }
 }
 
-export async function initDb() {
+// Schema setup and migrations run once per warm function instance, not on every request.
+let initPromise = null;
+export function initDb() {
+  if (!initPromise) {
+    initPromise = runInitDb().catch((err) => { initPromise = null; throw err; });
+  }
+  return initPromise;
+}
+
+async function runInitDb() {
   const isPg = isPostgres();
   const serialType = isPg ? 'SERIAL PRIMARY KEY' : 'INTEGER PRIMARY KEY AUTOINCREMENT';
   const textDefault = (val) => `TEXT DEFAULT '${val}'`;
@@ -393,8 +403,31 @@ export async function initDb() {
     )
   `);
 
+  // 9. Rate limiting buckets (shared across serverless instances)
+  await query(`
+    CREATE TABLE IF NOT EXISTS rate_limits (
+      rl_key TEXT PRIMARY KEY,
+      window_start INTEGER NOT NULL,
+      hits INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+
+  // Performance indexes for dashboards, filters and history lookups
+  const indexes = [
+    'CREATE INDEX IF NOT EXISTS idx_complaints_status ON complaints (status)',
+    'CREATE INDEX IF NOT EXISTS idx_complaints_department ON complaints (department)',
+    'CREATE INDEX IF NOT EXISTS idx_complaints_student ON complaints (student_id)',
+    'CREATE INDEX IF NOT EXISTS idx_complaints_date ON complaints (date)',
+    'CREATE INDEX IF NOT EXISTS idx_history_complaint ON complaint_status_history (complaint_id)',
+    'CREATE INDEX IF NOT EXISTS idx_reporters_complaint ON complaint_reporters (complaint_id)'
+  ];
+  for (const sql of indexes) {
+    try { await query(sql); } catch (e) { console.warn('[DB] index skipped:', e.message); }
+  }
+
   // Safe Column Migration for existing tables
   const extraColumns = [
+    { table: 'admins', column: 'is_active', type: 'INTEGER DEFAULT 1' },
     { table: 'complaints', column: 'assigned_authority', type: "TEXT DEFAULT ''" },
     { table: 'complaints', column: 'resolution_remarks', type: "TEXT DEFAULT ''" },
     { table: 'complaints', column: 'resolved_at', type: "TEXT DEFAULT ''" },
@@ -409,6 +442,12 @@ export async function initDb() {
     } catch (_) {
       // Column already exists
     }
+  }
+
+  // Older records used free-text statuses; map them onto the current lifecycle so they are
+  // counted, filtered and styled like everything else. Idempotent.
+  for (const [from, to] of [['RESOLVED', 'FINAL_RESOLVED'], ['CLOSED', 'FINAL_RESOLVED'], ['IN PROGRESS', 'IN_PROGRESS'], ['PENDING', 'NEW'], ['OPEN', 'NEW']]) {
+    try { await query(`UPDATE complaints SET status = $1 WHERE UPPER(status) = $2`, [to, from]); } catch (_) { /* table may be new */ }
   }
 
   // Never create public demo accounts or predictable default passwords.

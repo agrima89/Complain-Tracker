@@ -1,5 +1,5 @@
 import { query, initDb } from './utils/db.mjs';
-import { getSessionFromEvent } from './utils/auth.mjs';
+import { getSessionFromEvent, adminCanAccessComplaint } from './utils/auth.mjs';
 import { formatTicketId } from './utils/duplicate_logic.mjs';
 
 export const handler = async (event, context) => {
@@ -44,6 +44,14 @@ export const handler = async (event, context) => {
     const isAdmin = session.user.role === 'admin';
     const studentId = session.user.student_id;
 
+    if (isAdmin && !adminCanAccessComplaint(session.user, complaint)) {
+      return {
+        statusCode: 403,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This complaint belongs to another department.' })
+      };
+    }
+
     // Student authorization check
     if (!isAdmin) {
       const isOwner = complaint.student_id === studentId;
@@ -62,6 +70,12 @@ export const handler = async (event, context) => {
     }
 
     complaint.ticket_id = complaint.ticket_id || formatTicketId(complaint.complaint_id, complaint.date);
+    if (!isAdmin && complaint.student_id !== studentId) {
+      // A co-reporter of a merged complaint shouldn't see who filed it first.
+      delete complaint.student_name;
+      delete complaint.student_email;
+    }
+    delete complaint.student_id;
 
     // Fetch status history
     const histRes = await query(`
@@ -95,8 +109,9 @@ export const handler = async (event, context) => {
         data: {
           complaint,
           history: histRes.rows,
-          notes: notesRes.rows,
-          reporters: repListRes.rows
+          // Internal notes and other students' identities are for staff only.
+          notes: isAdmin ? notesRes.rows : [],
+          reporters: isAdmin ? repListRes.rows : []
         }
       })
     };

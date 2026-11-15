@@ -1,4 +1,5 @@
 import { query, initDb } from './utils/db.mjs';
+import { limitLogin } from './utils/http.mjs';
 import { verifyPassword, createSessionToken, createSessionCookie, isValidCollegeEmail } from './utils/auth.mjs';
 
 export const handler = async (event, context) => {
@@ -24,6 +25,8 @@ export const handler = async (event, context) => {
     }
 
     const email = (body.email || '').trim().toLowerCase();
+    const limited = await limitLogin(event, email);
+    if (limited) return limited;
     const password = body.password || '';
 
     if (!email || !password) {

@@ -1,5 +1,5 @@
 import { query, initDb } from './utils/db.mjs';
-import { getSessionFromEvent } from './utils/auth.mjs';
+import { getSessionFromEvent, adminCanAccessComplaint } from './utils/auth.mjs';
 
 export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -52,6 +52,14 @@ export const handler = async (event, context) => {
         statusCode: 404,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ success: false, error: 'Complaint not found.' })
+      };
+    }
+
+    if (!adminCanAccessComplaint(session.user, complaint)) {
+      return {
+        statusCode: 403,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This complaint belongs to another department.' })
       };
     }
 

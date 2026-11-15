@@ -40,6 +40,15 @@ export const handler = async (event, context) => {
         };
       }
 
+      const exists = await query('SELECT 1 FROM complaints WHERE complaint_id = $1', [complaintId]);
+      if (exists.rows.length === 0) {
+        return {
+          statusCode: 404,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ success: false, error: 'Complaint not found.' })
+        };
+      }
+
       const nowTimestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
       const res = await query(`
         INSERT INTO admin_notes (complaint_id, admin_id, admin_name, note, created_at)

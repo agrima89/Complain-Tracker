@@ -69,6 +69,15 @@ export const handler = async (event, context) => {
       };
     }
 
+    // Only a complaint the department has marked as fixed can be reopened.
+    if (!['AWAITING_STUDENT_CONFIRMATION', 'RESOLUTION_SUBMITTED'].includes(complaint.status)) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This complaint is not waiting for your confirmation.' })
+      };
+    }
+
     const newCount = (complaint.regeneration_count || 0) + 1;
     const currentTicket = complaint.ticket_id || `CMP-${complaint.complaint_id}`;
     const baseTicket = currentTicket.split('-R')[0];

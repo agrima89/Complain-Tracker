@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Manage CampusCare staff accounts.">
+  <title>Staff accounts · CampusCare Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="app">
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="/admin-dashboard" class="brand" aria-label="CampusCare admin home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg>
+        </span>
+        CampusCare <span class="brand-tag">Admin</span>
+      </a>
+      <nav class="nav" aria-label="Main">
+        <a href="/admin-dashboard">Complaints</a>
+        <a href="/soc">Audit log</a>
+        <a href="/admin/staff" aria-current="page">Staff</a>
+        <a href="/profile">Profile</a>
+      </nav>
+      <div class="user">
+        <span class="avatar" id="userInitials" aria-hidden="true">·</span>
+        <span class="user-name" id="userName"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div class="wrap">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">Staff accounts</h1>
+          <p class="page-sub">Give each department head their own sign-in. Only you can see this page.</p>
+        </div>
+      </div>
+
+      <section class="section">
+        <div class="section-head"><h2 class="section-title">Add a staff member</h2></div>
+        <p class="section-hint">You'll get a one-time password to hand over in person. Ask them to keep it private.</p>
+        <div class="alert alert-error" id="formAlert" hidden></div>
+        <form class="grid grid-3" id="createForm">
+          <div class="field">
+            <label for="username">Username <span class="req">*</span></label>
+            <input class="input" id="username" required pattern="[A-Za-z0-9._\-]{3,40}" placeholder="e.g. electrical.head" autocomplete="off" autocapitalize="off" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="department">Department</label>
+            <select class="select" id="department">
+              <option value="">All departments (main admin)</option>
+            </select>
+          </div>
+          <div class="field field-end">
+            <button type="submit" class="btn btn-primary" id="createBtn">Create account</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="staffTitle">
+        <div class="panel-head">
+          <h2 class="panel-title" id="staffTitle">All staff</h2>
+          <span class="panel-meta" id="countMeta"></span>
+        </div>
+        <ul class="rows" id="list">
+          <li class="row"><div class="row-main"><div class="skeleton" style="width:40%"></div></div></li>
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>© 2026 CampusCare</span>
+      <span>Administration</span>
+    </div>
+  </footer>
+
+  <dialog class="modal" id="pwModal">
+    <h3 id="pwTitle">Account ready</h3>
+    <p id="pwText"></p>
+    <div class="secret"><code id="pwValue"></code><button type="button" class="btn btn-ghost btn-sm" id="copyBtn">Copy</button></div>
+    <p class="muted">This password is shown only once. If it's lost, reset it.</p>
+    <div class="modal-actions"><button type="button" class="btn btn-primary" data-close>Done</button></div>
+  </dialog>
+
+  <dialog class="modal" id="confirmModal">
+    <h3 id="confirmTitle"></h3>
+    <p id="confirmText"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="button" class="btn btn-primary" id="confirmGo">Confirm</button>
+    </div>
+  </dialog>
+
+  <script src="/static/js/auth-state.js"></script>
+  <script>
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = (id) => document.getElementById(id);
+    let staff = [], me = null, pending = null;
+
+    document.querySelectorAll('dialog [data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+    async function api(method, body) {
+      const res = await fetch('/api/admin-staff', { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || 'Request failed.');
+      return json.data || {};
+    }
+
+    function showPassword(title, text, password) {
+      $('pwTitle').textContent = title;
+      $('pwText').textContent = text;
+      $('pwValue').textContent = password;
+      $('copyBtn').textContent = 'Copy';
+      $('pwModal').showModal();
+    }
+
+    function render() {
+      $('countMeta').textContent = `${staff.length} account${staff.length === 1 ? '' : 's'}`;
+      $('list').innerHTML = staff.map(a => {
+        const self = a.admin_id === me;
+        return `
+          <li class="row row-static row-staff">
+            <div class="row-main">
+              <div class="row-title">${esc(a.username)}${self ? ' <span class="ticket">you</span>' : ''}</div>
+              <div class="row-meta">${esc(a.department || 'All departments')}</div>
+            </div>
+            <span class="pill ${a.is_active ? 'resolved' : ''}">${a.is_active ? 'Active' : 'Disabled'}</span>
+            <div class="row-actions">
+              <button type="button" class="btn btn-ghost btn-sm" data-act="reset" data-id="${a.admin_id}">Reset password</button>
+              ${self ? '' : `<button type="button" class="btn btn-sm ${a.is_active ? 'btn-danger-ghost' : 'btn-ghost'}" data-act="${a.is_active ? 'disable' : 'enable'}" data-id="${a.admin_id}">${a.is_active ? 'Disable' : 'Enable'}</button>`}
+            </div>
+          </li>`;
+      }).join('');
+    }
+
+    async function load() {
+      const data = await api('GET');
+      staff = data.staff; me = data.me;
+      if ($('department').options.length === 1) {
+        $('department').insertAdjacentHTML('beforeend', data.departments.map(d => `<option>${esc(d)}</option>`).join(''));
+      }
+      render();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CampusCareAuth.requireAdmin();
+      if (!user) return;
+      if (user.admin_department) return (location.href = '/admin-dashboard');
+      const name = user.admin_username || 'Admin';
+      $('userName').textContent = name;
+      $('userInitials').textContent = name.slice(0, 2).toUpperCase();
+      $('logoutBtn').addEventListener('click', () => window.CampusCareAuth.handleLogout());
+
+      try { await load(); }
+      catch (err) { $('list').innerHTML = `<li class="empty"><h3>Couldn't load staff</h3><p>${esc(err.message)}</p></li>`; }
+
+      $('createForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        $('formAlert').hidden = true;
+        const btn = $('createBtn');
+        btn.disabled = true; btn.textContent = 'Creating…';
+        try {
+          const dept = $('department').value;
+          const data = await api('POST', { action: 'create', username: $('username').value, department: dept });
+          $('username').value = '';
+          showPassword('Account created', `Give these to ${data.username} (${dept || 'all departments'}). They sign in at /admin-login.`, data.password);
+          await load();
+        } catch (err) {
+          $('formAlert').textContent = err.message;
+          $('formAlert').hidden = false;
+        }
+        btn.disabled = false; btn.textContent = 'Create account';
+      });
+
+      $('list').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-act]');
+        if (!btn) return;
+        const a = staff.find(s => String(s.admin_id) === btn.dataset.id);
+        pending = { action: btn.dataset.act, admin_id: a.admin_id, username: a.username };
+        const copy = {
+          reset: [`Reset ${a.username}'s password?`, 'Their current password stops working right away.', 'Reset'],
+          disable: [`Disable ${a.username}?`, "They won't be able to sign in until you enable the account again.", 'Disable'],
+          enable: [`Enable ${a.username}?`, 'They will be able to sign in again with their current password.', 'Enable']
+        }[pending.action];
+        $('confirmTitle').textContent = copy[0];
+        $('confirmText').textContent = copy[1];
+        $('confirmGo').textContent = copy[2];
+        $('confirmGo').className = `btn ${pending.action === 'disable' ? 'btn-danger' : 'btn-primary'}`;
+        $('confirmModal').showModal();
+      });
+
+      $('confirmGo').addEventListener('click', async () => {
+        const btn = $('confirmGo');
+        btn.disabled = true;
+        try {
+          const data = await api('POST', { action: pending.action, admin_id: pending.admin_id });
+          $('confirmModal').close();
+          if (pending.action === 'reset') showPassword('Password reset', `New password for ${data.username}:`, data.password);
+          await load();
+        } catch (err) { alert(err.message); }
+        btn.disabled = false;
+      });
+
+      $('copyBtn').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText($('pwValue').textContent); $('copyBtn').textContent = 'Copied'; }
+        catch { $('copyBtn').textContent = 'Select & copy'; }
+      });
+    });
+  </script>
+</body>
+</html>

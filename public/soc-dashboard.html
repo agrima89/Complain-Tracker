@@ -3,178 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SOC Audit Logs - CampusCare</title>
+  <meta name="description" content="CampusCare security and access audit log.">
+  <title>Audit log · CampusCare Admin</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/style.css">
-  <meta name="csrf-token" content="netlify-serverless-jwt">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body>
-  <!-- Global Navbar -->
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="/" class="nav-brand">
-        <span class="nav-logo-icon">🛡️</span>
-        <span class="nav-brand-text">Campus<span class="brand-accent">Care</span></span>
+<body class="app">
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="/admin-dashboard" class="brand" aria-label="CampusCare admin home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg>
+        </span>
+        CampusCare <span class="brand-tag">Admin</span>
       </a>
-      <div class="nav-links">
-        <a href="/" class="nav-link">Home</a>
-        <a href="/admin-dashboard.html" class="nav-link">Admin Dashboard</a>
-        <a href="/soc-dashboard.html" class="nav-link active">SOC Logs</a>
-        <a href="/profile.html" class="nav-link">Profile</a>
-        <button id="logoutBtn" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;">Sign Out</button>
+      <nav class="nav" aria-label="Main">
+        <a href="/admin-dashboard">Complaints</a>
+        <a href="/soc" aria-current="page">Audit log</a>
+        <a href="/admin/staff" data-super hidden>Staff</a>
+        <a href="/profile">Profile</a>
+      </nav>
+      <div class="user">
+        <span class="avatar" id="userInitials" aria-hidden="true">·</span>
+        <span class="user-name" id="userName"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
       </div>
     </div>
-  </nav>
+  </header>
 
-  <div class="container" style="max-width: 1200px; padding-top: 2rem; padding-bottom: 3rem;">
-    <div class="page-header" style="margin-bottom: 2rem;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+  <main class="page">
+    <div class="wrap">
+
+      <div class="page-head">
         <div>
-          <div class="floating-cell-tag" style="margin-bottom: 0.5rem;">
-            <span class="tag-cyan-dot" style="background: #ef4444; box-shadow: 0 0 10px #ef4444;"></span>
-            <span style="color: #ef4444;">SECURITY OPERATIONS CENTER</span>
-          </div>
-          <h1>SOC Audit Logs</h1>
-          <p class="page-header-subtitle">System-wide security monitoring and compliance tracking.</p>
-        </div>
-        <div>
-          <a href="/admin-dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+          <h1 class="page-title">Audit log</h1>
+          <p class="page-sub">Sign-ins, failed attempts and blocked access across the portal.</p>
         </div>
       </div>
+
+      <section class="stats" aria-label="Summary">
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--text-3)"></i>Events</div>
+          <div class="stat-value" id="statTotal">–</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--st-open)"></i>Failed sign-ins</div>
+          <div class="stat-value" id="statFailed">–</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--st-awaiting)"></i>Blocked access</div>
+          <div class="stat-value" id="statUnauth">–</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label"><i style="background:var(--danger)"></i>High severity</div>
+          <div class="stat-value" id="statHigh">–</div>
+        </div>
+      </section>
+
+      <form class="toolbar" id="filterForm" role="search">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" class="input" id="searchInput" placeholder="Filter by event, email or detail…" aria-label="Filter events">
+        </div>
+        <select class="select" id="sevFilter" aria-label="Severity">
+          <option value="">All severities</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+      </form>
+
+      <section class="panel" aria-labelledby="logTitle">
+        <div class="panel-head">
+          <h2 class="panel-title" id="logTitle">Recent events</h2>
+          <span class="panel-meta" id="countMeta">Last 100</span>
+        </div>
+        <ul class="rows" id="list">
+          <li class="row"><div class="row-main"><div class="skeleton" style="width:40%"></div><div class="skeleton" style="width:65%;margin-top:8px"></div></div></li>
+        </ul>
+      </section>
+
     </div>
+  </main>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-      <div class="stat-card">
-        <div class="stat-header">
-          <span class="stat-label">TOTAL LOGS</span>
-          <div class="stat-icon">📝</div>
-        </div>
-        <div id="statTotalLogs" class="stat-value">0</div>
-      </div>
-
-      <div class="stat-card stat-pending" style="border-top-color: #f97316;">
-        <div class="stat-header">
-          <span class="stat-label" style="color: #f97316;">FAILED LOGINS</span>
-          <div class="stat-icon" style="color: #f97316; background: rgba(249, 115, 22, 0.1);">⚠️</div>
-        </div>
-        <div id="statFailedLogins" class="stat-value" style="color: #f97316;">0</div>
-      </div>
-
-      <div class="stat-card stat-progress" style="border-top-color: #ef4444;">
-        <div class="stat-header">
-          <span class="stat-label" style="color: #ef4444;">UNAUTHORIZED ACCESS</span>
-          <div class="stat-icon" style="color: #ef4444; background: rgba(239, 68, 68, 0.1);">🚫</div>
-        </div>
-        <div id="statUnauthorized" class="stat-value" style="color: #ef4444;">0</div>
-      </div>
-
-      <div class="stat-card stat-resolved" style="border-top-color: #b91c1c;">
-        <div class="stat-header">
-          <span class="stat-label" style="color: #b91c1c;">HIGH SEVERITY</span>
-          <div class="stat-icon" style="color: #b91c1c; background: rgba(185, 28, 28, 0.1);">🚨</div>
-        </div>
-        <div id="statHighSeverity" class="stat-value" style="color: #b91c1c;">0</div>
-      </div>
+  <footer class="footer">
+    <div class="wrap">
+      <span>© 2026 CampusCare</span>
+      <span>Administration</span>
     </div>
-
-    <!-- Security Events Table -->
-    <div class="cinematic-card">
-      <div class="card-header" style="padding: 1rem 1.5rem;">
-        <h2 style="font-size: 1.1rem; font-weight: 700;">Recent Security Events (Last 100)</h2>
-      </div>
-      <div class="card-body" style="padding: 0;">
-        <div class="table-responsive">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Event Type</th>
-                <th>User / Subject</th>
-                <th>Department</th>
-                <th>Severity</th>
-                <th>Details</th>
-              </tr>
-            </thead>
-            <tbody id="logsTableBody">
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 2.5rem; color: #94a3b8;">Loading audit events...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
+  </footer>
 
   <script src="/static/js/auth-state.js"></script>
   <script>
-    async function loadSocLogs() {
-      const session = await checkAuthSession();
-      if (!session || !session.authenticated || session.role !== 'admin') {
-        window.location.href = '/admin-login.html';
-        return;
-      }
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const $ = (id) => document.getElementById(id);
+    const SEV = { HIGH: 'reopened', MEDIUM: 'open', LOW: '' };
+    const pretty = (s) => String(s || '').toLowerCase().replace(/_/g, ' ').replace(/^\w/, c => c.toUpperCase());
+    let logs = [];
+
+    function fmt(d) {
+      const date = new Date(String(d).replace(' ', 'T'));
+      return isNaN(date) ? esc(d) : date.toLocaleString(undefined, { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
+    }
+
+    function render() {
+      const q = $('searchInput').value.trim().toLowerCase();
+      const sev = $('sevFilter').value;
+      const shown = logs.filter(l =>
+        (!sev || (l.severity || 'LOW') === sev) &&
+        (!q || [l.event_type, l.user_email, l.details, l.department].join(' ').toLowerCase().includes(q)));
+      $('countMeta').textContent = shown.length === logs.length ? `Last ${logs.length}` : `${shown.length} of ${logs.length}`;
+      $('list').innerHTML = shown.length
+        ? shown.map(l => {
+            const s = l.severity || 'LOW';
+            return `
+              <li class="row row-static">
+                <div class="row-main">
+                  <div class="row-title">${esc(pretty(l.event_type))}</div>
+                  <div class="row-meta" title="${esc(l.details || '')}">${esc(l.user_email || 'Unknown user')}${l.department ? `<span class="sep">·</span>${esc(l.department)}` : ''}${l.details ? `<span class="sep">·</span>${esc(l.details)}` : ''}</div>
+                </div>
+                <span class="pill ${SEV[s] ?? ''}">${esc(pretty(s))}</span>
+                <span class="log-time">${fmt(l.timestamp)}</span>
+              </li>`;
+          }).join('')
+        : `<li class="empty"><h3>${logs.length ? 'No matching events' : 'No events recorded yet'}</h3><p>${logs.length ? 'Try a different filter.' : 'Sign-ins and access checks will show up here.'}</p></li>`;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await window.CampusCareAuth.requireAdmin();
+      if (!user) return;
+      const name = user.admin_username || 'Admin';
+      $('userName').textContent = name;
+      $('userInitials').textContent = name.slice(0, 2).toUpperCase();
+      $('logoutBtn').addEventListener('click', () => window.CampusCareAuth.handleLogout());
 
       try {
         const res = await fetch('/api/soc-logs');
         const json = await res.json();
-        if (!json.success || !json.data) {
-          alert('Failed to load SOC audit logs.');
-          return;
-        }
-
-        const { logs, total, high_severity, failed_logins, unauthorized } = json.data;
-
-        document.getElementById('statTotalLogs').textContent = total || 0;
-        document.getElementById('statFailedLogins').textContent = failed_logins || 0;
-        document.getElementById('statUnauthorized').textContent = unauthorized || 0;
-        document.getElementById('statHighSeverity').textContent = high_severity || 0;
-
-        const tbody = document.getElementById('logsTableBody');
-        if (!logs || logs.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">No security events recorded.</td>
-            </tr>
-          `;
-          return;
-        }
-
-        tbody.innerHTML = logs.map(l => {
-          let sevBadge = '<span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #7dd3fc; border: 1px solid rgba(56, 189, 248, 0.3);">LOW</span>';
-          if (l.severity === 'HIGH') {
-            sevBadge = '<span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3);">🚨 HIGH</span>';
-          } else if (l.severity === 'MEDIUM') {
-            sevBadge = '<span class="badge" style="background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3);">⚠️ MEDIUM</span>';
-          }
-
-          return `
-            <tr>
-              <td style="font-family: monospace; font-size: 0.85rem; color: #94a3b8; white-space: nowrap;">${l.timestamp}</td>
-              <td>
-                <span class="badge" style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; font-size: 0.78rem;">
-                  ${l.event_type}
-                </span>
-              </td>
-              <td style="color: #cbd5e1;">${l.user_email || '-'}</td>
-              <td style="color: #cbd5e1;">${l.department || '-'}</td>
-              <td>${sevBadge}</td>
-              <td style="color: #94a3b8; font-size: 0.85rem; max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${l.details || ''}">
-                ${l.details || '-'}
-              </td>
-            </tr>
-          `;
-        }).join('');
-
+        if (!res.ok || !json.success) throw new Error(json.error || 'Request failed');
+        const d = json.data || {};
+        logs = d.logs || [];
+        $('statTotal').textContent = d.total || 0;
+        $('statFailed').textContent = d.failed_logins || 0;
+        $('statUnauth').textContent = d.unauthorized || 0;
+        $('statHigh').textContent = d.high_severity || 0;
+        render();
       } catch (err) {
-        console.error('Error loading SOC logs:', err);
+        $('list').innerHTML = `<li class="empty"><h3>Couldn't load the audit log</h3><p>${esc(err.message)}</p></li>`;
       }
-    }
 
-    document.addEventListener('DOMContentLoaded', loadSocLogs);
+      $('filterForm').addEventListener('submit', (e) => e.preventDefault());
+      $('searchInput').addEventListener('input', render);
+      $('sevFilter').addEventListener('change', render);
+    });
   </script>
 </body>
 </html>

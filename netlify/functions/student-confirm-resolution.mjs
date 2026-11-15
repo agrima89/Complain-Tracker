@@ -67,6 +67,15 @@ export const handler = async (event, context) => {
       };
     }
 
+    // Only a complaint the department has marked as fixed can be confirmed.
+    if (!['AWAITING_STUDENT_CONFIRMATION', 'RESOLUTION_SUBMITTED'].includes(complaint.status)) {
+      return {
+        statusCode: 409,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This complaint is not waiting for your confirmation.' })
+      };
+    }
+
     const nowTimestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
     await query(`

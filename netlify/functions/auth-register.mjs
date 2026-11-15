@@ -1,4 +1,5 @@
-import { query, initDb } from './utils/db.mjs';
+﻿import { query, initDb } from './utils/db.mjs';
+import { rateLimit, LIMITS } from './utils/http.mjs';
 import { hashPassword, createSessionToken, createSessionCookie, isValidCollegeEmail } from './utils/auth.mjs';
 
 export const handler = async (event, context) => {
@@ -12,6 +13,8 @@ export const handler = async (event, context) => {
 
   try {
     await initDb();
+    const limited = await rateLimit(event, 'register', LIMITS.register);
+    if (limited) return limited;
     let body = {};
     try {
       body = JSON.parse(event.body || '{}');
@@ -44,11 +47,11 @@ export const handler = async (event, context) => {
       };
     }
 
-    if (!password || password.length < 4) {
+    if (!password || password.length < 8) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ success: false, error: 'Password must be at least 4 characters long.', message: 'Password must be at least 4 characters long.' })
+        body: JSON.stringify({ success: false, error: 'Password must be at least 8 characters long.', message: 'Password must be at least 8 characters long.' })
       };
     }
 

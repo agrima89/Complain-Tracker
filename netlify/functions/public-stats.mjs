@@ -14,6 +14,7 @@ export const handler = async (event, context) => {
         COUNT(CASE WHEN status IN ('RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') THEN 1 END) as awaiting,
         COUNT(CASE WHEN status IN ('REOPENED', 'REGENERATED') THEN 1 END) as regenerated
       FROM complaints
+      WHERE (is_primary = TRUE OR is_primary IS NULL)
     `;
     const res = await query(statsSql);
     const row = res.rows[0] || {};
@@ -31,6 +32,7 @@ export const handler = async (event, context) => {
     const deptSql = `
       SELECT COALESCE(NULLIF(department, ''), 'General') as dept, COUNT(*) as c
       FROM complaints
+      WHERE (is_primary = TRUE OR is_primary IS NULL)
       GROUP BY dept
       ORDER BY c DESC
     `;
@@ -38,6 +40,21 @@ export const handler = async (event, context) => {
     const departmentActivity = {};
     for (const d of deptRes.rows) {
       departmentActivity[d.dept] = parseInt(d.c, 10);
+    }
+
+    // 2b. Anonymous per-block health for the campus map (counts only, no personal data)
+    const blockRes = await query(`
+      SELECT COALESCE(NULLIF(block, ''), 'Other') as blk,
+        COUNT(CASE WHEN status NOT IN ('FINAL_RESOLVED') THEN 1 END) as open_c,
+        COUNT(CASE WHEN status NOT IN ('FINAL_RESOLVED') AND LOWER(priority) = 'high' THEN 1 END) as urgent_c,
+        COUNT(CASE WHEN status = 'FINAL_RESOLVED' THEN 1 END) as fixed_c
+      FROM complaints
+      WHERE (is_primary = TRUE OR is_primary IS NULL)
+      GROUP BY blk
+    `);
+    const blockHealth = {};
+    for (const b of blockRes.rows) {
+      blockHealth[b.blk] = { open: parseInt(b.open_c, 10), urgent: parseInt(b.urgent_c, 10), fixed: parseInt(b.fixed_c, 10) };
     }
 
     // 3. Average response time calculation
@@ -60,7 +77,8 @@ export const handler = async (event, context) => {
       resolution_rate_display: resolutionRateDisplay,
       average_response_display: averageResponseDisplay,
       average_response_hours: averageResponseHours,
-      department_activity: departmentActivity
+      department_activity: departmentActivity,
+      block_health: blockHealth
     };
 
     return {

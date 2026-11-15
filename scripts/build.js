@@ -1,7 +1,10 @@
 /**
  * CampusCare - Build Script
- * Prepares the public/ distribution folder for Netlify deployment
- * by syncing static assets and verifying build integrity.
+ * public/ is the single source of truth for the Netlify site. This script only checks it.
+ *
+ * It used to copy the legacy Flask static/ folder into public/static, which silently replaced
+ * newer files (auth-state.js, auth-page.js, auth-page.css) with stale copies on every deploy.
+ * The Flask app keeps its own static/ folder; never copy it into public/.
  */
 
 import fs from 'fs';
@@ -9,35 +12,26 @@ import path from 'path';
 
 const rootDir = process.cwd();
 const publicDir = path.resolve(rootDir, 'public');
-const staticSrc = path.resolve(rootDir, 'static');
-const staticDest = path.resolve(publicDir, 'static');
+const problems = [];
 
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
-}
-
-function copyDirRecursive(src, dest) {
-  if (!fs.existsSync(src)) return;
-  if (!fs.existsSync(dest)) {
-    fs.mkdirSync(dest, { recursive: true });
-  }
-
-  const entries = fs.readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = path.join(src, entry.name);
-    const destPath = path.join(dest, entry.name);
-
-    if (entry.isDirectory()) {
-      copyDirRecursive(srcPath, destPath);
-    } else {
-      fs.copyFileSync(srcPath, destPath);
-    }
+// 1. Every /static/... asset referenced by a page must exist.
+const pages = fs.readdirSync(publicDir).filter(f => f.endsWith('.html'));
+const OPTIONAL = new Set(['/static/video/campus.mp4']); // home page falls back to a photo
+for (const page of pages) {
+  const html = fs.readFileSync(path.join(publicDir, page), 'utf8');
+  for (const [, ref] of html.matchAll(/(?:src|href)="(\/static\/[^"?#]+)"/g)) {
+    if (OPTIONAL.has(ref)) continue;
+    if (!fs.existsSync(path.join(publicDir, ref))) problems.push(`${page} references missing ${ref}`);
   }
 }
 
-console.log('[Build] Syncing static assets to public/static...');
-copyDirRecursive(staticSrc, staticDest);
+// 2. Nothing private may be published.
+for (const forbidden of ['database.db', 'database_backup.db', '.env']) {
+  if (fs.existsSync(path.join(publicDir, forbidden))) problems.push(`public/${forbidden} must not be deployed`);
+}
 
-// Do not copy the SQLite database into the public directory. Static files are publicly downloadable,
-// and serverless /tmp SQLite is not durable storage. Production must use configured PostgreSQL.
-console.log('[Build] Static assets synced successfully.');
+if (problems.length) {
+  console.error('[Build] Failed:\n  ' + problems.join('\n  '));
+  process.exit(1);
+}
+console.log(`[Build] OK: ${pages.length} pages checked, all referenced assets present.`);

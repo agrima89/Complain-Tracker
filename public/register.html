@@ -3,288 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CampusCare - Student Registration. Transparent university grievance redressal.">
-  <title>Student Registration - CampusCare Portal</title>
-
-  <script>
-    (function() {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
-
+  <meta name="description" content="Create a CampusCare account to report campus issues.">
+  <meta name="theme-color" content="#09090b">
+  <title>Create account · CampusCare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/components.css">
-  <link rel="stylesheet" href="/static/css/forms.css">
-  <link rel="stylesheet" href="/static/css/dashboard.css">
-  <link rel="stylesheet" href="/static/css/campus-world.css">
-  <link rel="stylesheet" href="/static/css/auth.css">
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Bodoni+Moda:ital,wght@1,500&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/theme.css">
+  <link rel="stylesheet" href="/static/css/home.css">
+  <link rel="stylesheet" href="/static/css/auth-page.css">
 </head>
-<body class="auth-page">
+<body class="a-body">
 
-  <div class="auth-page-body">
-    <header class="auth-top-navbar">
-      <a href="/" class="auth-nav-brand">
-        <div class="brand-logo-icon">🏫</div>
-        <div class="brand-title-group">
-          <span class="brand-name">CampusCare</span>
-          <span class="brand-sub">Student Grievance Portal</span>
-        </div>
-      </a>
-
-      <div class="auth-nav-actions">
-        <a href="/" class="auth-nav-link">Home</a>
-        <a href="/login" class="auth-nav-pill-btn">Sign In</a>
-      </div>
-    </header>
-
-    <div class="auth-split-wrapper">
+  <aside class="a-side" aria-hidden="false">
+    <a href="/" class="h-brand"><span class="h-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg></span> CampusCare</a>
+    <div>
+      <span class="cc-eyebrow"><b>●</b> Takes 30 seconds</span>
+      <h1 class="cc-display" style="margin-top:1rem">Report it once.<br><span class="cc-serif">Watch it get fixed.</span></h1>
+      <p>One account lets you report issues, attach photos, follow progress and confirm when it is fixed.</p>
       
-      <!-- LEFT PANEL: Visuals & Highlights -->
-      <div class="auth-visual-panel">
-        <div class="auth-panel-content">
-          <div class="floating-time-display" style="margin-bottom: 1.5rem;">
-            <span class="time-headline-text">
-              <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
-              <span id="worldLiveTimeText">NIGHT CAMPUS</span>
-            </span>
-            <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
-          </div>
-
-          <div class="auth-badge">
-            <span class="auth-badge-dot"></span>
-            <span>STUDENT REGISTRATION</span>
-          </div>
-
-          <h1 class="auth-hero-title">
-            Join Your Campus<br>
-            <span class="auth-hero-highlight">Resolution Network.</span>
-          </h1>
-
-          <p class="auth-hero-subtext">
-            Create an account to report issues, track live solutions, and help build a better university environment.
-          </p>
-
-          <div style="display: flex; flex-direction: column; gap: 0.85rem; margin: 2rem 0;">
-            <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
-              <span style="color: #38bdf8; font-weight: bold;">✓</span>
-              <span>Direct grievance submission across all campus facilities</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
-              <span style="color: #38bdf8; font-weight: bold;">✓</span>
-              <span>Real-time resolution updates and timeline milestones</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 0.75rem; color: #e2e8f0; font-size: 0.95rem;">
-              <span style="color: #38bdf8; font-weight: bold;">✓</span>
-              <span>Verified solutions audited by university administration</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="font-size: 0.78rem; color: #64748b; position: relative; z-index: 2;">
-          CampusCare Student Portal • Encrypted & Protected
-        </div>
-      </div>
-
-      <!-- RIGHT PANEL: Registration Glass Card -->
-      <div class="auth-card-panel">
-        <div class="auth-form-glass-card">
-          <div class="login-card-header">
-            <div class="login-brand-icon-box"><span>✨</span></div>
-            <span class="login-welcome-wave">Get Started 🎓</span>
-            <h2 class="login-card-title">Create Account</h2>
-            <p class="login-card-subtext">Enter your details to register as a student.</p>
-          </div>
-
-          <div id="authAlert" class="auth-inline-alert" style="display: none;" role="alert">
-            <span class="alert-icon">⚠</span>
-            <span id="authAlertText"></span>
-          </div>
-
-          <form id="studentRegisterForm" autocomplete="on">
-            <div class="auth-input-group">
-              <label for="name" class="auth-input-label">
-                Full Legal Name <span style="color: #f43f5e;">*</span>
-              </label>
-              <div class="auth-input-with-icon">
-                <span class="auth-input-icon">👤</span>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  class="auth-form-input"
-                  placeholder="e.g. Rahul Sharma"
-                  required
-                  autofocus
-                >
-              </div>
-            </div>
-
-            <div class="auth-input-group">
-              <label for="email" class="auth-input-label">
-                Chandigarh University Email <span style="color: #f43f5e;">*</span>
-              </label>
-              <div class="auth-input-with-icon">
-                <span class="auth-input-icon">✉</span>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  class="auth-form-input"
-                  placeholder="e.g. 23mca10001@culkomail.in"
-                  required
-                >
-              </div>
-              <span class="auth-field-hint">Must be your official @culkomail.in university address.</span>
-            </div>
-
-            <div class="auth-input-group">
-              <label for="password" class="auth-input-label">
-                Create Secure Password <span style="color: #f43f5e;">*</span>
-              </label>
-              <div class="auth-input-with-icon input-password-wrapper">
-                <span class="auth-input-icon">🔒</span>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  class="auth-form-input"
-                  placeholder="Minimum 4 characters"
-                  required
-                  minlength="4"
-                >
-                <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility">👁️</button>
-              </div>
-            </div>
-
-            <button type="submit" class="btn-auth-submit" id="authSubmitBtn">
-              <span class="btn-auth-text">Register Account</span>
-              <span class="btn-auth-arrow">→</span>
-            </button>
-          </form>
-
-          <div class="auth-card-footer">
-            <p>Already registered? <a href="/login" class="auth-switch-link">Sign In</a></p>
-          </div>
-        </div>
-      </div>
-
+      <ul class="a-hint" style="list-style:none;padding:0;margin:2rem 0 0;display:grid;gap:.7rem;font-size:.92rem;color:var(--cc-text-2)">
+        <li>↳ Smart routing to the right department</li><li>↳ Duplicate reports are merged automatically</li><li>↳ A full timeline and a PDF record of every case</li>
+      </ul>
     </div>
-  </div>
+    <div class="a-side-stats">
+      <div><b id="sideResolved">–</b><span>Issues resolved</span></div>
+      <div><b id="sideAvg">–</b><span>Avg first response</span></div>
+    </div>
+  </aside>
+  <main class="a-main">
+    <nav class="a-top"><a href="/">Home</a><a href="/login">Sign in</a></nav>
+    <div class="a-card">
+      <a href="/" class="h-brand" style="display:none" data-mobile-brand><span class="h-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg></span> CampusCare</a>
+      <span class="cc-eyebrow">Get started</span>
+      <h2 class="cc-display">Create your account</h2>
+      <p>Use your university email so departments can reach you.</p>
+      <div id="authAlert" class="a-alert" role="alert" hidden></div>
+      <form data-auth-form="register" novalidate>
 
-  <div class="toast-container" id="toastContainer"></div>
-
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/campus-world.js"></script>
-  <script src="/static/js/auth-state.js"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const regForm = document.getElementById('studentRegisterForm');
-      const submitBtn = document.getElementById('authSubmitBtn');
-      const alertBox = document.getElementById('authAlert');
-      const alertText = document.getElementById('authAlertText');
-
-      function showAlert(msg, isError = true) {
-        alertBox.style.display = 'flex';
-        alertBox.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)';
-        alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
-        alertBox.style.color = isError ? '#f87171' : '#4ade80';
-        alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
-        alertText.innerHTML = msg;
-      }
-
-      regForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        alertBox.style.display = 'none';
-
-        const name = document.getElementById('name').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-
-        if (!name || name.length < 2) {
-          showAlert('Please enter your full legal name (at least 2 characters).');
-          return;
-        }
-
-        if (password.length < 4) {
-          showAlert('Password must be at least 4 characters long.');
-          return;
-        }
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Registering...</span>';
-
-        try {
-          // Direct serverless invocation first with API fallback
-          let res;
-          try {
-            res = await fetch('/.netlify/functions/auth-register', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name, email, password })
-            });
-          } catch (netErr) {
-            res = await fetch('/api/register', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name, email, password })
-            });
-          }
-
-          if (!res || res.status === 404) {
-            res = await fetch('/api/register', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name, email, password })
-            });
-          }
-
-          let json = {};
-          try {
-            json = await res.json();
-          } catch (pe) {
-            console.warn('Response was not JSON:', pe);
-          }
-
-          if (res.ok && json.success) {
-            if (json.data?.token) {
-              localStorage.setItem('campuscare_token', json.data.token);
-              if (json.data.student) {
-                localStorage.setItem('campuscare_user', JSON.stringify(json.data.student));
-              }
-            }
-            showAlert('Registration successful! Redirecting to dashboard...', false);
-            setTimeout(() => {
-              window.location.href = '/student-dashboard';
-            }, 600);
-          } else {
-            let errorMsg = json.error || json.message || json.errorMessage;
-            if (!errorMsg) {
-              if (res.status === 409) {
-                errorMsg = 'An account with this email already exists. <a href="/login" style="color: #38bdf8; text-decoration: underline; font-weight: 600;">Sign In &rarr;</a>';
-              } else if (res.status === 400) {
-                errorMsg = 'Please verify your details: Name (min 2 chars), valid email, and password (min 4 characters).';
-              } else {
-                errorMsg = 'Registration failed (Status ' + res.status + '). Please check your details.';
-              }
-            } else if (errorMsg.includes('already exists') || errorMsg.includes('registered')) {
-              errorMsg += ' <a href="/login" style="color: #38bdf8; text-decoration: underline; font-weight: 600; margin-left: 4px;">Sign In &rarr;</a>';
-            }
-            showAlert(errorMsg);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="btn-auth-text">Register Account</span> <span class="btn-auth-arrow">→</span>';
-          }
-        } catch (err) {
-          showAlert(err.message || 'Network error. Please try again.');
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span class="btn-auth-text">Register Account</span> <span class="btn-auth-arrow">→</span>';
-        }
-      });
-    });
-  </script>
+        <div class="a-field">
+          <label for="name">Full name</label>
+          <input type="text" id="name" name="name" required minlength="2" autocomplete="name" placeholder="Aarav Sharma" autofocus>
+        </div>
+        <div class="a-field">
+          <label for="email">University email</label>
+          <input type="email" id="email" name="email" required autocomplete="email" inputmode="email" placeholder="you@university.edu">
+        </div>
+        <div class="a-field">
+          <label for="password">Password</label>
+          <div class="a-pw">
+            <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8">
+            <button type="button" data-reveal="password" aria-pressed="false" aria-label="Show password">Show</button>
+          </div>
+          <span class="a-hint warn" id="capsHint" hidden>Caps Lock is on</span>
+        </div>
+        <div class="a-meter" id="pwMeter" data-score="0" style="margin:-.4rem 0 1rem"><i></i><i></i><i></i><i></i><span></span></div>
+        <button type="submit" class="cc-btn cc-btn-primary a-submit">Create account <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="a-alt">Already registered? <a href="/login">Sign in</a></p>
+    </div>
+  </main>
+  <style>@media (max-width:900px){[data-mobile-brand]{display:inline-flex!important;margin-bottom:2.5rem}}</style>
+  <script src="/static/js/auth-page.js" defer></script>
 </body>
 </html>

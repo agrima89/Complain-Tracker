@@ -1,4 +1,5 @@
 import { query, initDb } from './utils/db.mjs';
+import { limitLogin } from './utils/http.mjs';
 import { verifyPassword, createSessionToken, createSessionCookie } from './utils/auth.mjs';
 
 export const handler = async (event, context) => {
@@ -24,6 +25,8 @@ export const handler = async (event, context) => {
     }
 
     const username = (body.username || '').trim().toLowerCase();
+    const limited = await limitLogin(event, username);
+    if (limited) return limited;
     const password = body.password || '';
 
     if (!username || !password) {
@@ -42,6 +45,14 @@ export const handler = async (event, context) => {
         statusCode: 401,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ success: false, error: 'Invalid administrative credentials.' })
+      };
+    }
+
+    if (admin.is_active === 0 || admin.is_active === false) {
+      return {
+        statusCode: 403,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ success: false, error: 'This staff account has been disabled. Contact the main administrator.' })
       };
     }
 

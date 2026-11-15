@@ -33,7 +33,8 @@ export const handler = async (event, context) => {
         COUNT(CASE WHEN status IN ('REOPENED', 'REGENERATED') THEN 1 END) as regenerated,
         COUNT(CASE WHEN status IN ('FINAL_RESOLVED') THEN 1 END) as resolved
       FROM complaints
-      WHERE student_id = $1 OR complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = $1)
+      WHERE (student_id = $1 OR complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = $1))
+        AND (is_primary = TRUE OR is_primary IS NULL)
     `;
     const statsRes = await query(statsSql, [studentId]);
     const s = statsRes.rows[0] || {};
@@ -47,8 +48,10 @@ export const handler = async (event, context) => {
     };
 
     // 2. Build filtered complaints query
+    // Linked rows of merged reports are hidden: students follow the shared case instead.
     let whereClauses = [
-      `(c.student_id = $1 OR c.complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = $1))`
+      `(c.student_id = $1 OR c.complaint_id IN (SELECT complaint_id FROM complaint_reporters WHERE student_id = $1))`,
+      `(c.is_primary = TRUE OR c.is_primary IS NULL)`
     ];
     let queryParams = [studentId];
     let pIdx = 2;

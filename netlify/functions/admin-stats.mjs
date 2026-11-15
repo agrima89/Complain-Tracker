@@ -84,10 +84,10 @@ export const handler = async (event, context) => {
         COUNT(CASE WHEN is_primary = TRUE OR is_primary IS NULL THEN 1 END) as total,
         COUNT(*) as total_reports,
         COALESCE(SUM(CASE WHEN is_primary = TRUE OR is_primary IS NULL THEN affected_student_count ELSE 0 END), COUNT(*)) as students_affected,
-        COUNT(CASE WHEN status IN ('NEW', 'FORWARDED') THEN 1 END) as pending,
-        COUNT(CASE WHEN status IN ('IN_PROGRESS', 'REOPENED') THEN 1 END) as in_progress,
-        COUNT(CASE WHEN status IN ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') THEN 1 END) as resolved,
-        COUNT(CASE WHEN priority = 'High' AND status NOT IN ('FINAL_RESOLVED', 'AWAITING_STUDENT_CONFIRMATION') THEN 1 END) as escalated
+        COUNT(CASE WHEN (is_primary = TRUE OR is_primary IS NULL) AND status IN ('NEW', 'FORWARDED') THEN 1 END) as pending,
+        COUNT(CASE WHEN (is_primary = TRUE OR is_primary IS NULL) AND status IN ('IN_PROGRESS', 'REOPENED') THEN 1 END) as in_progress,
+        COUNT(CASE WHEN (is_primary = TRUE OR is_primary IS NULL) AND status IN ('FINAL_RESOLVED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION') THEN 1 END) as resolved,
+        COUNT(CASE WHEN (is_primary = TRUE OR is_primary IS NULL) AND priority = 'High' AND status NOT IN ('FINAL_RESOLVED', 'AWAITING_STUDENT_CONFIRMATION') THEN 1 END) as escalated
       FROM complaints c
       ${deptFilter}
     `;
@@ -112,7 +112,7 @@ export const handler = async (event, context) => {
         s.name AS student_name, s.email AS student_email
       FROM complaints c
       LEFT JOIN students s ON c.student_id = s.student_id
-      ${deptFilter}
+      ${deptFilter ? `${deptFilter} AND` : 'WHERE'} (c.is_primary = TRUE OR c.is_primary IS NULL)
       ORDER BY c.complaint_id DESC
     `;
     const allRes = await query(allComplaintsSql, params);

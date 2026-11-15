@@ -3,196 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CampusCare - Administrative Portal Login. Authorized Staff Only.">
-  <title>Admin Portal Login - CampusCare</title>
-
-  <script>
-    (function() {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
-
+  <meta name="description" content="CampusCare staff and department console sign in.">
+  <meta name="theme-color" content="#09090b">
+  <title>Staff sign in · CampusCare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/components.css">
-  <link rel="stylesheet" href="/static/css/forms.css">
-  <link rel="stylesheet" href="/static/css/dashboard.css">
-  <link rel="stylesheet" href="/static/css/campus-world.css">
-  <link rel="stylesheet" href="/static/css/auth.css">
+  <link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400..700&family=Bodoni+Moda:ital,wght@1,500&family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/theme.css">
+  <link rel="stylesheet" href="/static/css/home.css">
+  <link rel="stylesheet" href="/static/css/auth-page.css">
 </head>
-<body class="auth-page">
+<body class="a-body a-staff">
 
-  <div class="auth-page-body" style="align-items: center; justify-content: center; padding: 2rem 1.5rem;">
-    
-    <!-- Top Navigation -->
-    <header class="auth-top-navbar" style="position: relative; width: 100%; max-width: 540px; padding: 0 0 1.5rem; justify-content: space-between;">
-      <a href="/" class="auth-nav-brand">
-        <div class="brand-logo-icon" style="background: linear-gradient(135deg, #0284c7, #38bdf8);">🛡️</div>
-        <div class="brand-title-group">
-          <span class="brand-name">CampusCare</span>
-          <span class="brand-sub">Admin Portal</span>
-        </div>
-      </a>
-
-      <div class="auth-nav-actions">
-        <a href="/" class="auth-nav-link">Home</a>
-        <a href="/login" class="auth-nav-pill-btn">Student Login</a>
-      </div>
-    </header>
-
-    <!-- Centered Admin Card -->
-    <div class="auth-form-glass-card" style="width: 100%; max-width: 520px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.15);">
+  <aside class="a-side" aria-hidden="false">
+    <a href="/" class="h-brand"><span class="h-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg></span> CampusCare</a>
+    <div>
+      <span class="cc-eyebrow"><b>●</b> Staff console</span>
+      <h1 class="cc-display" style="margin-top:1rem">Triage, route,<br><span class="cc-accent">resolve.</span></h1>
+      <p>Department staff see only their own queue. The super admin sees everything. Every status change is logged.</p>
       
-      <div class="login-card-header" style="text-align: center;">
-        <div class="login-brand-icon-box" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); margin: 0 auto 0.75rem;">
-          <span>🛡️</span>
-        </div>
-        
-        <div class="badge badge-priority-high" style="margin-bottom: 0.5rem; font-size: 0.75rem; display: inline-flex;">
-          Authorized Staff Only
-        </div>
-        
-        <h2 class="login-card-title">Administrative Access</h2>
-        <p class="login-card-subtext">Sign in to manage complaints, update statuses, and monitor resolutions.</p>
+      <div class="a-ticket cc-panel">
+        <div class="a-ticket-top"><span>Today · Electrical</span><span class="cc-sev critical">2 urgent</span></div>
+        <b>4 complaints need a decision</b>
+        <span class="a-hint">Two point to the same fault in Block C.</span>
       </div>
-
-      <div id="adminAlert" class="auth-inline-alert" style="display: none;" role="alert">
-        <span class="alert-icon">⚠</span>
-        <span id="adminAlertText"></span>
-      </div>
-
-      <form id="adminLoginForm" autocomplete="on">
-        <div class="auth-input-group">
-          <label for="username" class="auth-input-label">
-            Admin Username <span style="color: #f43f5e;">*</span>
-          </label>
-          <div class="auth-input-with-icon">
-            <span class="auth-input-icon">👤</span>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              class="auth-form-input"
-              placeholder="e.g. admin or electrical_admin"
-              required
-              autofocus
-            >
-          </div>
-        </div>
-
-        <div class="auth-input-group">
-          <label for="password" class="auth-input-label">
-            Admin Password <span style="color: #f43f5e;">*</span>
-          </label>
-          <div class="auth-input-with-icon input-password-wrapper">
-            <span class="auth-input-icon">🔒</span>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              class="auth-form-input"
-              placeholder="Enter administrative password"
-              required
-            >
-            <button type="button" class="btn-toggle-password" aria-label="Toggle password visibility">👁️</button>
-          </div>
-        </div>
-
-        <button type="submit" class="btn-auth-submit" id="adminSubmitBtn" style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);">
-          <span class="btn-auth-text">Access Admin Command Center</span>
-          <span class="btn-auth-arrow">→</span>
-        </button>
-      </form>
-
-      <div class="auth-card-footer" style="text-align: center; margin-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 1.25rem;">
-        <span style="font-size: 0.85rem; color: #94a3b8;">
-          Looking for Student Portal? <a href="/login" class="auth-switch-link">Student Login</a>
-        </span>
-      </div>
-
     </div>
-  </div>
+    <div class="a-side-stats">
+      <div><b id="sideResolved">–</b><span>Issues resolved</span></div>
+      <div><b id="sideAvg">–</b><span>Avg first response</span></div>
+    </div>
+  </aside>
+  <main class="a-main">
+    <nav class="a-top"><a href="/">Home</a><a href="/login">Student sign in</a></nav>
+    <div class="a-card">
+      <a href="/" class="h-brand" style="display:none" data-mobile-brand><span class="h-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg></span> CampusCare</a>
+      <span class="cc-eyebrow">Authorized staff only</span>
+      <h2 class="cc-display">Staff sign in</h2>
+      <p>Sign in with the department account issued to you.</p>
+      <div id="authAlert" class="a-alert" role="alert" hidden></div>
+      <form data-auth-form="admin" novalidate>
 
-  <div class="toast-container" id="toastContainer"></div>
-
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/campus-world.js"></script>
-  <script src="/static/js/auth-state.js"></script>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const adminForm = document.getElementById('adminLoginForm');
-      const submitBtn = document.getElementById('adminSubmitBtn');
-      const alertBox = document.getElementById('adminAlert');
-      const alertText = document.getElementById('adminAlertText');
-
-      function showAlert(msg, isError = true) {
-        alertBox.style.display = 'flex';
-        alertBox.style.background = isError ? 'rgba(239, 68, 68, 0.15)' : 'rgba(34, 197, 94, 0.15)';
-        alertBox.style.borderColor = isError ? 'rgba(239, 68, 68, 0.4)' : 'rgba(34, 197, 94, 0.4)';
-        alertBox.style.color = isError ? '#f87171' : '#4ade80';
-        alertBox.querySelector('.alert-icon').textContent = isError ? '⚠' : '✓';
-        alertText.innerHTML = msg;
-      }
-
-      adminForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        alertBox.style.display = 'none';
-
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="auth-spinner"></span> <span>Verifying...</span>';
-
-        try {
-          let res = await fetch('/api/auth-admin-login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-          });
-
-          if (res.status === 404) {
-            res = await fetch('/.netlify/functions/auth-admin-login', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username, password })
-            });
-          }
-
-          let json;
-          try {
-            json = await res.json();
-          } catch (pe) {
-            throw new Error('Server returned non-JSON response (Status: ' + res.status + ')');
-          }
-
-          if (res.ok && json.success) {
-            if (json.data?.token) {
-              localStorage.setItem('campuscare_token', json.data.token);
-              if (json.data.admin) {
-                localStorage.setItem('campuscare_user', JSON.stringify(json.data.admin));
-              }
-            }
-            showAlert('Authorization granted! Redirecting to command center...', false);
-            setTimeout(() => {
-              window.location.href = json.data?.redirectUrl || '/admin-dashboard';
-            }, 600);
-          } else {
-            showAlert(json.error || 'Invalid administrator username or password.');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span class="btn-auth-text">Access Admin Command Center</span> <span class="btn-auth-arrow">→</span>';
-          }
-        } catch (err) {
-          showAlert(err.message || 'Network error. Please try again.');
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = '<span class="btn-auth-text">Access Admin Command Center</span> <span class="btn-auth-arrow">→</span>';
-        }
-      });
-    });
-  </script>
+        <div class="a-field">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" required autocomplete="username" autocapitalize="off" spellcheck="false" autofocus>
+        </div>
+        <div class="a-field">
+          <label for="password">Password</label>
+          <div class="a-pw">
+            <input type="password" id="password" name="password" required autocomplete="current-password" >
+            <button type="button" data-reveal="password" aria-pressed="false" aria-label="Show password">Show</button>
+          </div>
+          <span class="a-hint warn" id="capsHint" hidden>Caps Lock is on</span>
+        </div>
+        <button type="submit" class="cc-btn cc-btn-primary a-submit">Open console <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="a-alt">Are you a student? <a href="/login">Student sign in</a></p>
+    </div>
+  </main>
+  <style>@media (max-width:900px){[data-mobile-brand]{display:inline-flex!important;margin-bottom:2.5rem}}</style>
+  <script src="/static/js/auth-page.js" defer></script>
 </body>
 </html>

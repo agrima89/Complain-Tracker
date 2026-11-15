@@ -7,7 +7,11 @@
   NODE_VERSION = "22"
 
 [functions]
-  included_files = []
+  # pdfkit reads its standard-font .afm files from <bundled __dirname>/data at runtime,
+  # which resolves to netlify/functions/data. Ship just the two fonts the PDFs use there.
+  # (Marking pdfkit as an external module also works but makes `netlify dev` take minutes
+  # to start, because it copies node_modules for every function.)
+  included_files = ["netlify/functions/data/*.afm"]
 
 
 # ------------------------------------------------------------------------------
@@ -240,6 +244,11 @@
   status = 200
 
 [[redirects]]
+  from = "/admin/staff"
+  to = "/admin-staff.html"
+  status = 200
+
+[[redirects]]
   from = "/admin/soc"
   to = "/soc-dashboard.html"
   status = 200
@@ -257,6 +266,15 @@
 # ------------------------------------------------------------------------------
 # CACHE-CONTROL HEADERS (Force revalidation of HTML to prevent stale deploys)
 # ------------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
+    Strict-Transport-Security = "max-age=31536000"
+
 [[headers]]
   for = "/"
   [headers.values]

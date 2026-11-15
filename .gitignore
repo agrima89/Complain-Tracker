@@ -69,3 +69,12 @@ scratch_*.py
 white_colors.txt
 node_modules
 .netlify
+
+# Local archive of one-off scripts
+_archive/
+database.db
+
+# Local media and tool settings
+Campus_Care_Video/
+demo_video/
+.claude/

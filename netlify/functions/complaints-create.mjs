@@ -1,9 +1,12 @@
 import { query, initDb } from './utils/db.mjs';
+import { rateLimit, LIMITS } from './utils/http.mjs';
 import { getSessionFromEvent } from './utils/auth.mjs';
 import {
   computeComplaintFingerprint,
   formatTicketId,
-  extractCanonicalRoom
+  extractCanonicalRoom,
+  getCanonicalLocationKey,
+  isSimilarIssue
 } from './utils/duplicate_logic.mjs';
 
 const VALID_CATEGORIES = [
@@ -60,6 +63,8 @@ export const handler = async (event, context) => {
 
   try {
     await initDb();
+    const limited = await rateLimit(event, 'createComplaint', LIMITS.createComplaint, `student:${studentId}`);
+    if (limited) return limited;
     let body = {};
     try {
       body = JSON.parse(event.body || '{}');
@@ -108,7 +113,7 @@ export const handler = async (event, context) => {
       };
     }
 
-    if (!photoPath) {
+    if (!photoPath || !/^evidence_\d+_[a-z0-9]+_[\w.-]+$/i.test(photoPath)) {
       return {
         statusCode: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -206,7 +211,27 @@ export const handler = async (event, context) => {
       ORDER BY complaint_id DESC LIMIT 1
     `, [fingerprint]);
 
-    const master = masterRes.rows[0];
+    let master = masterRes.rows[0];
+
+    // No word-for-word match: fall back to an open complaint in the same category at the same
+    // exact place (block + room, or bus + route) whose description describes the same fault.
+    if (!master) {
+      const placeOf = (c) => getCanonicalLocationKey({
+        category: c.category, block: c.block, room_no: c.room_no, location: c.location,
+        bus_number: c.bus_number, route: c.route, transport_type: c.transport_type
+      });
+      const place = placeOf({ category, block, room_no: roomNo, location: rawLocation, bus_number: busNumber, route, transport_type: transportType });
+      if (!place.endsWith('::')) {
+        const candidates = await query(`
+          SELECT * FROM complaints
+          WHERE LOWER(category) = LOWER($1)
+            AND status != 'FINAL_RESOLVED'
+            AND (is_primary = TRUE OR is_primary IS NULL)
+          ORDER BY complaint_id DESC LIMIT 50
+        `, [category]);
+        master = candidates.rows.find(c => placeOf(c) === place && isSimilarIssue(c.description, description, roomNo));
+      }
+    }
 
     if (master) {
       const masterId = master.complaint_id;
@@ -300,8 +325,15 @@ export const handler = async (event, context) => {
           location: rawLocation,
           is_grouped: true,
           submitted_date: todayDate,
-          message: `Your complaint has been registered. You have been grouped with an existing active issue. Your Ticket ID is ${newTicketId}.`
+          message: `Other students already reported this. You've been added to ${masterTicket}, so you'll get every update on it.`
         };
+        // Students track the shared case; their own linked row stays for the record.
+        Object.assign(attachObj, {
+          own_complaint_id: newComplaintId,
+          own_ticket_id: newTicketId,
+          complaint_id: masterId,
+          ticket_id: masterTicket
+        });
 
         return {
           statusCode: 201,

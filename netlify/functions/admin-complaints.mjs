@@ -23,7 +23,8 @@ export const handler = async (event, context) => {
   try {
     await initDb();
 
-    let whereClauses = [];
+    // One row per real problem: duplicate reports are counted on the shared case.
+    let whereClauses = [`(c.is_primary = TRUE OR c.is_primary IS NULL)`];
     let queryParams = [];
     let pIdx = 1;
 
@@ -164,13 +165,20 @@ export const handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        success: true,
-        data: {
-          complaints,
-          total: complaints.length
-        }
-      })
+      body: JSON.stringify((() => {
+        const perPage = Math.min(Math.max(parseInt(params.per_page, 10) || 10, 1), 100);
+        const total = complaints.length;
+        const totalPages = Math.max(1, Math.ceil(total / perPage));
+        const page = Math.min(Math.max(parseInt(params.page, 10) || 1, 1), totalPages);
+        return {
+          success: true,
+          data: {
+            complaints: complaints.slice((page - 1) * perPage, page * perPage),
+            total,
+            pagination: { page, per_page: perPage, total, total_pages: totalPages, has_prev: page > 1, has_next: page < totalPages }
+          }
+        };
+      })())
     };
   } catch (err) {
     console.error('[admin-complaints] Error:', err);

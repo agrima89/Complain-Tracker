@@ -1,480 +1,340 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="CampusCare - Complaint Details & Live Tracking.">
-  <title>Complaint Details - CampusCare</title>
-
-  <script>
-    (function() {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    })();
-  </script>
+  <meta name="description" content="CampusCare complaint details and progress.">
+  <title>Complaint · CampusCare</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="/static/css/style.css">
-  <link rel="stylesheet" href="/static/css/components.css">
-  <link rel="stylesheet" href="/static/css/forms.css">
-  <link rel="stylesheet" href="/static/css/dashboard.css">
-  <link rel="stylesheet" href="/static/css/campus-world.css">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css">
 </head>
-<body>
+<body class="app">
 
-  <!-- Universal Glassmorphic Navbar -->
-  <header class="app-navbar floating-glass-navbar student-glass-navbar" id="appNavbar">
-    <div class="container navbar-inner">
-      <a href="/" class="navbar-brand" title="CampusCare - Student Grievance Portal">
-        <div class="brand-icon"><span>🎓</span></div>
-        <div class="brand-text">
-          <span class="brand-name">CampusCare</span>
-          <span class="brand-tag">Student Grievance Portal</span>
-        </div>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a href="/" class="brand" aria-label="CampusCare home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-6 9 6-9 6-9-6z"/><path d="M7 12.5V17c3 2 7 2 10 0v-4.5"/></svg>
+        </span>
+        CampusCare
       </a>
 
-      <nav class="navbar-nav-wrapper" id="navbarMenu" aria-label="Main Navigation"></nav>
+      <nav class="nav" aria-label="Main">
+        <a href="/student-dashboard">Dashboard</a>
+        <a href="/my-complaints" aria-current="page">My complaints</a>
+        <a href="/submit-complaint">Report issue</a>
+        <a href="/profile">Profile</a>
+      </nav>
 
-      <div class="navbar-actions">
-        <div class="navbar-notif-wrapper" style="position: relative;">
-          <button type="button" class="header-icon-btn navbar-notif-btn" id="publicNotificationBtn" aria-label="Notifications" title="Live Grievance Feed">
-            <span class="notif-btn-icon">🔔</span>
-            <span class="notification-badge-dot"></span>
-          </button>
-        </div>
-
-        <button type="button" class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Toggle navigation menu" aria-expanded="false">
-          <span id="mobileNavToggleIcon">☰</span>
-        </button>
+      <div class="user">
+        <span class="avatar" id="userInitials" aria-hidden="true">·</span>
+        <span class="user-name" id="userName"></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="logoutBtn">Log out</button>
       </div>
     </div>
-
-    <div class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true"></div>
   </header>
 
-  <!-- Main Content Body -->
-  <main class="main-content">
-    <div class="container" style="max-width: 900px;">
+  <main class="page">
+    <div class="wrap">
 
-      <!-- Live Time & Greeting -->
-      <div class="floating-time-display" style="margin-bottom: 1.5rem;">
-        <span class="time-headline-text">
-          <span class="time-phase-symbol" id="worldPhaseSymbol">☾</span>
-          <span id="worldLiveTimeText">NIGHT CAMPUS</span>
-        </span>
-        <span class="time-signature-message" id="worldSignatureGreeting">"Campus is quiet, but your voice is still heard."</span>
-      </div>
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/student-dashboard">Dashboard</a><span>/</span>
+        <a href="/my-complaints">My complaints</a><span>/</span>
+        <span id="crumbTicket">…</span>
+      </nav>
 
-      <!-- Breadcrumbs -->
-      <div style="margin-bottom: 1.25rem; font-size: 0.875rem; color: #94a3b8;">
-        <a href="/" style="color: #38bdf8; text-decoration: none;">Home</a> &nbsp;/&nbsp; 
-        <a href="/student-dashboard" style="color: #38bdf8; text-decoration: none;">Dashboard</a> &nbsp;/&nbsp; 
-        <a href="/my-complaints" style="color: #38bdf8; text-decoration: none;">My Complaints</a> &nbsp;/&nbsp; 
-        <span id="breadcrumbTicket" style="color: #ffffff; font-weight: 600;">Loading...</span>
-      </div>
-
-      <!-- Page Header -->
-      <div class="page-header" style="margin-bottom: 1.5rem;">
-        <div class="page-header-title">
-          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-            <h1 id="detailTicketId" style="font-family: monospace; letter-spacing: -0.02em;">Ticket</h1>
-            <span id="detailStatusBadge" class="badge"></span>
-            <span id="detailPriorityBadge" class="badge"></span>
-            <span id="detailAffectedBadge" class="badge" style="display: none; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 600;"></span>
+      <div class="page-head">
+        <div>
+          <div class="title-row">
+            <h1 class="page-title" id="title">Loading…</h1>
+            <span class="pill" id="statusPill" hidden></span>
           </div>
-          <p class="page-header-subtitle" id="detailSubtitle"></p>
+          <p class="page-sub" id="subtitle"></p>
         </div>
-
-        <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-          <a id="downloadPdfBtn" href="#" class="btn btn-primary btn-sm" style="box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35); display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem;" title="Download Official Complaint PDF Report">
-            <span>📄</span> Download PDF
+        <div class="head-actions">
+          <a class="btn btn-ghost" id="pdfBtn" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+            Download PDF
           </a>
-          <button type="button" id="deleteComplaintBtn" class="btn btn-danger btn-sm" style="display: none; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 0.45rem 0.9rem;">
-            🗑️ Delete Complaint
-          </button>
-          <a href="/my-complaints" class="btn btn-secondary btn-sm">← Back to List</a>
+          <button type="button" class="btn btn-danger-ghost" id="deleteBtn" hidden>Delete</button>
         </div>
       </div>
 
-      <!-- Action Box for Awaiting Confirmation -->
-      <div id="studentResolutionActionCard" class="cinematic-card" style="display: none; border: 2px solid rgba(168, 85, 247, 0.6); margin-bottom: 2rem; padding: 1.75rem 2rem; background: rgba(30, 27, 75, 0.4);">
-        <div style="display: flex; align-items: flex-start; gap: 1rem; flex-wrap: wrap;">
-          <div style="font-size: 2rem;">🔔</div>
-          <div style="flex: 1; min-width: 260px;">
-            <h3 style="color: #c084fc; margin: 0 0 0.5rem 0; font-size: 1.2rem;">Department Marked This Issue Resolved</h3>
-            <p style="color: #e2e8f0; font-size: 0.9rem; margin: 0 0 1.25rem 0;">
-              Maintenance has submitted their resolution for this grievance. Please inspect the location and confirm whether the problem is fixed.
-            </p>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-              <button type="button" id="confirmResolutionBtn" class="btn btn-primary btn-sm" style="background: #10b981; border-color: #10b981; color: white;">
-                ✓ Confirm Resolution & Close Ticket
-              </button>
-              <button type="button" id="openRegenerateModalBtn" class="btn btn-secondary btn-sm" style="color: #fb7185; border-color: rgba(244, 63, 94, 0.4);">
-                🔄 Reopen / Regenerate Issue
-              </button>
-            </div>
-          </div>
+      <div class="notice" id="confirmNotice" hidden>
+        <span class="notice-dot" aria-hidden="true"></span>
+        <p class="notice-text" style="margin:0">
+          <strong>The department marked this as fixed.</strong>
+          <span> Check the spot, then confirm or reopen it.</span>
+        </p>
+        <div class="notice-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="reopenBtn">Not fixed</button>
+          <button type="button" class="btn btn-success btn-sm" id="confirmBtn">Confirm fixed</button>
         </div>
       </div>
 
-      <!-- Journey Timeline Card -->
-      <div class="cinematic-card" style="margin-bottom: 2rem; padding: 2rem 1.75rem;">
-        <div class="timeline-ticket-header" style="margin-bottom: 1.25rem;">
-          <span class="ticket-mono-id" id="timelineTicketId"></span>
-          <span class="ticket-live-tag">● Live Resolution Tracker</span>
-        </div>
+      <section class="panel" aria-label="Progress">
+        <ol class="steps" id="steps">
+          <li class="step" data-step="0"><b>Submitted</b><span id="stepSubmittedMeta">—</span></li>
+          <li class="step" data-step="1"><b>Under review</b><span>Department</span></li>
+          <li class="step" data-step="2"><b>In progress</b><span>Being fixed</span></li>
+          <li class="step" data-step="3"><b>Resolved</b><span id="stepResolvedMeta">Confirmed by you</span></li>
+        </ol>
+      </section>
 
-        <div class="floating-vertical-timeline">
-          <div class="timeline-node-step is-done" id="stepSubmitted">
-            <div class="node-circular-marker">✓</div>
-            <span class="node-step-label">Submitted</span>
-            <span class="node-meta-badge" id="stepSubmittedDate"></span>
-          </div>
-
-          <div class="timeline-node-step" id="stepReview">
-            <div class="node-circular-marker">2</div>
-            <span class="node-step-label">Under Review</span>
-            <span class="node-meta-badge">Department HOD</span>
-          </div>
-
-          <div class="timeline-node-step" id="stepProgress">
-            <div class="node-circular-marker">3</div>
-            <span class="node-step-label">In Progress</span>
-            <span class="node-meta-badge">Technician Dispatched</span>
-          </div>
-
-          <div class="timeline-node-step" id="stepResolved">
-            <div class="node-circular-marker">4</div>
-            <span class="node-step-label">Final Resolved</span>
-            <span class="node-meta-badge" id="stepResolvedDate">Resolution</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Core Complaint Details Card -->
-      <div class="cinematic-card" style="margin-bottom: 2rem; overflow: hidden;">
-        <div class="card-header">
-          <div style="display: flex; align-items: center; gap: 0.6rem;">
-            <span>📋</span>
-            <h2 class="card-title">Grievance Overview</h2>
-          </div>
-          <span id="cardCategoryBadge" class="badge"></span>
-        </div>
-
-        <div class="card-body">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-            <div>
-              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Location / Block</div>
-              <div id="detailLocationText" style="font-size: 1rem; font-weight: 700; color: #38bdf8; margin-top: 0.25rem;"></div>
+      <div class="detail">
+        <div>
+          <section class="panel">
+            <div class="panel-head"><h2 class="panel-title">Details</h2></div>
+            <div class="panel-body">
+              <dl class="facts" id="facts"></dl>
             </div>
+          </section>
 
-            <div>
-              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Floor & Room</div>
-              <div id="detailRoomText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
-            </div>
+          <section class="panel">
+            <div class="panel-head"><h2 class="panel-title">Description</h2></div>
+            <div class="panel-body"><p class="desc" id="description"></p></div>
+          </section>
 
-            <div>
-              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Corridor / Side</div>
-              <div id="detailSideText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
+          <section class="panel">
+            <div class="panel-head">
+              <h2 class="panel-title">Photo evidence</h2>
+              <a class="link" id="photoOpen" href="#" target="_blank" rel="noopener" hidden>Open full size ↗</a>
             </div>
-
-            <div>
-              <div style="font-size: 0.775rem; font-weight: 600; color: #94a3b8; text-transform: uppercase;">Date Lodged</div>
-              <div id="detailDateText" style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-top: 0.25rem;"></div>
-            </div>
-          </div>
-
-          <!-- Description Block -->
-          <div style="margin-bottom: 1.75rem;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-              Reported Issue Description
-            </div>
-            <div id="detailDescriptionText" style="background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(56, 189, 248, 0.15); border-radius: 12px; padding: 1.25rem; font-size: 0.95rem; line-height: 1.6; color: #e2e8f0; white-space: pre-wrap;"></div>
-          </div>
-
-          <!-- Attached Photo Evidence Block -->
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">
-              📷 Attached Photo Evidence
-            </div>
-            <div id="evidenceDisplayContainer" style="display: inline-block; background: rgba(3, 7, 18, 0.8); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 14px; padding: 1rem; max-width: 600px; width: 100%;">
-              <a id="evidenceImgLink" href="#" target="_blank" title="Click to view full image in high resolution">
-                <img id="evidenceImg" src="" alt="Complaint Evidence" style="width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; display: block; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <div class="panel-body">
+              <a class="evidence" id="photoLink" href="#" target="_blank" rel="noopener" hidden>
+                <img id="photo" alt="Photo attached to this complaint">
               </a>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; font-size: 0.85rem; border-top: 1px solid rgba(56, 189, 248, 0.15); padding-top: 0.75rem;">
-                <span style="color: #4ade80; font-weight: 600;">✓ Verified in Digital Registry</span>
-                <a id="evidenceFullLink" href="#" target="_blank" class="btn btn-primary btn-sm" style="padding: 0.4rem 1rem; font-size: 0.85rem;">
-                  🔍 Open Full Viewer ↗
-                </a>
-              </div>
+              <p class="muted" id="noPhoto" hidden>No photo was attached.</p>
             </div>
+          </section>
+        </div>
+
+        <aside class="panel">
+          <div class="panel-head"><h2 class="panel-title">Activity</h2></div>
+          <div class="panel-body">
+            <ul class="timeline" id="history"></ul>
           </div>
-        </div>
-
-        <!-- Activity History Log -->
-        <div id="historySection" style="padding: 1.25rem 1.5rem; background: rgba(15, 23, 42, 0.4); border-top: 1px solid rgba(56, 189, 248, 0.12);">
-          <h3 style="font-size: 0.95rem; font-weight: 600; color: #ffffff; margin-bottom: 0.75rem;">
-            📜 Resolution Activity Log
-          </h3>
-          <div id="historyList" style="display: flex; flex-direction: column; gap: 0.75rem;"></div>
-        </div>
-      </div>
-
-      <!-- Regenerate Modal -->
-      <div id="regenerateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-        <div style="background: #1e293b; padding: 2rem; border-radius: 14px; max-width: 500px; width: 90%; border: 1px solid rgba(244, 63, 94, 0.4); box-shadow: 0 15px 35px rgba(0,0,0,0.6);">
-          <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1.25rem;">Reopen / Regenerate Grievance</h3>
-          <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.25rem;">
-            Explain what remains unresolved so technicians can return to fix the issue.
-          </p>
-          <form id="regenerateForm">
-            <div style="margin-bottom: 1.25rem;">
-              <label for="regenReasonInput" class="form-label">Reason for Reopening <span style="color: #f43f5e;">*</span></label>
-              <textarea id="regenReasonInput" class="form-textarea" rows="4" placeholder="Describe why this issue is not yet resolved..." required></textarea>
-            </div>
-            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-              <button type="button" class="btn btn-secondary" onclick="document.getElementById('regenerateModal').style.display='none'">Cancel</button>
-              <button type="submit" class="btn btn-primary" id="confirmRegenBtn" style="background: #f43f5e; border-color: #f43f5e; color: white;">Submit Reopening</button>
-            </div>
-          </form>
-        </div>
+        </aside>
       </div>
 
     </div>
   </main>
 
-  <!-- Universal Footer -->
-  <footer class="app-footer campus-footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-brand-section">
-          <a href="/" class="footer-brand-logo">
-            <span class="brand-icon-sm">🏫</span>
-            <div class="brand-text">
-              <span class="brand-name">CampusCare</span>
-              <span class="brand-tag">Student Grievance Portal</span>
-            </div>
-          </a>
-          <p class="footer-tagline">Making campus problem reporting transparent, accessible, and accountable.</p>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <div class="footer-copy">&copy; 2026 CampusCare. Student Grievance Portal.</div>
-      </div>
+  <footer class="footer">
+    <div class="wrap">
+      <span>© 2026 CampusCare</span>
+      <span>Student grievance portal</span>
     </div>
   </footer>
 
-  <div class="toast-container" id="toastContainer"></div>
+  <dialog class="modal" id="deleteModal">
+    <h3>Delete this complaint?</h3>
+    <p>The complaint and its photo will be permanently removed. This can't be undone.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="button" class="btn btn-danger" id="deleteConfirm">Delete</button>
+    </div>
+  </dialog>
 
-  <script src="/static/js/main.js"></script>
-  <script src="/static/js/campus-world.js"></script>
+  <dialog class="modal" id="confirmModal">
+    <h3>Confirm it's fixed?</h3>
+    <p>This closes the complaint. You can't reopen it afterwards.</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button type="button" class="btn btn-success" id="confirmGo">Yes, it's fixed</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="reopenModal">
+    <form method="dialog" id="reopenForm">
+      <h3>Reopen complaint</h3>
+      <p>Tell the department what's still wrong so they can come back to it.</p>
+      <label class="label" for="reopenReason">What's still wrong? <span class="req">*</span></label>
+      <textarea class="textarea" id="reopenReason" required minlength="5" placeholder="e.g. The switch still sparks when turned on."></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+        <button type="submit" class="btn btn-primary" id="reopenGo">Reopen</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="/static/js/auth-state.js"></script>
-
   <script>
-    let currentComplaint = null;
+    const STATUS = {
+      NEW: ['open', 'Open', 0],
+      FORWARDED: ['open', 'Forwarded', 1],
+      IN_PROGRESS: ['progress', 'In progress', 2],
+      REOPENED: ['reopened', 'Reopened', 1],
+      REGENERATED: ['reopened', 'Reopened', 1],
+      RESOLUTION_SUBMITTED: ['awaiting', 'Confirm fix', 3],
+      AWAITING_STUDENT_CONFIRMATION: ['awaiting', 'Confirm fix', 3],
+      FINAL_RESOLVED: ['resolved', 'Resolved', 4]
+    };
+    // Legacy status spellings from older records.
+    Object.assign(STATUS, { RESOLVED: STATUS.FINAL_RESOLVED, 'IN PROGRESS': STATUS.IN_PROGRESS, PENDING: STATUS.NEW, CLOSED: STATUS.FINAL_RESOLVED });
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const label = (s) => (STATUS[s] || [, String(s || '').replace(/_/g, ' ')])[1];
+
+    function fmt(d, withTime) {
+      const date = new Date(String(d).replace(' ', 'T'));
+      if (isNaN(date)) return String(d || '');
+      const opts = { day: 'numeric', month: 'short', year: 'numeric' };
+      if (withTime) Object.assign(opts, { hour: 'numeric', minute: '2-digit' });
+      return date.toLocaleString(undefined, opts);
+    }
+
+    async function post(url, body) {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) throw new Error(json.error || 'Request failed.');
+      return json;
+    }
+
+    function busy(btn, text) { btn.dataset.label = btn.textContent; btn.disabled = true; btn.textContent = text; }
+    function idle(btn) { btn.disabled = false; btn.textContent = btn.dataset.label; }
+
+    document.querySelectorAll('dialog [data-close]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
 
     document.addEventListener('DOMContentLoaded', async () => {
       const user = await window.CampusCareAuth.requireStudent();
       if (!user) return;
 
-      const urlParams = new URLSearchParams(window.location.search);
-      let id = urlParams.get('id') || urlParams.get('complaint_id');
-      if (!id) {
-        const pathSegments = window.location.pathname.split('/').filter(Boolean);
-        const lastSeg = pathSegments[pathSegments.length - 1];
-        if (/^\d+$/.test(lastSeg)) {
-          id = lastSeg;
-        }
-      }
+      const name = user.student_name || 'Student';
+      document.getElementById('userName').textContent = name;
+      document.getElementById('userInitials').textContent = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+      document.getElementById('logoutBtn').addEventListener('click', () => window.CampusCareAuth.handleLogout());
 
+      const params = new URLSearchParams(location.search);
+      let id = params.get('id') || params.get('complaint_id');
       if (!id) {
-        alert('Complaint ID missing.');
-        window.location.href = '/my-complaints';
+        const last = location.pathname.split('/').filter(Boolean).pop();
+        if (/^\d+$/.test(last)) id = last;
+      }
+      if (!id) return (location.href = '/my-complaints');
+
+      let c, history;
+      try {
+        const res = await fetch(`/api/complaints-get?id=${encodeURIComponent(id)}`);
+        const json = await res.json();
+        if (!res.ok || !json.success || !json.data?.complaint) throw new Error(json.error || 'Complaint not found.');
+        c = json.data.complaint;
+        history = json.data.history || [];
+      } catch (err) {
+        document.getElementById('title').textContent = "Couldn't load this complaint";
+        document.getElementById('subtitle').textContent = err.message;
+        document.getElementById('steps').closest('.panel').hidden = true;
+        document.querySelector('.detail').hidden = true;
+        document.querySelector('.head-actions').hidden = true;
         return;
       }
 
-      try {
-        const res = await fetch(`/api/complaints-get?id=${id}`);
-        const json = await res.json();
+      const [cls, statusText, stage] = STATUS[c.status] || ['', label(c.status), 0];
+      document.title = `${c.ticket_id} · CampusCare`;
+      document.getElementById('crumbTicket').textContent = c.ticket_id;
+      document.getElementById('title').textContent = c.category || 'Complaint';
+      const pill = document.getElementById('statusPill');
+      pill.className = `pill ${cls}`;
+      pill.textContent = statusText;
+      pill.hidden = false;
+      document.getElementById('subtitle').innerHTML =
+        `<span class="ticket-tag">${esc(c.ticket_id)}</span> · Reported ${esc(fmt(c.date))}`;
+      document.getElementById('pdfBtn').href = `/student/complaint/${encodeURIComponent(c.complaint_id)}/download-pdf`;
 
-        if (!res.ok || !json.success || !json.data?.complaint) {
-          alert(json.error || 'Failed to retrieve complaint.');
-          window.location.href = '/my-complaints';
-          return;
-        }
+      // Progress tracker
+      document.getElementById('stepSubmittedMeta').textContent = fmt(c.date);
+      if (c.status === 'FINAL_RESOLVED' && c.final_resolution_time) {
+        document.getElementById('stepResolvedMeta').textContent = fmt(c.final_resolution_time);
+      }
+      // `active` is the step being worked on now; everything before it is done.
+      const active = Math.max(stage, 1);
+      document.querySelectorAll('.step').forEach(el => {
+        const n = Number(el.dataset.step);
+        if (n < active) el.classList.add('done');
+        else if (n === active) el.classList.add('current');
+      });
 
-        const c = json.data.complaint;
-        currentComplaint = c;
-        const history = json.data.history || [];
+      // Facts
+      const isTransport = /transport/i.test(c.category || '');
+      const facts = isTransport
+        ? [['Transport', c.transport_type], ['Bus number', c.bus_number], ['Route', c.route], ['Stop', c.pickup_drop_point]]
+        : [['Block', c.block || c.location], ['Floor', c.floor_no], ['Room', c.room_no], ['Side / nearby', c.corridor_side || c.nearby_area]];
+      facts.push(['Priority', c.priority || 'Medium'], ['Department', c.department || c.category]);
+      if (c.affected_student_count > 1) facts.push(['Students affected', c.affected_student_count]);
+      document.getElementById('facts').innerHTML = facts
+        .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v || '—')}</dd></div>`).join('');
 
-        // Fill Header & Breadcrumbs
-        document.getElementById('breadcrumbTicket').textContent = c.ticket_id;
-        document.getElementById('detailTicketId').textContent = c.ticket_id;
-        document.getElementById('timelineTicketId').textContent = c.ticket_id;
-        document.getElementById('downloadPdfBtn').href = `/student/complaint/${c.complaint_id}/download-pdf`;
+      document.getElementById('description').textContent = c.description || '';
 
-        // Badges
-        const statusBadge = document.getElementById('detailStatusBadge');
-        if (['NEW', 'FORWARDED'].includes(c.status)) {
-          statusBadge.className = 'badge badge-pending';
-          statusBadge.textContent = `⏳ ${c.status.replace(/_/g, ' ')}`;
-        } else if (['IN_PROGRESS', 'REOPENED'].includes(c.status)) {
-          statusBadge.className = 'badge badge-progress';
-          statusBadge.textContent = `⚡ ${c.status.replace(/_/g, ' ')}`;
-        } else {
-          statusBadge.className = 'badge badge-resolved';
-          statusBadge.textContent = `✓ ${c.status.replace(/_/g, ' ')}`;
-        }
+      // Photo
+      if (c.photo_path) {
+        const url = `/complaints/${encodeURIComponent(c.complaint_id)}/evidence`;
+        const img = document.getElementById('photo');
+        img.src = url;
+        img.addEventListener('error', () => {
+          document.getElementById('photoLink').hidden = true;
+          document.getElementById('photoOpen').hidden = true;
+          const np = document.getElementById('noPhoto');
+          np.textContent = "The photo couldn't be loaded.";
+          np.hidden = false;
+        });
+        document.getElementById('photoLink').href = url;
+        document.getElementById('photoOpen').href = url;
+        document.getElementById('photoLink').hidden = false;
+        document.getElementById('photoOpen').hidden = false;
+      } else {
+        document.getElementById('noPhoto').hidden = false;
+      }
 
-        const prioBadge = document.getElementById('detailPriorityBadge');
-        prioBadge.className = c.priority === 'High' ? 'badge badge-priority-high' : (c.priority === 'Medium' ? 'badge badge-priority-medium' : 'badge badge-priority-low');
-        prioBadge.textContent = `● ${c.priority} Priority`;
+      // Activity (newest first)
+      const items = history.slice().reverse();
+      document.getElementById('history').innerHTML = items.length
+        ? items.map(h => `
+            <li>
+              <div class="t-status">${esc(label(h.new_status))}</div>
+              <div class="t-time">${esc(fmt(h.changed_at, true))}</div>
+              ${h.remarks ? `<div class="t-note">${esc(h.remarks)}</div>` : ''}
+            </li>`).join('')
+        : '<li><div class="t-status">Submitted</div><div class="t-time">Waiting for the department to review.</div></li>';
 
-        if (c.affected_student_count > 1) {
-          const affBadge = document.getElementById('detailAffectedBadge');
-          affBadge.style.display = 'inline-flex';
-          affBadge.textContent = `👥 ${c.affected_student_count} Students Affected`;
-        }
+      // Delete (only while still NEW)
+      if (c.status === 'NEW') {
+        const delBtn = document.getElementById('deleteBtn');
+        const modal = document.getElementById('deleteModal');
+        delBtn.hidden = false;
+        delBtn.addEventListener('click', () => modal.showModal());
+        document.getElementById('deleteConfirm').addEventListener('click', async (e) => {
+          busy(e.currentTarget, 'Deleting…');
+          try { await post('/api/complaints-delete', { complaint_id: c.complaint_id }); location.href = '/my-complaints'; }
+          catch (err) { alert(err.message); idle(e.currentTarget); }
+        });
+      }
 
-        document.getElementById('detailSubtitle').innerHTML = `Lodged on ${c.date} &bull; Category: <strong style="color: #38bdf8;">${c.category}</strong>`;
-        document.getElementById('cardCategoryBadge').textContent = c.category;
+      // Confirm / reopen
+      if (['AWAITING_STUDENT_CONFIRMATION', 'RESOLUTION_SUBMITTED'].includes(c.status)) {
+        document.getElementById('confirmNotice').hidden = false;
+        const confirmModal = document.getElementById('confirmModal');
+        const reopenModal = document.getElementById('reopenModal');
+        document.getElementById('confirmBtn').addEventListener('click', () => confirmModal.showModal());
+        document.getElementById('reopenBtn').addEventListener('click', () => reopenModal.showModal());
 
-        // Location text
-        document.getElementById('detailLocationText').textContent = c.block || c.location || 'Campus Premises';
-        document.getElementById('detailRoomText').textContent = c.floor_no ? `${c.floor_no} (Room ${c.room_no || 'N/A'})` : (c.room_no || 'N/A');
-        document.getElementById('detailSideText').textContent = c.corridor_side || c.nearby_area || 'N/A';
-        document.getElementById('detailDateText').textContent = c.date;
-        document.getElementById('detailDescriptionText').textContent = c.description;
-
-        // Photo Evidence
-        const evidenceUrl = `/complaints/${c.complaint_id}/evidence`;
-        document.getElementById('evidenceImg').src = evidenceUrl;
-        document.getElementById('evidenceImgLink').href = evidenceUrl;
-        document.getElementById('evidenceFullLink').href = evidenceUrl;
-
-        // Delete button for NEW complaints
-        if (c.status === 'NEW') {
-          const delBtn = document.getElementById('deleteComplaintBtn');
-          delBtn.style.display = 'inline-flex';
-          delBtn.addEventListener('click', async () => {
-            if (!confirm('Are you sure you want to delete this complaint? This cannot be undone.')) return;
-            try {
-              const dRes = await fetch('/api/complaints-delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ complaint_id: c.complaint_id })
-              });
-              const dJson = await dRes.json();
-              if (dRes.ok && dJson.success) {
-                alert('Complaint deleted successfully.');
-                window.location.href = '/my-complaints';
-              } else {
-                alert(dJson.error || 'Failed to delete complaint.');
-              }
-            } catch (e) {
-              alert('Network error.');
-            }
-          });
-        }
-
-        // Timeline step statuses
-        document.getElementById('stepSubmittedDate').textContent = c.date;
-        if (['IN_PROGRESS', 'REOPENED', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION', 'FINAL_RESOLVED'].includes(c.status)) {
-          document.getElementById('stepReview').classList.add('is-done');
-        }
-        if (['IN_PROGRESS', 'RESOLUTION_SUBMITTED', 'AWAITING_STUDENT_CONFIRMATION', 'FINAL_RESOLVED'].includes(c.status)) {
-          document.getElementById('stepProgress').classList.add('is-done');
-        }
-        if (c.status === 'FINAL_RESOLVED') {
-          document.getElementById('stepResolved').classList.add('is-done');
-          document.getElementById('stepResolvedDate').textContent = c.final_resolution_time?.slice(0, 10) || 'Resolved';
-        }
-
-        // Action card for awaiting student confirmation
-        if (['AWAITING_STUDENT_CONFIRMATION', 'RESOLUTION_SUBMITTED'].includes(c.status)) {
-          document.getElementById('studentResolutionActionCard').style.display = 'block';
-
-          // Confirm Resolution Button
-          document.getElementById('confirmResolutionBtn').addEventListener('click', async () => {
-            if (!confirm('Are you satisfied that this grievance has been properly resolved?')) return;
-            try {
-              const cRes = await fetch('/api/student-confirm-resolution', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ complaint_id: c.complaint_id })
-              });
-              const cJson = await cRes.json();
-              if (cRes.ok && cJson.success) {
-                alert('Resolution confirmed! Ticket closed.');
-                window.location.reload();
-              } else {
-                alert(cJson.error || 'Failed to confirm resolution.');
-              }
-            } catch (e) {
-              alert('Network error.');
-            }
-          });
-
-          // Open Regenerate Modal
-          document.getElementById('openRegenerateModalBtn').addEventListener('click', () => {
-            document.getElementById('regenerateModal').style.display = 'flex';
-          });
-        }
-
-        // Regenerate Form
-        document.getElementById('regenerateForm').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const reason = document.getElementById('regenReasonInput').value.trim();
-          const btn = document.getElementById('confirmRegenBtn');
-          btn.disabled = true;
-          btn.textContent = 'Submitting...';
-
-          try {
-            const rRes = await fetch('/api/student-regenerate', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ complaint_id: c.complaint_id, reason })
-            });
-            const rJson = await rRes.json();
-            if (rRes.ok && rJson.success) {
-              alert(rJson.message);
-              window.location.reload();
-            } else {
-              alert(rJson.error || 'Failed to reopen complaint.');
-              btn.disabled = false;
-              btn.textContent = 'Submit Reopening';
-            }
-          } catch (e) {
-            alert('Network error.');
-            btn.disabled = false;
-            btn.textContent = 'Submit Reopening';
-          }
+        document.getElementById('confirmGo').addEventListener('click', async (e) => {
+          busy(e.currentTarget, 'Closing…');
+          try { await post('/api/student-confirm-resolution', { complaint_id: c.complaint_id }); location.reload(); }
+          catch (err) { alert(err.message); idle(e.currentTarget); }
         });
 
-        // History list
-        const histContainer = document.getElementById('historyList');
-        if (history.length === 0) {
-          histContainer.innerHTML = '<div style="color: #94a3b8; font-size: 0.85rem;">Ticket logged in registry. Awaiting admin review.</div>';
-        } else {
-          let hHtml = '';
-          for (const h of history) {
-            hHtml += `
-              <div style="background: rgba(3, 7, 18, 0.5); border-radius: 8px; padding: 0.75rem 1rem; border: 1px solid rgba(255, 255, 255, 0.06);">
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.25rem;">
-                  <span style="color: #38bdf8; font-weight: 600;">Status: ${h.old_status ? h.old_status + ' → ' : ''}${h.new_status}</span>
-                  <span style="color: #64748b;">${h.changed_at}</span>
-                </div>
-                ${h.remarks ? `<div style="font-size: 0.85rem; color: #cbd5e1; font-style: italic;">"${h.remarks}"</div>` : ''}
-              </div>
-            `;
-          }
-          histContainer.innerHTML = hHtml;
-        }
-
-      } catch (err) {
-        console.error('Error fetching complaint detail:', err);
+        document.getElementById('reopenForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const reason = document.getElementById('reopenReason').value.trim();
+          if (reason.length < 5) return document.getElementById('reopenReason').focus();
+          const btn = document.getElementById('reopenGo');
+          busy(btn, 'Reopening…');
+          try { await post('/api/student-regenerate', { complaint_id: c.complaint_id, reason }); location.reload(); }
+          catch (err) { alert(err.message); idle(btn); }
+        });
       }
     });
   </script>
