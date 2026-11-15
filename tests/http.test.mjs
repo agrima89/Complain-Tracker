@@ -7,6 +7,7 @@ process.env.DATABASE_PATH = path.join(os.tmpdir(), `cc_test_${process.pid}_${Dat
 process.env.ADMIN_PASSWORD = 'test-only-admin-password-123';
 delete process.env.DATABASE_URL;
 delete process.env.NETLIFY_DB_URL;
+delete process.env.NETLIFY_DATABASE_URL;
 
 const { initDb } = await import('../netlify/functions/utils/db.mjs');
 const { json, parseJsonBody, clientIp, rateLimit } = await import('../netlify/functions/utils/http.mjs');

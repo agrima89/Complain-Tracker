@@ -17,7 +17,7 @@ const { Pool } = pkg;
 import Database from 'better-sqlite3';
 import { initDb } from '../netlify/functions/utils/db.mjs';
 
-const pgUrl = process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
+const pgUrl = process.env.NETLIFY_DATABASE_URL || process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
 
 if (!pgUrl) {
   console.error("ERROR: No PostgreSQL connection string found.");

@@ -7,6 +7,7 @@ process.env.DATABASE_PATH = path.join(os.tmpdir(), `cc_match_${process.pid}_${Da
 process.env.ADMIN_PASSWORD = 'test-only-admin-password-123';
 delete process.env.DATABASE_URL;
 delete process.env.NETLIFY_DB_URL;
+delete process.env.NETLIFY_DATABASE_URL;
 
 const { getCanonicalLocationKey, isSimilarIssue } = await import('../netlify/functions/utils/duplicate_logic.mjs');
 const { detectRoomAndFloor } = await import('../netlify/functions/utils/smart_complaint.mjs');
