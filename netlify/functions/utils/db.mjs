@@ -25,7 +25,16 @@ try {
   currentDir = process.cwd() || os.tmpdir();
 }
 
-const PG_URL = process.env.NETLIFY_DATABASE_URL || process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
+import { getConnectionString } from '@netlify/database';
+
+// An explicit URL wins; otherwise, when deployed, ask Netlify Database for its connection string.
+function resolvePgUrl() {
+  const explicit = process.env.NETLIFY_DATABASE_URL || process.env.NETLIFY_DB_URL || process.env.DATABASE_URL;
+  if (explicit) return explicit;
+  if (process.env.NETLIFY_DEV === 'true' || process.env.DATABASE_PATH) return ''; // local dev/tests use SQLite
+  try { return getConnectionString() || ''; } catch (_) { return ''; }
+}
+const PG_URL = resolvePgUrl();
 if (!PG_URL && process.env.NODE_ENV === 'production') {
   throw new Error('A persistent PostgreSQL connection is required in production. Configure NETLIFY_DB_URL or DATABASE_URL in Netlify. SQLite in /tmp is not persistent across serverless invocations.');
 }
