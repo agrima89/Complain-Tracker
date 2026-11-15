@@ -111,7 +111,8 @@ export const handler = async (event, context) => {
     const isDuplicate = err && (err.code === '23505' || err.message?.includes('UNIQUE') || err.message?.includes('duplicate'));
     const msg = isDuplicate
       ? 'An account with this email already exists. Please sign in.'
-      : (err.message || 'An error occurred during registration.');
+      // Never show internal/database errors to users; the real error is in the function log.
+      : 'We could not create your account right now. Please try again in a few minutes.';
     return {
       statusCode: isDuplicate ? 409 : 500,
       headers: { 'Content-Type': 'application/json' },
