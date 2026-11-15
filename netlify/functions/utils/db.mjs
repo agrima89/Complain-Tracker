@@ -459,7 +459,10 @@ async function runInitDb() {
   if (adminCount === 0) {
     const adminPassword = process.env.ADMIN_PASSWORD;
     if (!adminPassword || adminPassword.length < 12) {
-      throw new Error('Fresh database has no administrators. Set a unique ADMIN_PASSWORD of at least 12 characters before initializing production.');
+      // Don't take the whole site down: students can still use it. Staff sign-in starts working
+      // once ADMIN_PASSWORD is set and the site redeploys.
+      console.error('[DB] Fresh database has no administrators. Set a unique ADMIN_PASSWORD of at least 12 characters to create the first admin.');
+      return;
     }
     await query(
       `INSERT INTO admins (username, password, role, department) VALUES ($1, $2, $3, $4)`,

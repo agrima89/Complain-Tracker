@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@netlify/blobs": "^8.1.0",
+    "@netlify/database": "^2.0.3",
     "@netlify/functions": "^2.8.2",
     "better-sqlite3": "^11.8.1",
     "busboy": "^1.6.0",
