@@ -16,10 +16,18 @@ export function toV2(handler) {
       if (TEXT_TYPES.test(headers['content-type'] || '')) body = buf.toString('utf8');
       else { body = buf.toString('base64'); isBase64Encoded = true; }
     }
+    // Rewrites in netlify.toml (e.g. /complaints/:id/evidence -> evidence-get?complaint_id=:id) don't
+    // pass their query string to modern functions, so recover those parameters from the original path.
+    const query = Object.fromEntries(url.searchParams);
+    let m;
+    if ((m = url.pathname.match(/^\/complaints\/(\d+)\/evidence\/?$/))) query.complaint_id ??= m[1];
+    else if ((m = url.pathname.match(/^\/(?:student|admin)\/complaint\/(\d+)\/(?:download-pdf|pdf)\/?$/))) query.id ??= m[1];
+    else if (/^\/admin\/report\/(?:download-pdf|pdf)\/?$/.test(url.pathname)) query.report ??= 'summary';
+
     const event = {
       httpMethod: req.method,
       headers,
-      queryStringParameters: Object.fromEntries(url.searchParams),
+      queryStringParameters: query,
       path: url.pathname,
       rawUrl: req.url,
       body,
