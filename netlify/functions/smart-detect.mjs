@@ -1,6 +1,7 @@
+import { toV2 } from './utils/v2.mjs';
 import { analyzeComplaint } from './utils/smart_complaint.mjs';
 
-export const handler = async (event, context) => {
+const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -49,3 +50,6 @@ export const handler = async (event, context) => {
     };
   }
 };
+
+// Modern Netlify Function (gets the Netlify Database connection).
+export default toV2(handler);

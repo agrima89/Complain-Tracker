@@ -1,3 +1,4 @@
+import { toV2 } from './utils/v2.mjs';
 /**
  * Staff accounts, managed by the main (all-departments) admin only.
  * GET  -> list accounts
@@ -29,7 +30,7 @@ async function audit(session, eventType, details) {
   } catch (e) { console.warn('[admin-staff] audit log failed:', e.message); }
 }
 
-export const handler = async (event) => {
+const handler = async (event) => {
   const session = getSessionFromEvent(event);
   if (!session.authenticated || session.user.role !== 'admin') return json(401, { success: false, error: 'Admin access required.' });
   if (session.user.admin_department) return json(403, { success: false, error: 'Only the main administrator can manage staff accounts.' });
@@ -87,3 +88,6 @@ export const handler = async (event) => {
 
   return json(400, { success: false, error: 'Unknown action.' });
 };
+
+// Modern Netlify Function (gets the Netlify Database connection).
+export default toV2(handler);

@@ -34,22 +34,24 @@ function resolvePgUrl() {
   if (process.env.NETLIFY_DEV === 'true' || process.env.DATABASE_PATH) return ''; // local dev/tests use SQLite
   try { return getConnectionString() || ''; } catch (_) { return ''; }
 }
-const PG_URL = resolvePgUrl();
-if (!PG_URL && process.env.NODE_ENV === 'production') {
-  throw new Error('A persistent PostgreSQL connection is required in production. Configure NETLIFY_DB_URL or DATABASE_URL in Netlify. SQLite in /tmp is not persistent across serverless invocations.');
-}
-let pool = null;
+// Resolved lazily (on first query) so the platform's environment is fully available.
+let pool;
 let sqliteDb = null;
 
-if (PG_URL) {
-  pool = new Pool({
-    connectionString: PG_URL,
-    ssl: PG_URL.includes('localhost') ? false : { rejectUnauthorized: false }
-  });
+function getPool() {
+  if (pool !== undefined) return pool;
+  const url = resolvePgUrl();
+  if (!url && process.env.NODE_ENV === 'production') {
+    throw new Error('A persistent PostgreSQL connection is required in production. Configure NETLIFY_DB_URL or DATABASE_URL in Netlify. SQLite in /tmp is not persistent across serverless invocations.');
+  }
+  pool = url
+    ? new Pool({ connectionString: url, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false } })
+    : null;
+  return pool;
 }
 
 export function isPostgres() {
-  return !!pool;
+  return !!getPool();
 }
 
 /**
@@ -198,8 +200,8 @@ export function getSqliteDb() {
  * If running on SQLite, $1, $2 are automatically converted to ?
  */
 export async function query(text, params = []) {
-  if (pool) {
-    const client = await pool.connect();
+  if (getPool()) {
+    const client = await getPool().connect();
     try {
       const res = await client.query(text, params);
       return {

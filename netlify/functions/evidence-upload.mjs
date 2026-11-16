@@ -1,8 +1,9 @@
+import { toV2 } from './utils/v2.mjs';
 import Busboy from 'busboy';
 import { getSessionFromEvent } from './utils/auth.mjs';
 import { saveEvidenceBlob, validateImageBuffer } from './utils/blobs.mjs';
 
-export const handler = async (event, context) => {
+const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -150,3 +151,6 @@ export const handler = async (event, context) => {
     };
   }
 };
+
+// Modern Netlify Function (gets the Netlify Database connection).
+export default toV2(handler);

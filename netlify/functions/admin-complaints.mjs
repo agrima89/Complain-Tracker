@@ -1,8 +1,9 @@
+import { toV2 } from './utils/v2.mjs';
 import { query, initDb } from './utils/db.mjs';
 import { getSessionFromEvent } from './utils/auth.mjs';
 import { formatTicketId, isSimilarIssue } from './utils/duplicate_logic.mjs';
 
-export const handler = async (event, context) => {
+const handler = async (event, context) => {
   const session = getSessionFromEvent(event);
   if (!session.authenticated || session.user.role !== 'admin') {
     return {
@@ -189,3 +190,6 @@ export const handler = async (event, context) => {
     };
   }
 };
+
+// Modern Netlify Function (gets the Netlify Database connection).
+export default toV2(handler);

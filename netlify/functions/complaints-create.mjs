@@ -1,3 +1,4 @@
+import { toV2 } from './utils/v2.mjs';
 import { query, initDb } from './utils/db.mjs';
 import { rateLimit, LIMITS } from './utils/http.mjs';
 import { getSessionFromEvent } from './utils/auth.mjs';
@@ -40,7 +41,7 @@ const CATEGORY_DEPT_MAP = {
   "Other": "Other"
 };
 
-export const handler = async (event, context) => {
+const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -421,3 +422,6 @@ export const handler = async (event, context) => {
     };
   }
 };
+
+// Modern Netlify Function (gets the Netlify Database connection).
+export default toV2(handler);
